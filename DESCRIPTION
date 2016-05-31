@@ -1,0 +1,17 @@
+Package: rly
+Type: Package
+Title: RLY
+Version: 0.1.0
+Date: 2016-05-31
+Author: Marek Jagielski
+Maintainer: Marek Jagielski <marek.jagielski@gmail.com>
+Description: RLY is a 100% Python implementation of the common parsing tools lex and yacc.
+License: file LICENSE
+URL: https://github.com/systemincloud/rly
+BugReports: https://github.com/systemincloud/rly/issues
+Depends:
+    R6
+RoxygenNote: 5.0.1
+Collate:
+    'lex.R'
+    'yacc.R'

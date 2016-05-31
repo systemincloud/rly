@@ -1,0 +1,67 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>rly</groupId>
+  <artifactId>rly</artifactId>
+  <version>0.1.0</version>
+  <packaging>pom</packaging>
+  <name>RLY is a 100% Python implementation of the common parsing tools lex and yacc.</name>
+
+  <build>
+    <plugins>
+      <plugin><groupId>org.codehaus.mojo</groupId><artifactId>exec-maven-plugin</artifactId><version>1.4.0</version>
+        <configuration>
+          <executable>R</executable>
+          <workingDirectory>${basedir}/..</workingDirectory>
+        </configuration>
+        <executions>
+          <execution><id>build</id><phase>prepare-package</phase>
+            <goals><goal>exec</goal></goals>
+            <configuration>
+              <arguments><argument>CMD</argument><argument>build</argument><argument>${project.artifactId}</argument></arguments>
+            </configuration>
+          </execution>
+          <execution><id>check</id><phase>verify</phase>
+            <goals><goal>exec</goal></goals>
+            <configuration>
+              <arguments><argument>CMD</argument><argument>check</argument><argument>${project.basedir}/target/${project.artifactId}_${project.version}.tar.gz</argument><argument>--output=${basedir}/target</argument></arguments>
+            </configuration>
+          </execution>
+          <execution><id>install</id><phase>install</phase>
+            <goals><goal>exec</goal></goals>
+            <configuration>
+              <arguments><argument>CMD</argument><argument>INSTALL</argument><argument>${project.artifactId}</argument></arguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId><version>1.8</version>
+        <executions>
+          <execution><id>package</id><phase>package</phase>
+            <configuration>
+              <target>
+                <move file="${project.basedir}/../${project.artifactId}_${project.version}.tar.gz" todir="${project.basedir}/target"/>
+              </target>
+            </configuration>
+            <goals><goal>run</goal></goals>
+          </execution>
+		</executions>
+      </plugin>
+	  <plugin><groupId>org.codehaus.mojo</groupId><artifactId>build-helper-maven-plugin</artifactId><version>1.10</version>
+	      <extensions>true</extensions>
+	      <executions>
+	        <execution><id>attach-artifacts</id><phase>package</phase>
+	          <goals><goal>attach-artifact</goal></goals>
+	          <configuration>
+	            <artifacts>
+	              <artifact><file>target/${project.artifactId}_${project.version}.tar.gz</file><type>tar.gz</type></artifact>
+	            </artifacts>
+	          </configuration>
+	        </execution>
+	      </executions>
+	    </plugin>
+    </plugins>
+  </build>
+</project>
