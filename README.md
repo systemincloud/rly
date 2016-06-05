@@ -1,8 +1,7 @@
 Introduction
 ============
 
-RLY is a 100% Python implementation of the common parsing tools lex
-and yacc.
+RLY is a 100% R implementation of the common parsing tools lex and yacc.
 
 How to Use
 ==========
