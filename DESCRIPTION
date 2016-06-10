@@ -9,6 +9,7 @@ Description: RLY is a 100% Python implementation of the common parsing tools lex
 License: file LICENSE
 URL: https://github.com/systemincloud/rly
 BugReports: https://github.com/systemincloud/rly/issues
+Suggests: testthat
 Depends:
     R6
 RoxygenNote: 5.0.1
