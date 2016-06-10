@@ -4,7 +4,7 @@
 \alias{yacc}
 \title{Build a parser}
 \usage{
-yacc(module = NA, start = NA, check_recursion = TRUE,
+yacc(module = NA, debug = FALSE, start = NA, check_recursion = TRUE,
   write_tables = True, picklefile = NA)
 }
 \description{

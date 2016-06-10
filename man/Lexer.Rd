@@ -3,8 +3,7 @@
 \docType{class}
 \name{Lexer}
 \alias{Lexer}
-\title{lex.R
-=== Lexing Engine ===
+\title{=== Lexing Engine ===
 The following Lexer class implements the lexer runtime. There are only
 a few public methods and attributes:
   input()          -  Store a new string in the lexer

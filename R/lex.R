@@ -1,5 +1,11 @@
 #' lex.R
 
+#' Print debug message.
+#'
+#' @param msg message to display.
+#' @export
+dbg = function(msg) cat(c("DEBUG> ", msg, "\n"))
+
 #' === Lexing Engine ===
 #' The following Lexer class implements the lexer runtime. There are only
 #' a few public methods and attributes:
@@ -82,6 +88,7 @@ Lexer <- R6Class("Lexer",
     #' input() - Push a new string into the lexer
     #' ------------------------------------------------------------
     input = function(s) {
+
     },
     #' ------------------------------------------------------------
     #' begin() - Changes the lexing state
@@ -112,9 +119,130 @@ Lexer <- R6Class("Lexer",
     #' opttoken() - Return the next token from the Lexer
     #' ------------------------------------------------------------
     token = function() {
+      # Make local copies of frequently referenced attributes
+      lexpos    <- self$lexpos
+      lexlen    <- self$lexlen
+      lexignore <- self$lexignore
+      lexdata   <- self$lexdata
+
+      while(lexpos < lexlen) {
+        # This code provides some short-circuit code for whitespace, tabs, and other ignored characters
+        if(lexdata[lexpos] %in% lexignore) {
+          lexpos = lexpos + 1
+          next
+        }
+
+        broke <- FALSE
+
+        # Look for a regular expression match
+        for(lexre in self$lexre) {
+          m <- lexre$match(lexdata, lexpos)
+          if(!m) next
+
+          # Create a token for return
+          tok <- LexToken$new()
+          tok$value <- m$group()
+          tok$lineno <- self$lineno
+          tok$lexpos <- lexpos
+
+          i <- m$lastindex
+          func <- lexindexfunc[i]
+
+          if(!func) {
+            # If no token type was set, it's an ignored token
+            if(tok$type) {
+              self$lexpos <- m$end()
+              return(tok)
+            } else {
+              lexpos <- m$end()
+              broke <- TRUE
+              break
+            }
+          }
+
+          lexpos <- m$end()
+
+          # If token is processed by a function, call it
+
+          tok$lexer <- self      # Set additional attributes useful in token rules
+          self$lexmatch <- m
+          self$lexpos <- lexpos
+
+          newtok <- func(tok)
+
+          # Every function must return a token, if nothing, we just move to next token
+          if(!newtok) {
+            lexpos    <- self.lexpos         # This is here in case user has updated lexpos.
+            lexignore <- self.lexignore      # This is here in case there was a state change
+            broke <- TRUE
+            break
+          }
+
+          # Verify type of the token.  If not in the token map, raise an error
+          if(self$lexoptimize) {
+            if(!(newtok$type %in% self$lextokens_all)) {
+              stop(sprintf("%s:%d: Rule '%s' returned an unknown token type '%s'", func$code$co_filename,
+                                                                                   func$name,
+                                                                                   newtok$type))
+            }
+          }
+          return(newtok)
+        }
+        if(!broke) {
+          # No match, see if in literals
+          if(lexdata[lexpos] %in% self$lexliterals) {
+            tok <- LexToken()
+            tok$value <- lexdata[lexpos]
+            tok$lineno <- self$lineno
+            tok$type <- tok$value
+            tok$lexpos <- lexpos
+            self$lexpos <- lexpos + 1
+            return(tok)
+          }
+
+          # No match. Call t_error() if defined.
+          if(self$lexerrorf) {
+            tok <- LexToken$new()
+            tok$value <- head(self$lexdata, lexpos)
+            tok$lineno <- self$lineno
+            tok$type <- 'error'
+            tok$lexer <- self
+            tok$lexpos <- lexpos
+            self$lexpos <- lexpos
+            newtok <- self$lexerrorf(tok)
+            if(lexpos == self.lexpos) {
+              # Error method didn't change text position at all. This is an error.
+              stop(sprintf("Scanning error. Illegal character '%s'", lexdata[lexpos]))
+            }
+            lexpos <- self.lexpos
+            if(!newtok) continue
+            return(newtok)
+          }
+
+          self.lexpos <- lexpos
+          stop(sprintf("Illegal character '%s' at index %d", lexdata[lexpos], lexpos))
+        }
+      }
+#          formals(g)$y
+
+      if(self$lexeoff) {
+        tok <- LexToken$new()
+        tok$type <- 'eof'
+        tok$value <- ''
+        tok$lineno <- self.lineno
+        tok$lexpos <- lexpos
+        tok$lexer <- self
+        self$lexpos <- lexpos
+        newtok <- self$lexeoff(tok)
+        return(newtok)
+      }
+
+      self$lexpos = lexpos + 1
+      if(is.na(self$lexdata)) stop('No input string given with input()')
     }
   )
 )
+
 
 #' Build all of the regular expression rules from definitions in the supplied module
 #' @export
@@ -129,153 +257,6 @@ lex = function(module=NA,
   lexobj = Lexer$new()
 
   items <- ls(module)
+
+  return(lexobj)
 }
-
-#formals(g)$y
-
-
-
-
-## Collect parser information from the dictionary
-#linfo = LexerReflect(ldict, log=errorlog, reflags=reflags)
-#linfo.get_all()
-#if not optimize:
-#      if linfo.validate_all():
-#            raise SyntaxError("Can't build lexer")
-#
-#if optimize and lextab:
-#      try:
-#      lexobj.readtab(lextab, ldict)
-#token = lexobj.token
-#input = lexobj.input
-#lexer = lexobj
-#return lexobj
-#
-#except ImportError:
-#    pass
-#
-## Dump some basic debugging information
-#if debug:
-#      debuglog.info('lex: tokens   = %r', linfo.tokens)
-#debuglog.info('lex: literals = %r', linfo.literals)
-#debuglog.info('lex: states   = %r', linfo.stateinfo)
-#
-## Build a dictionary of valid token names
-#lexobj.lextokens = set()
-#for n in linfo.tokens:
-#    lexobj.lextokens.add(n)
-#
-## Get literals specification
-#if isinstance(linfo.literals, (list, tuple)):
-#    lexobj.lexliterals = type(linfo.literals[0])().join(linfo.literals)
-#else:
-#      lexobj.lexliterals = linfo.literals
-#
-#lexobj.lextokens_all = lexobj.lextokens | set(lexobj.lexliterals)
-#
-## Get the stateinfo dictionary
-#stateinfo = linfo.stateinfo
-#
-#regexs = {}
-## Build the master regular expressions
-#for state in stateinfo:
-#    regex_list = []
-#
-## Add rules defined by functions first
-#for fname, f in linfo.funcsym[state]:
-#    line = f.__code__.co_firstlineno
-#file = f.__code__.co_filename
-#regex_list.append('(?P<%s>%s)' % (fname, _get_regex(f)))
-#        if debug:
-#              debuglog.info("lex: Adding rule %s -> '%s' (state '%s')", fname, _get_regex(f), state)
-#
-## Now add all of the simple rules
-#for name, r in linfo.strsym[state]:
-#    regex_list.append('(?P<%s>%s)' % (name, r))
-#            if debug:
-#                  debuglog.info("lex: Adding rule %s -> '%s' (state '%s')", name, r, state)
-#
-#regexs[state] = regex_list
-#
-## Build the master regular expressions
-#
-#if debug:
-#      debuglog.info('lex: ==== MASTER REGEXS FOLLOW ====')
-#
-#for state in regexs:
-#    lexre, re_text, re_names = _form_master_re(regexs[state], reflags, ldict, linfo.toknames)
-#lexobj.lexstatere[state] = lexre
-#lexobj.lexstateretext[state] = re_text
-#lexobj.lexstaterenames[state] = re_names
-#if debug:
-#      for i, text in enumerate(re_text):
-#    debuglog.info("lex: state '%s' : regex[%d] = '%s'", state, i, text)
-#
-## For inclusive states, we need to add the regular expressions from the INITIAL state
-#for state, stype in stateinfo.items():
-#    if state != 'INITIAL' and stype == 'inclusive':
-#          lexobj.lexstatere[state].extend(lexobj.lexstatere['INITIAL'])
-#lexobj.lexstateretext[state].extend(lexobj.lexstateretext['INITIAL'])
-#lexobj.lexstaterenames[state].extend(lexobj.lexstaterenames['INITIAL'])
-#
-#lexobj.lexstateinfo = stateinfo
-#lexobj.lexre = lexobj.lexstatere['INITIAL']
-#lexobj.lexretext = lexobj.lexstateretext['INITIAL']
-#lexobj.lexreflags = reflags
-#
-## Set up ignore variables
-#lexobj.lexstateignore = linfo.ignore
-#lexobj.lexignore = lexobj.lexstateignore.get('INITIAL', '')
-#
-## Set up error functions
-#lexobj.lexstateerrorf = linfo.errorf
-#lexobj.lexerrorf = linfo.errorf.get('INITIAL', None)
-#if not lexobj.lexerrorf:
-#      errorlog.warning('No t_error rule is defined')
-#
-## Set up eof functions
-#lexobj.lexstateeoff = linfo.eoff
-#lexobj.lexeoff = linfo.eoff.get('INITIAL', None)
-#
-## Check state information for ignore and error rules
-#for s, stype in stateinfo.items():
-#    if stype == 'exclusive':
-#          if s not in linfo.errorf:
-#                errorlog.warning("No error rule is defined for exclusive state '%s'", s)
-#if s not in linfo.ignore and lexobj.lexignore:
-#      errorlog.warning("No ignore rule is defined for exclusive state '%s'", s)
-#elif stype == 'inclusive':
-#    if s not in linfo.errorf:
-#          linfo.errorf[s] = linfo.errorf.get('INITIAL', None)
-#if s not in linfo.ignore:
-#      linfo.ignore[s] = linfo.ignore.get('INITIAL', '')
-#
-## Create global versions of the token() and input() functions
-#token = lexobj.token
-#input = lexobj.input
-#lexer = lexobj
-#
-## If in optimize mode, we write the lextab
-#if lextab and optimize:
-#      if outputdir is None:
-#            # If no output directory is set, the location of the output files
-#            # is determined according to the following rules:
-#            #     - If lextab specifies a package, files go into that package directory
-#            #     - Otherwise, files go in the same directory as the specifying module
-#            if isinstance(lextab, types.ModuleType):
-#                  srcfile = lextab.__file__
-#else:
-#          if '.' not in lextab:
-#    srcfile = ldict['__file__']
-#else:
-#      parts = lextab.split('.')
-#pkgname = '.'.join(parts[:-1])
-#exec('import %s' % pkgname)
-#        srcfile = getattr(sys.modules[pkgname], '__file__', '')
-#outputdir = os.path.dirname(srcfile)
-#try:
-#    lexobj.writetab(lextab, outputdir)
-#except IOError as e:
-#    errorlog.warning("Couldn't write lextab module %r. %s" % (lextab, e))
-#
-#            return lexobj

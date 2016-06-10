@@ -66,12 +66,12 @@ CalcLexer <- R6Class("CalcLexer",
   )
 )
 
-lexer = rly::lex(CalcLexer$new())
-parser = rly::yacc(CalcParser$new())
+lexer = rly::lex(CalcLexer$new(), debug=TRUE)
+parser = rly::yacc(CalcParser$new(), debug=TRUE)
 
 while(TRUE) {
   cat('calc > ')
   s = readLines(file("stdin"), n=1)
   if(s == 'exit') break
-  parser$parse(s, lexer=lexer)
+  parser$parse(s, lexer, debug=TRUE)
 }

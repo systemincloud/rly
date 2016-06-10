@@ -1,6 +1,5 @@
 #' yacc.R
 
-
 #'-----------------------------------------------------------------------------
 #'                        ===  LR Parsing Engine ===
 #'
@@ -24,7 +23,9 @@
 #' @format An \code{\link{R6Class}} generator object
 #' @keywords data
 YaccSymbol <- R6Class("YaccSymbol",
-  public = list()
+  public = list(
+    type = NA
+  )
 )
 
 
@@ -43,6 +44,10 @@ YaccSymbol <- R6Class("YaccSymbol",
 #' @keywords data
 YaccProduction <- R6Class("YaccProduction",
   public = list(
+    slice = NA,
+    stack = NA,
+    lexer = NA,
+    parser = NA,
     initialize = function(s, stack=NA) {
       self$slice <- s
       self$stack <- stack
@@ -67,12 +72,13 @@ LRParser <- R6Class("LRParser",
     goto = NA,
     errorfunc = NA,
     errorok = NA,
+    statestack = NA,
+    symstack = NA,
     initialize = function(lrtab, errorf) {
       self$productions <- lrtab$lr_productions
       self$action <- lrtab$lr_action
       self$goto <- lrtab$lr_goto
       self$errorfunc <- errorf
-      self$set_defaulted_states()
       self$errorok <- TRUE
     },
     errok = function() {
@@ -80,31 +86,23 @@ LRParser <- R6Class("LRParser",
     },
     restart = function() {
     },
-    set_defaulted_states = function() {
-    },
-    disable_defaulted_states = function() {
-    },
-    parse = function(input, lexer) {
-      lookahead <- NA                           # Current lookahead symbol
-      lookaheadstack <- c()                     # Stack of lookahead symbols
-      actions <- self$action                    # Local reference to action table (to avoid lookup on self$)
-      goto <- self$goto                         # Local reference to goto table (to avoid lookup on self$)
-      prod <- self$productions                  # Local reference to production list (to avoid lookup on self$)
-      defaulted_states <- self$defaulted_states # Local reference to defaulted states
-      pslice <- YaccProduction$new()            # Production object passed to grammar rules
-      errorcount <- 0                           # Used during error recovery
+    parse = function(input, lexer, debug=FALSE) {
+      if(debug) dbg("LRParser:parse:start")
+      lookahead <- NA                  # Current lookahead symbol
+      lookaheadstack <- c()            # Stack of lookahead symbols
+      actions <- self$action           # Local reference to action table (to avoid lookup on self$)
+      goto <- self$goto                # Local reference to goto table (to avoid lookup on self$)
+      prod <- self$productions         # Local reference to production list (to avoid lookup on self$)
+      pslice <- YaccProduction$new(NA) # Production object passed to grammar rules
 
-      # Set up the lexer and parser objects on pslice
+      if(debug) dbg("LRParser:parse: Set up the lexer and parser objects on pslice")
+
       pslice$lexer <- lexer
       pslice$parser <- self
 
       lexer$input(input)
-      get_token <- lexer$token
-      # Set the parser() token method (sometimes used in error recovery)
-      self$token <- get_token
 
-      # Set up the state and symbol stacks
-
+      if(debug) dbg("LRParser:parse: Set up the state and symbol stacks")
       statestack <- c()               # Stack of parsing states
       self$statestack <- statestack
       symstack <- c()                 # Stack of grammar symbols
@@ -116,299 +114,60 @@ LRParser <- R6Class("LRParser",
       # The start state is assumed to be (0,$end)
 
       statestack <- c(0)
-      sym <- YaccSymbol()
+      sym <- YaccSymbol$new()
       sym$type = '$end'
       symstack <- c(sym)
       state <- 0
+
+      while(TRUE) {
+        # Get the next symbol on the input.  If a lookahead symbol
+        # is already set, we just use that. Otherwise, we'll pull
+        # the next token off of the lookaheadstack or from the lexer
+
+        if(debug) dbg(sprintf("LRParser:parse: State  : %s", state))
+
+        t <- NA
+
+        if(is.na(lookahead)) {
+          if(debug) dbg("LRParser:parse: lookahead  : NA")
+
+          if(length(lookaheadstack) == 0) lookahead <- lexer$token() # Get the next token
+          else {
+            lookahead <- tail(lookaheadstack,n=1)[0]
+            lookaheadstack <- head(lookaheadstack,-1)
+          }
+
+          if(is.na(lookahead)) {
+            lookahead <- YaccSymbol$new()
+            lookahead$type <- '$end'
+          }
+        }
+
+        # Check the action table
+        ltype <- lookahead$type
+        t <- actions[state]$get(ltype)
+
+        if(!is.na(t)) {
+          if(t > 0) {
+
+          }
+          if(t < 0) {
+
+          }
+          if(t == 0) {
+            n = tail(symstack, n=1)
+            result = n$value
+
+            if(debug) dbg(sprintf('Done   : Returning %s', result))
+            if(debug) dbg('PARSE DEBUG END')
+
+            return(result)
+          }
+        } else stop("yacc: internal parser error!!!")
+      }
     }
   )
 )
-
-
-
-
-
-#def parsedebug(self, input=None, lexer=None, debug=False, tracking=False, tokenfunc=None):
-#    #--! parsedebug-start
-#
-#while True:
-#      # Get the next symbol on the input.  If a lookahead symbol
-#      # is already set, we just use that. Otherwise, we'll pull
-#      # the next token off of the lookaheadstack or from the lexer
-#
-#      #--! DEBUG
-#      debug.debug('')
-#debug.debug('State  : %s', state)
-##--! DEBUG
-#
-#if state not in defaulted_states:
-#      if not lookahead:
-#            if not lookaheadstack:
-#                  lookahead = get_token()     # Get the next token
-#            else:
-#                  lookahead = lookaheadstack.pop()
-#if not lookahead:
-#      lookahead = YaccSymbol()
-#lookahead.type = '$end'
-#
-## Check the action table
-#ltype = lookahead.type
-#t = actions[state].get(ltype)
-#else:
-#      t = defaulted_states[state]
-##--! DEBUG
-#debug.debug('Defaulted state %s: Reduce using %d', state, -t)
-##--! DEBUG
-#
-##--! DEBUG
-#debug.debug('Stack  : %s',
-#    ('%s . %s' % (' '.join([xx.type for xx in symstack][1:]), str(lookahead))).lstrip())
-#          #--! DEBUG
-#
-#          if t is not None:
-#                if t > 0:
-#                      # shift a symbol on the stack
-#                      statestack.append(t)
-#          state = t
-#
-##--! DEBUG
-#debug.debug('Action : Shift and goto state %s', t)
-##--! DEBUG
-#
-#symstack.append(lookahead)
-#lookahead = None
-#
-## Decrease error count on successful shift
-#if errorcount:
-#      errorcount -= 1
-#continue
-#
-#if t < 0:
-#      # reduce a symbol on the stack, emit a production
-#      p = prod[-t]
-#pname = p.name
-#plen  = p.len
-#
-## Get production function
-#sym = YaccSymbol()
-#sym.type = pname       # Production name
-#sym.value = None
-#
-##--! DEBUG
-#if plen:
-#      debug.info('Action : Reduce rule [%s] with %s and goto state %d', p.str,
-#          '['+','.join([format_stack_entry(_v.value) for _v in symstack[-plen:]])+']',
-#          goto[statestack[-1-plen]][pname])
-#else:
-#      debug.info('Action : Reduce rule [%s] with %s and goto state %d', p.str, [],
-#          goto[statestack[-1]][pname])
-#
-##--! DEBUG
-#
-#if plen:
-#      targ = symstack[-plen-1:]
-#targ[0] = sym
-#
-##--! TRACKING
-#if tracking:
-#      t1 = targ[1]
-#sym.lineno = t1.lineno
-#sym.lexpos = t1.lexpos
-#t1 = targ[-1]
-#sym.endlineno = getattr(t1, 'endlineno', t1.lineno)
-#sym.endlexpos = getattr(t1, 'endlexpos', t1.lexpos)
-##--! TRACKING
-#
-## !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-## The code enclosed in this section is duplicated
-## below as a performance optimization.  Make sure
-## changes get made in both locations.
-#
-#pslice.slice = targ
-#
-#try:
-#    # Call the grammar rule with our special slice object
-#    del symstack[-plen:]
-#del statestack[-plen:]
-#p.callable(pslice)
-##--! DEBUG
-#debug.info('Result : %s', format_result(pslice[0]))
-##--! DEBUG
-#symstack.append(sym)
-#state = goto[statestack[-1]][pname]
-#statestack.append(state)
-#except SyntaxError:
-#    # If an error was set. Enter error recovery state
-#    lookaheadstack.append(lookahead)
-#symstack.pop()
-#statestack.pop()
-#state = statestack[-1]
-#sym.type = 'error'
-#lookahead = sym
-#errorcount = error_count
-#self.errorok = False
-#continue
-## !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-#
-#else:
-#
-#      #--! TRACKING
-#      if tracking:
-#            sym.lineno = lexer.lineno
-#sym.lexpos = lexer.lexpos
-##--! TRACKING
-#
-#targ = [sym]
-#
-## !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-## The code enclosed in this section is duplicated
-## above as a performance optimization.  Make sure
-## changes get made in both locations.
-#
-#pslice.slice = targ
-#
-#try:
-#    # Call the grammar rule with our special slice object
-#    p.callable(pslice)
-##--! DEBUG
-#debug.info('Result : %s', format_result(pslice[0]))
-##--! DEBUG
-#symstack.append(sym)
-#state = goto[statestack[-1]][pname]
-#statestack.append(state)
-#except SyntaxError:
-#    # If an error was set. Enter error recovery state
-#    lookaheadstack.append(lookahead)
-#symstack.pop()
-#statestack.pop()
-#state = statestack[-1]
-#sym.type = 'error'
-#lookahead = sym
-#errorcount = error_count
-#self.errorok = False
-#continue
-## !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-#
-#if t == 0:
-#      n = symstack[-1]
-#result = getattr(n, 'value', None)
-##--! DEBUG
-#debug.info('Done   : Returning %s', format_result(result))
-#debug.info('PLY: PARSE DEBUG END')
-##--! DEBUG
-#return result
-#
-#if t is None:
-#
-#      #--! DEBUG
-#      debug.error('Error  : %s',
-#          ('%s . %s' % (' '.join([xx.type for xx in symstack][1:]), str(lookahead))).lstrip())
-#                #--! DEBUG
-#
-#                # We have some kind of parsing error here.  To handle
-#                # this, we are going to push the current token onto
-#                # the tokenstack and replace it with an 'error' token.
-#                # If there are any synchronization rules, they may
-#                # catch it.
-#                #
-#                # In addition to pushing the error token, we call call
-#                # the user defined p_error() function if this is the
-#                # first syntax error.  This function is only called if
-#                # errorcount == 0.
-#                if errorcount == 0 or self.errorok:
-#                      errorcount = error_count
-#                self.errorok = False
-#errtoken = lookahead
-#if errtoken.type == '$end':
-#      errtoken = None               # End of file!
-#if self.errorfunc:
-#      if errtoken and not hasattr(errtoken, 'lexer'):
-#            errtoken.lexer = lexer
-#tok = call_errorfunc(self.errorfunc, errtoken, self)
-#if self.errorok:
-#      # User must have done some kind of panic
-#      # mode recovery on their own.  The
-#      # returned token is the next lookahead
-#      lookahead = tok
-#errtoken = None
-#continue
-#else:
-#      if errtoken:
-#            if hasattr(errtoken, 'lineno'):
-#                  lineno = lookahead.lineno
-#else:
-#      lineno = 0
-#if lineno:
-#      sys.stderr.write('yacc: Syntax error at line %d, token=%s\n' % (lineno, errtoken.type))
-#              else:
-#                    sys.stderr.write('yacc: Syntax error, token=%s' % errtoken.type)
-#                            else:
-#                                  sys.stderr.write('yacc: Parse error in input. EOF\n')
-#return
-#
-#else:
-#      errorcount = error_count
-#
-## case 1:  the statestack only has 1 entry on it.  If we're in this state, the
-## entire parse has been rolled back and we're completely hosed.   The token is
-## discarded and we just keep going.
-#
-#if len(statestack) <= 1 and lookahead.type != '$end':
-#      lookahead = None
-#errtoken = None
-#state = 0
-## Nuke the pushback stack
-#del lookaheadstack[:]
-#continue
-#
-## case 2: the statestack has a couple of entries on it, but we're
-## at the end of the file. nuke the top entry and generate an error token
-#
-## Start nuking entries on the stack
-#if lookahead.type == '$end':
-#      # Whoa. We're really hosed here. Bail out
-#      return
-#
-#if lookahead.type != 'error':
-#      sym = symstack[-1]
-#if sym.type == 'error':
-#      # Hmmm. Error is on top of stack, we'll just nuke input
-#      # symbol and continue
-#      #--! TRACKING
-#      if tracking:
-#            sym.endlineno = getattr(lookahead, 'lineno', sym.lineno)
-#sym.endlexpos = getattr(lookahead, 'lexpos', sym.lexpos)
-##--! TRACKING
-#lookahead = None
-#continue
-#
-## Create the error symbol for the first time and make it the new lookahead symbol
-#t = YaccSymbol()
-#t.type = 'error'
-#
-#if hasattr(lookahead, 'lineno'):
-#      t.lineno = t.endlineno = lookahead.lineno
-#if hasattr(lookahead, 'lexpos'):
-#      t.lexpos = t.endlexpos = lookahead.lexpos
-#t.value = lookahead
-#lookaheadstack.append(lookahead)
-#lookahead = t
-#else:
-#      sym = symstack.pop()
-##--! TRACKING
-#if tracking:
-#      lookahead.lineno = sym.lineno
-#lookahead.lexpos = sym.lexpos
-##--! TRACKING
-#statestack.pop()
-#state = statestack[-1]
-#
-#continue
-#
-## Call an error function here
-#raise RuntimeError('yacc: internal parser error!!!\n')
-#
-##--! parsedebug-end
 
 
 #' -----------------------------------------------------------------------------
@@ -983,6 +742,7 @@ ParserReflect <- R6Class("ParserReflect",
 #' Build a parser
 #' @export
 yacc = function(module=NA,
+                debug=FALSE,
                 start=NA,
                 check_recursion=TRUE,
                 write_tables=True,
