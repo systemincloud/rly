@@ -28,11 +28,12 @@ getLexerCalc = function() {
   return(CalcLexer$new())
 }
 
-test_that("str_length is number of characters", {
-    lexer = getLexerCalc()
-    lexer$input("5 + 3")
-    expect_equal(lexer$token(), "5")
-    expect_equal(lexer$token(), "+")
-    expect_equal(lexer$token(), "3")
+test_that("lex: basic calculator", {
+    lexer = rly::lex(getLexerCalc(), debug=TRUE)
+#    cat(names(getLexerCalc()))
+#    lexer$input("5 + 3")
+#    expect_equal(lexer$token(), "5")
+#    expect_equal(lexer$token(), "+")
+#    expect_equal(lexer$token(), "3")
   }
 )
