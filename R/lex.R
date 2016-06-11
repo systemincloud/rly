@@ -288,7 +288,7 @@ LexerReflect <- R6Class("LexerReflect",
     # Get the tokens map
     get_tokens = function() {
       tokens <- self$module$tokens
-      if(is.null(tokens)){
+      if(is.null(tokens)) {
         dbg('No token list is defined')
         self$error = TRUE
         return
@@ -319,21 +319,18 @@ LexerReflect <- R6Class("LexerReflect",
     },
     # Get the literals specifier
     get_literals = function() {
-#      self.literals = self.ldict.get('literals', '')
-#      if not self.literals:
-#            self.literals = ''
+      literals <- self$module$literals
+      if(is.null(literals)) literals <- c()
+      self$literals <- literals
     },
     # Validate literals
-    validate_literals = function(){
-#      try:
-#          for c in self.literals:
-#          if not isinstance(c, StringTypes) or len(c) > 1:
-#                self.log.error('Invalid literal %s. Must be a single character', repr(c))
-#      self.error = True
-#
-#      except TypeError:
-#          self.log.error('Invalid literals specification. literals must be a sequence of characters')
-#      self.error = True
+    validate_literals = function() {
+      for(l in self$literals) {
+        if(!is.character(l) || nchar(l) > 1) {
+          dbg('Invalid literal. Must be a single character')
+          self$error = TRUE
+        }
+      }
     },
     get_states = function() {
 #      self.states = self.ldict.get('states', None)
