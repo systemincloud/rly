@@ -268,7 +268,7 @@ LexerReflect <- R6Class("LexerReflect",
       self$tokens <- c()
       self$literals <- c()
       self$states <- c()
-      self$stateinfo <- c()
+      self$stateinfo <- new.env()
       self$error <- FALSE
     },
     # Get all of the basic information
@@ -290,17 +290,17 @@ LexerReflect <- R6Class("LexerReflect",
       tokens <- self$module$tokens
       if(is.null(tokens)) {
         dbg('No token list is defined')
-        self$error = TRUE
+        self$error <- TRUE
         return
       }
       if(!is.vector(tokens)) {
         dbg('tokens must be a vector')
-        self$error = TRUE
+        self$error <- TRUE
         return
       }
       if(length(tokens) == 0) {
         dbg('tokens is empty')
-        self$error = TRUE
+        self$error <- TRUE
         return
       }
       self$tokens <- tokens
@@ -311,10 +311,10 @@ LexerReflect <- R6Class("LexerReflect",
       for(t in self$tokens) {
         if(!grepl(reg_is_identifier, t, perl=TRUE)) {
           dbg(sprintf("Bad token name '%s'", t))
-      		self$error = TRUE
+      		self$error <- TRUE
         }
         if(t %in% terminals) dbg(sprintf("Token '%s' multiply defined", t))
-        terminals = c(terminals, t)
+        terminals <- c(terminals, t)
       }
     },
     # Get the literals specifier
@@ -328,37 +328,46 @@ LexerReflect <- R6Class("LexerReflect",
       for(l in self$literals) {
         if(!is.character(l) || nchar(l) > 1) {
           dbg('Invalid literal. Must be a single character')
-          self$error = TRUE
+          self$error <- TRUE
         }
       }
     },
     get_states = function() {
-#      self.states = self.ldict.get('states', None)
-## Build statemap
-#      if self.states:
-#            if not isinstance(self.states, (tuple, list)):
-#        self.log.error('states must be defined as a tuple or list')
-#    self.error = True
-#    else:
-#              for s in self.states:
-#        if not isinstance(s, tuple) or len(s) != 2:
-#              self.log.error("Invalid state specifier %s. Must be a tuple (statename,'exclusive|inclusive')", repr(s))
-#    self.error = True
-#    continue
-#    name, statetype = s
-#    if not isinstance(name, StringTypes):
-#          self.log.error('State name %s must be a string', repr(name))
-#    self.error = True
-#    continue
-#    if not (statetype == 'inclusive' or statetype == 'exclusive'):
-#          self.log.error("State type for state %s must be 'inclusive' or 'exclusive'", name)
-#    self.error = True
-#    continue
-#    if name in self.stateinfo:
-#          self.log.error("State '%s' already defined", name)
-#    self.error = True
-#    continue
-#    self.stateinfo[name] = statetype
+      self$states = self$module$states
+      # Build statemap
+      if(!is.null(self$states)) {
+        if(!is.vector(self$states)) {
+          dbg('states must be defined as a vector')
+          self$error <- TRUE
+          return
+        } else {
+          for(s in self$states) {
+            if(!is.vector(s) || length(s) != 2) {
+              dbg("Invalid state specifier. Must be a tuple (statename,'exclusive|inclusive')")
+              self$error <- TRUE
+              next
+            }
+            name <- s[1]
+            statetype <- s[2]
+            if(!is.character(name)) {
+              dbg('State name must be a string')
+              self$error <- TRUE
+              next
+            }
+            if(!(statetype == 'inclusive' || statetype == 'exclusive')) {
+              dbg("State type for state must be 'inclusive' or 'exclusive'")
+              self$error <- TRUE
+              next
+            }
+            if(name %in% names(self$stateinfo)) {
+              dbg(sprintf("State '%s' already defined", name))
+              self$error <- TRUE
+              next
+            }
+            self$stateinfo[[name]] <- statetype
+          }
+        }
+      }
     },
     # Get all of the symbols with a t_ prefix and sort them into various
     # categories (functions, strings, error functions, and ignore characters)
@@ -577,12 +586,12 @@ lex = function(module=NA,
 
   # Dump some basic debugging information
   if(debug) {
-    if(length(linfo$tokens) > 0)   dbg(sprintf('lex: tokens   = %s', paste(linfo$tokens, collapse=" ")))
-    else                           dbg('lex: tokens empty')
-    if(length(linfo$literals) > 0) dbg(sprintf('lex: literals = %s', paste(linfo$literals, collapse=" ")))
-    else                           dbg('lex: literals empty')
-    if(length(linfo$states) > 0)   dbg(sprintf('lex: states   = %s', paste(linfo$states, collapse=" ")))
-    else                           dbg('lex: states empty')
+    if(length(linfo$tokens) > 0)    dbg(sprintf('lex: tokens   = %s', paste(linfo$tokens, collapse=" ")))
+    else                            dbg('lex: tokens empty')
+    if(length(linfo$literals) > 0)  dbg(sprintf('lex: literals = %s', paste(linfo$literals, collapse=" ")))
+    else                            dbg('lex: literals empty')
+    if(length(linfo$stateinfo) > 0) dbg(sprintf('lex: states   = %s', paste(names(linfo$stateinfo), collapse=" ")))
+    else                            dbg('lex: states empty')
   }
 
   # Build a dictionary of valid token names

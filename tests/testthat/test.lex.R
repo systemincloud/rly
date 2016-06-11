@@ -29,7 +29,7 @@ getLexerCalc = function() {
 }
 
 test_that("lex: basic calculator", {
-    lexer = rly::lex(getLexerCalc(), debug=TRUE)
+    lexer <- rly::lex(getLexerCalc(), debug=TRUE)
 #    cat(names(getLexerCalc()))
 #    lexer$input("5 + 3")
 #    expect_equal(lexer$token(), "5")
