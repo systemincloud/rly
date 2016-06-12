@@ -247,6 +247,35 @@ Lexer <- R6Class("Lexer",
 )
 
 
+#' -----------------------------------------------------------------------------
+#' def _statetoken(s,names)
+#'
+#' Given a declaration name s of the form "t_" and a dictionary whose keys are
+#' state names, this function returns a tuple (states,tokenname) where states
+#' is a tuple of state names and tokenname is the name of the token.  For example,
+#' calling this with s = "t_foo_bar_SPAM" might return (('foo','bar'),'SPAM')
+#' -----------------------------------------------------------------------------
+statetoken = function(s, names) {
+  nonstate <- 1
+  parts <- unlist(strsplit(s, "_", fixed=TRUE))
+
+  i <- 0
+  for(part in tail((parts), -1L)) {
+    i <- i + 1
+    if((part %in% names(names)) && (part != 'ANY')) break
+  }
+
+  if(i > 1) states <- head(tail((parts), -1L), i - 1)
+  else      states <- c('INITIAL')
+
+  if('ANY' %in% states) states <- c(names(names))
+
+  tokenname <- unsplit(tail(parts, -i), '_')
+
+  return(list(states, tokenname))
+}
+
+
 #' LexerReflect
 #' This class represents information needed to build a lexer as extracted from a
 #' user's input file.
@@ -263,6 +292,14 @@ LexerReflect <- R6Class("LexerReflect",
     states = NA,
     stateinfo = NA,
     error = NA,
+
+    toknames = NA,        # Mapping of symbols to token names
+    funcsym  = NA,        # Symbols defined as functions
+    strsym   = NA,        # Symbols defined as strings
+    ignore   = NA,        # Ignore strings by state
+    errorf   = NA,        # Error functions by state
+    eoff     = NA,        # EOF functions by state
+
     initialize = function(module) {
       self$module <- module
       self$tokens <- c()
@@ -347,8 +384,9 @@ LexerReflect <- R6Class("LexerReflect",
               self$error <- TRUE
               next
             }
-            name <- s[1]
-            statetype <- s[2]
+            name <- s [1]
+            statetype <- s [2]
+
             if(!is.character(name)) {
               dbg('State name must be a string')
               self$error <- TRUE
@@ -372,30 +410,34 @@ LexerReflect <- R6Class("LexerReflect",
     # Get all of the symbols with a t_ prefix and sort them into various
     # categories (functions, strings, error functions, and ignore characters)
     get_rules = function() {
-#      tsymbols = [f for f in self.ldict if f[:2] == 't_']
-#
-## Now build up a list of functions and a list of strings
-#      self.toknames = {}        # Mapping of symbols to token names
-#      self.funcsym  = {}        # Symbols defined as functions
-#      self.strsym   = {}        # Symbols defined as strings
-#      self.ignore   = {}        # Ignore strings by state
-#      self.errorf   = {}        # Error functions by state
-#      self.eoff     = {}        # EOF functions by state
-#
-#      for s in self.stateinfo:
-#          self.funcsym[s] = []
-#      self.strsym[s] = []
-#
-#      if len(tsymbols) == 0:
-#            self.log.error('No rules of the form t_rulename are defined')
-#      self.error = True
-#      return
-#
-#      for f in tsymbols:
-#          t = self.ldict[f]
-#      states, tokname = _statetoken(f, self.stateinfo)
-#      self.toknames[f] = tokname
-#
+      tsymbols <- grep('^t_', names(self$module), value=TRUE)
+
+      # Now build up a list of functions and a list of strings
+      self$toknames <- new.env()
+      self$funcsym  <- new.env()
+      self$strsym   <- new.env()
+      self$ignore   <- new.env()
+      self$errorf   <- new.env()
+      self$eoff     <- new.env()
+
+      for(s in names(self$stateinfo)) {
+        self$funcsym[[s]] <- c()
+        self$strsym[[s]] <- c()
+      }
+
+      if(length(tsymbols) == 0) {
+        dbg('No rules of the form t_rulename are defined')
+        self$error <- TRUE
+        return
+      }
+
+      for(f in tsymbols) {
+        t <- self$module[[f]]
+        st <- statetoken(f, self$stateinfo)
+        states <- st[1]
+        tokname <- st[2]
+        self$toknames[[f]] <- tokname
+
 #      if hasattr(t, '__call__'):
 #            if tokname == 'error':
 #                  for s in states:
@@ -427,6 +469,8 @@ LexerReflect <- R6Class("LexerReflect",
 #    else:
 #          self.log.error('%s not defined as a function or string', f)
 #    self.error = True
+      }
+
 #
 ## Sort the functions by line number
 #    for f in self.funcsym.values():
