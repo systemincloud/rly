@@ -438,40 +438,40 @@ LexerReflect <- R6Class("LexerReflect",
         tokname <- st[2]
         self$toknames[[f]] <- tokname
 
-#      if hasattr(t, '__call__'):
-#            if tokname == 'error':
-#                  for s in states:
-#                  self.errorf[s] = t
-#      elif tokname == 'eof':
-#          for s in states:
-#          self.eoff[s] = t
-#      elif tokname == 'ignore':
-#          line = t.__code__.co_firstlineno
-#      file = t.__code__.co_filename
-#      self.log.error("%s:%d: Rule '%s' must be defined as a string", file, line, t.__name__)
-#      self.error = True
-#      else:
+        if(typeof(t) == 'closure') {
+#          if tokname == 'error':
 #                for s in states:
-#          self.funcsym[s].append((f, t))
-#    elif isinstance(t, StringTypes):
-#        if tokname == 'ignore':
+#                self.errorf[s] = t
+#          elif tokname == 'eof':
 #              for s in states:
-#              self.ignore[s] = t
-#    if '\\' in t:
-#        self.log.warning("%s contains a literal backslash '\\'", f)
+#              self.eoff[s] = t
+#          elif tokname == 'ignore':
+#              line = t.__code__.co_firstlineno
+#          file = t.__code__.co_filename
+#          self.log.error("%s:%d: Rule '%s' must be defined as a string", file, line, t.__name__)
+#          self.error = True
+#          else:
+#                    for s in states:
+#              self.funcsym[s].append((f, t))
+        } else if(typeof(t) == 'character') {
+#          if tokname == 'ignore':
+#                for s in states:
+#                self.ignore[s] = t
+#          if '\\' in t:
+#              self.log.warning("%s contains a literal backslash '\\'", f)
 #
-#    elif tokname == 'error':
-#        self.log.error("Rule '%s' must be defined as a function", f)
-#    self.error = True
-#    else:
-#              for s in states:
-#        self.strsym[s].append((f, t))
-#    else:
-#          self.log.error('%s not defined as a function or string', f)
-#    self.error = True
+#          elif tokname == 'error':
+#              self.log.error("Rule '%s' must be defined as a function", f)
+#          self.error = True
+#          else:
+#                    for s in states:
+#              self.strsym[s].append((f, t))
+        } else {
+          dbg(sprintf('%s not defined as a function or string', f))
+          self$error <- TRUE
+        }
       }
 
-#
 ## Sort the functions by line number
 #    for f in self.funcsym.values():
 #        f.sort(key=lambda x: x[1].__code__.co_firstlineno)
