@@ -287,6 +287,7 @@ statetoken = function(s, names) {
 LexerReflect <- R6Class("LexerReflect",
   public = list(
     module = NA,
+    instance = NA,
     tokens = NA,
     literals = NA,
     states = NA,
@@ -300,8 +301,9 @@ LexerReflect <- R6Class("LexerReflect",
     errorf   = NA,        # Error functions by state
     eoff     = NA,        # EOF functions by state
 
-    initialize = function(module) {
+    initialize = function(module, instance) {
       self$module <- module
+      self$instance <- instance
       self$tokens <- c()
       self$literals <- c()
       self$states <- c()
@@ -324,7 +326,7 @@ LexerReflect <- R6Class("LexerReflect",
     },
     # Get the tokens map
     get_tokens = function() {
-      tokens <- self$module$tokens
+      tokens <- self$instance$tokens
       if(is.null(tokens)) {
         dbg('No token list is defined')
         self$error <- TRUE
@@ -356,7 +358,7 @@ LexerReflect <- R6Class("LexerReflect",
     },
     # Get the literals specifier
     get_literals = function() {
-      literals <- self$module$literals
+      literals <- self$instance$literals
       if(is.null(literals)) literals <- c()
       self$literals <- literals
     },
@@ -370,7 +372,7 @@ LexerReflect <- R6Class("LexerReflect",
       }
     },
     get_states = function() {
-      self$states = self$module$states
+      self$states = self$instance$states
       # Build statemap
       if(!is.null(self$states)) {
         if(!is.vector(self$states)) {
@@ -410,7 +412,8 @@ LexerReflect <- R6Class("LexerReflect",
     # Get all of the symbols with a t_ prefix and sort them into various
     # categories (functions, strings, error functions, and ignore characters)
     get_rules = function() {
-      tsymbols <- grep('^t_', names(self$module), value=TRUE)
+      tsymbols <- c(grep('^t_', names(self$module$public_fields), value=TRUE),
+                    grep('^t_', names(self$module$public_methods), value=TRUE))
 
       # Now build up a list of functions and a list of strings
       self$toknames <- new.env()
@@ -421,8 +424,8 @@ LexerReflect <- R6Class("LexerReflect",
       self$eoff     <- new.env()
 
       for(s in names(self$stateinfo)) {
-        self$funcsym[[s]] <- c()
-        self$strsym[[s]] <- c()
+        self$funcsym[[s]] <- list()
+        self$strsym[[s]] <- list()
       }
 
       if(length(tsymbols) == 0) {
@@ -432,54 +435,38 @@ LexerReflect <- R6Class("LexerReflect",
       }
 
       for(f in tsymbols) {
-        t <- self$module[[f]]
+        t <- self$instance[[f]]
         st <- statetoken(f, self$stateinfo)
         states <- st[1]
         tokname <- st[2]
         self$toknames[[f]] <- tokname
 
         if(typeof(t) == 'closure') {
-#          if tokname == 'error':
-#                for s in states:
-#                self.errorf[s] = t
-#          elif tokname == 'eof':
-#              for s in states:
-#              self.eoff[s] = t
-#          elif tokname == 'ignore':
-#              line = t.__code__.co_firstlineno
-#          file = t.__code__.co_filename
-#          self.log.error("%s:%d: Rule '%s' must be defined as a string", file, line, t.__name__)
-#          self.error = True
-#          else:
-#                    for s in states:
-#              self.funcsym[s].append((f, t))
+          if(tokname == 'error') {
+            for(s in states) self$errorf[[s]] <- t
+          } else if(tokname == 'eof') {
+            for(s in states) self$eoff[[s]] <- t
+          } else if(tokname == 'ignore') {
+            dbg(sprintf("%s:%d: Rule '%s' must be defined as a string", as.character(t)))
+            self$error = TRUE
+          } else {
+            for(s in states) self$funcsym[[s]] <- list(unlist(self$funcsym[[s]]), c(f, t))
+          }
         } else if(typeof(t) == 'character') {
-#          if tokname == 'ignore':
-#                for s in states:
-#                self.ignore[s] = t
-#          if '\\' in t:
-#              self.log.warning("%s contains a literal backslash '\\'", f)
-#
-#          elif tokname == 'error':
-#              self.log.error("Rule '%s' must be defined as a function", f)
-#          self.error = True
-#          else:
-#                    for s in states:
-#              self.strsym[s].append((f, t))
+          if(tokname == 'ignore') {
+            for(s in states) self$ignore[[s]] <- t
+            if('\\' %in% t) dbg("%s contains a literal backslash '\\'", f)
+          } else if(tokname == 'error'){
+            dbg(sprintf("Rule '%s' must be defined as a function", f))
+            self.error <- TRUE
+          } else {
+            for(s in states) self$strsym[[s]] <- list(unlist(self$strsym[[s]]), c(f, t))
+          }
         } else {
           dbg(sprintf('%s not defined as a function or string', f))
           self$error <- TRUE
         }
       }
-
-## Sort the functions by line number
-#    for f in self.funcsym.values():
-#        f.sort(key=lambda x: x[1].__code__.co_firstlineno)
-#
-## Sort the strings by regular expression length
-#    for s in self.strsym.values():
-#        s.sort(key=lambda x: len(x[1]), reverse=True)
-#
     # Validate all of the t_rules collected
     },
     validate_rules = function() {
@@ -614,17 +601,19 @@ LexerReflect <- R6Class("LexerReflect",
 #' Build all of the regular expression rules from definitions in the supplied module
 #' @export
 lex = function(module=NA,
+               args=list(),
                debug=FALSE,
                reflags=0,
                nowarn=FALSE,
                outputdir=NA) {
+  instance <- do.call("new", args, envir=module)
   ldict <- NA
   stateinfo <- new.env(hash=TRUE)
   stateinfo[['INITIAL']] <- 'inclusive'
-  lexobj = Lexer$new()
+  lexobj <- Lexer$new()
 
   # Collect parser information
-  linfo = LexerReflect$new(module)
+  linfo = LexerReflect$new(module, instance)
   linfo$get_all()
   linfo$validate_all()
 
