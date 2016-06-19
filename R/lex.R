@@ -39,13 +39,13 @@ Lexer <- R6Class("Lexer",
     lexstateignore = NA,     # Dictionary of ignored characters for each state
     lexstateerrorf = NA,     # Dictionary of error functions for each state
     lexstateeoff = NA,       # Dictionary of eof functions for each state
-    lexreflags = NA,         # Optional re compile flags
     lexdata = NA,            # Actual input data (as a string)
     lexpos = NA,             # Current position in input text
     lexlen = NA,             # Length of the input text
     lexerrorf = NA,          # Error rule (if any)
     lexeoff = NA,            # EOF rule (if any)
     lextokens = NA,          # List of valid tokens
+    lextokens_all = NA,
     lexignore = NA,          # Ignored characters
     lexliterals = NA,        # Literal characters that can be passed through
     lexmodule = NA,          # Module
@@ -64,7 +64,6 @@ Lexer <- R6Class("Lexer",
       self$lexstateignore <- new.env(hash=TRUE)
       self$lexstateerrorf <- new.env(hash=TRUE)
       self$lexstateeoff <- new.env(hash=TRUE)
-      self$lexreflags <- 0
       self$lexdata <- NA
       self$lexpos <- 0
       self$lexlen <- 0
@@ -226,7 +225,6 @@ Lexer <- R6Class("Lexer",
           stop(sprintf("Illegal character '%s' at index %d", lexdata[lexpos], lexpos))
         }
       }
-#          formals(g)$y
 
       if(self$lexeoff) {
         tok <- LexToken$new()
@@ -254,6 +252,37 @@ Lexer <- R6Class("Lexer",
 #' -----------------------------------------------------------------------------
 get_regex = function(func) {
   return(formals(func)[['re']])
+}
+
+
+#' -----------------------------------------------------------------------------
+#' form_master_re()
+#'
+#' This function takes a list of all of the regex components and attempts to
+#' form the master regular expression.
+#' -----------------------------------------------------------------------------
+form_master_re = function(relist, instance, toknames) {
+  if(length(relist) == 0) return(list())
+
+  regex <- paste(relist, collapse='|')
+
+  # Build the index to function map for the matching engine
+#  lexindexfunc <- [None] * (max(lexre.groupindex.values()) + 1)
+#  lexindexnames = lexindexfunc[:]
+#
+#  for f, i in lexre.groupindex.items():
+#      handle = ldict.get(f, None)
+#  if type(handle) in (types.FunctionType, types.MethodType):
+#        lexindexfunc[i] = (handle, toknames[f])
+#lexindexnames[i] = f
+#elif handle is not None:
+#    lexindexnames[i] = f
+#if f.find('ignore_') > 0:
+#      lexindexfunc[i] = (None, None)
+#else:
+#      lexindexfunc[i] = (None, toknames[f])
+#
+  return(list(NULL, regex, NULL))
 }
 
 
@@ -573,7 +602,6 @@ LexerReflect <- R6Class("LexerReflect",
 lex = function(module=NA,
                args=list(),
                debug=FALSE,
-               reflags=0,
                nowarn=FALSE,
                outputdir=NA) {
   instance <- do.call("new", args, envir=module)
@@ -596,6 +624,99 @@ lex = function(module=NA,
 
   # Build a dictionary of valid token names
   lexobj$lextokens <- unique(linfo$tokens)
+
+  # Get literals specification
+  if(is.vector(linfo$literals)) lexobj$lexliterals <- paste(linfo$literals, collapse = "")
+  else                          lexobj$lexliterals <- linfo$literals
+
+  lexobj$lextokens_all <- list(lexobj$lextokens,  unique(lexobj$lexliterals))
+
+  # Get the stateinfo dictionary
+  stateinfo <- linfo$stateinfo
+
+  regexs <- new.env()
+  # Build the master regular expressions
+  for(state in names(stateinfo)) {
+    regex_list <- c()
+
+    # Add rules defined by functions first
+    for(fnamef in linfo$funcsym[[state]]) {
+      fname <- fnamef[[1]]
+      f <- fnamef[[2]]
+      regex_list <- c(regex_list, sprintf('(?P<%s>%s)', fname, get_regex(f)))
+      if(debug) dbg(sprintf("lex: Adding rule %s -> '%s' (state '%s')", fname, get_regex(f), state))
+    }
+
+    # Now add all of the simple rules
+    for(namer in linfo$strsym[[state]]) {
+      name <- namer[[1]]
+      r <- namer[[2]]
+      regex_list <- c(regex_list, sprintf('(?P<%s>%s)', name, r))
+      if(debug) dbg(sprintf("lex: Adding rule %s -> '%s' (state '%s')", name, r, state))
+    }
+
+    regexs[[state]] <- regex_list
+  }
+
+  # Build the master regular expressions
+
+  if(debug) dbg('lex: ==== MASTER REGEXS FOLLOW ====')
+
+  for(state in names(regexs)) {
+    lexre.re_text.re_names <- form_master_re(regexs[[state]], self$instance, linfo$toknames)
+    lexre    <- lexre.re_text.re_names[[1]]
+    re_text  <- lexre.re_text.re_names[[2]]
+    re_names <- lexre.re_text.re_names[[3]]
+    lexobj$lexstatere[[state]] <- lexre
+    lexobj$lexstateretext[[state]] <- re_text
+    lexobj$lexstaterenames[[state]] <- re_names
+    if(debug) {
+      for(text in re_text) {
+        dbg(sprintf("lex: state '%s' : regex = '%s'", state, text))
+      }
+    }
+  }
+
+  # For inclusive states, we need to add the regular expressions from the INITIAL state
+  for(state in names(stateinfo)) {
+    stype <- stateinfo[[state]]
+    if(state != 'INITIAL' && stype == 'inclusive') {
+      lexobj$lexstatere[[state]] <- list(lexobj$lexstatere[[state]], lexobj$lexstatere[['INITIAL']])
+      lexobj$lexstateretext[[state]] <- list(lexobj$lexstateretext[[state]], lexobj$lexstateretext[['INITIAL']])
+      lexobj$lexstaterenames[[state]] <- list(lexobj$lexstaterenames[[state]], lexobj$lexstaterenames[['INITIAL']])
+    }
+  }
+
+  lexobj$lexstateinfo <- stateinfo
+  lexobj$lexre <- lexobj$lexstatere[['INITIAL']]
+  lexobj$lexretext = lexobj$lexstateretext[['INITIAL']]
+
+  # Set up ignore variables
+  lexobj$lexstateignore <- linfo$ignore
+  lexobj$lexignore <- lexobj$lexstateignore[['INITIAL']]
+
+  # Set up error functions
+  lexobj$lexstateerrorf <- linfo$errorf
+  lexobj$lexerrorf <- linfo$errorf[['INITIAL']]
+  if(is.null(lexobj$lexerrorf)) dbg('No t_error rule is defined')
+
+  # Set up eof functions
+  lexobj$lexstateeoff <- linfo$eoff
+  lexobj$lexeoff = linfo$eoff[['INITIAL']]
+
+  # Check state information for ignore and error rules
+  for(s in names(stateinfo)) {
+    stype <- stateinfo[[s]]
+    if(stype == 'exclusive') {
+      if(!(s %in% names(linfo$errorf))) dbg("No error rule is defined for exclusive state '%s'", s)
+      if(!(s %in% names(linfo$ignore)) && !(s %in% names(lexobj$lexignore))) dbg(sprintf("No ignore rule is defined for exclusive state '%s'", s))
+    } else if(stype == 'inclusive') {
+      if(!(s %in% names(linfo$errorf))) {
+        linfo$errorf[[s]] <- linfo$errorf[['INITIAL']]
+        if(!(s %in% names(linfo$ignore))) linfo$ignore[[s]] <- linfo$ignore[['INITIAL']]
+      }
+    }
+  }
 
   return(lexobj)
 }
