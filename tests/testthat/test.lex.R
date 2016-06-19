@@ -10,12 +10,12 @@ CalcLexer <- R6Class("CalcLexer",
     tokens = c('NAME','NUMBER'),
     literals = c('=','+','-','*','/', '(',')'),
     t_NAME = '[a-zA-Z_][a-zA-Z0-9_]*',
-    t_NUMBER = function(re = '\\d+', weight=1, t) {
+    t_NUMBER = function(re = '\\d+', t) {
       t$value = strtoi(t$value)
       return(t)
     },
     t_ignore = " \t",
-    t_newline = function(re = '\n+', weight=2, t) {
+    t_newline = function(re = '\n+', t) {
       t$lexer$lineno = t$lexer$lineno + t$value$count("\n")
     },
     t_error = function(t) {
@@ -26,8 +26,7 @@ CalcLexer <- R6Class("CalcLexer",
 )
 
 test_that("lex: basic calculator", {
-    lexer <- rly::lex(CalcLexer, debug=TRUE)
-#    cat(names(getLexerCalc()))
+  lexer <- rly::lex(CalcLexer, debug=TRUE)
 #    lexer$input("5 + 3")
 #    expect_equal(lexer$token(), "5")
 #    expect_equal(lexer$token(), "+")

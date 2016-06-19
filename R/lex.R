@@ -248,6 +248,16 @@ Lexer <- R6Class("Lexer",
 
 
 #' -----------------------------------------------------------------------------
+#' get_regex(func)
+#'
+#' Returns the regular expression assigned to a function.
+#' -----------------------------------------------------------------------------
+get_regex = function(func) {
+  return(formals(func)[['re']])
+}
+
+
+#' -----------------------------------------------------------------------------
 #' def _statetoken(s,names)
 #'
 #' Given a declaration name s of the form "t_" and a dictionary whose keys are
@@ -308,6 +318,7 @@ LexerReflect <- R6Class("LexerReflect",
       self$literals <- c()
       self$states <- c()
       self$stateinfo <- new.env()
+      self$stateinfo[['INITIAL']] <- 'inclusive'
       self$error <- FALSE
     },
     # Get all of the basic information
@@ -438,7 +449,7 @@ LexerReflect <- R6Class("LexerReflect",
         t <- self$instance[[f]]
         st <- statetoken(f, self$stateinfo)
         states <- st[1]
-        tokname <- st[2]
+        tokname <- st[[2]]
         self$toknames[[f]] <- tokname
 
         if(typeof(t) == 'closure') {
@@ -450,7 +461,10 @@ LexerReflect <- R6Class("LexerReflect",
             dbg(sprintf("%s:%d: Rule '%s' must be defined as a string", as.character(t)))
             self$error = TRUE
           } else {
-            for(s in states) self$funcsym[[s]] <- list(unlist(self$funcsym[[s]]), c(f, t))
+            for(s in states) {
+              if(length(self$funcsym[[s]]) == 0) self$funcsym[[s]] <- list(c(f, t))
+              else                               self$funcsym[[s]] <- list(unlist(self$funcsym[[s]]), c(f, t))
+            }
           }
         } else if(typeof(t) == 'character') {
           if(tokname == 'ignore') {
@@ -458,141 +472,97 @@ LexerReflect <- R6Class("LexerReflect",
             if('\\' %in% t) dbg("%s contains a literal backslash '\\'", f)
           } else if(tokname == 'error'){
             dbg(sprintf("Rule '%s' must be defined as a function", f))
-            self.error <- TRUE
+            self$error <- TRUE
           } else {
-            for(s in states) self$strsym[[s]] <- list(unlist(self$strsym[[s]]), c(f, t))
+            for(s in states) {
+              if(length(self$strsym[[s]]) == 0) self$strsym[[s]] <- list(c(f, t))
+              else                              self$strsym[[s]] <- list(unlist(self$strsym[[s]]), c(f, t))
+            }
           }
         } else {
           dbg(sprintf('%s not defined as a function or string', f))
           self$error <- TRUE
         }
       }
+    },
     # Validate all of the t_rules collected
-    },
     validate_rules = function() {
-#        for state in self.stateinfo:
-#        # Validate all rules defined by functions
-#
-#        for fname, f in self.funcsym[state]:
-#        line = f.__code__.co_firstlineno
-#    file = f.__code__.co_filename
-#    module = inspect.getmodule(f)
-#    self.modules.add(module)
-#
-#    tokname = self.toknames[fname]
-#    if isinstance(f, types.MethodType):
-#          reqargs = 2
-#    else:
-#          reqargs = 1
-#    nargs = f.__code__.co_argcount
-#    if nargs > reqargs:
-#          self.log.error("%s:%d: Rule '%s' has too many arguments", file, line, f.__name__)
-#    self.error = True
-#    continue
-#
-#    if nargs < reqargs:
-#          self.log.error("%s:%d: Rule '%s' requires an argument", file, line, f.__name__)
-#    self.error = True
-#    continue
-#
-#    if not _get_regex(f):
-#          self.log.error("%s:%d: No regular expression defined for rule '%s'", file, line, f.__name__)
-#    self.error = True
-#    continue
-#
-#    try:
-#        c = re.compile('(?P<%s>%s)' % (fname, _get_regex(f)), re.VERBOSE | self.reflags)
-#                if c.match(''):
-#                      self.log.error("%s:%d: Regular expression for rule '%s' matches empty string", file, line, f.__name__)
-#    self.error = True
-#    except re.error as e:
-#        self.log.error("%s:%d: Invalid regular expression for rule '%s'. %s", file, line, f.__name__, e)
-#    if '#' in _get_regex(f):
-#        self.log.error("%s:%d. Make sure '#' in rule '%s' is escaped with '\\#'", file, line, f.__name__)
-#    self.error = True
-#
-      ## Validate all rules defined by strings
-#    for name, r in self.strsym[state]:
-#        tokname = self.toknames[name]
-#    if tokname == 'error':
-#          self.log.error("Rule '%s' must be defined as a function", name)
-#    self.error = True
-#    continue
-#
-#    if tokname not in self.tokens and tokname.find('ignore_') < 0:
-#          self.log.error("Rule '%s' defined for an unspecified token %s", name, tokname)
-#    self.error = True
-#    continue
-#
-#    try:
-#        c = re.compile('(?P<%s>%s)' % (name, r), re.VERBOSE | self.reflags)
-#                if (c.match('')):
-#                      self.log.error("Regular expression for rule '%s' matches empty string", name)
-#    self.error = True
-#    except re.error as e:
-#        self.log.error("Invalid regular expression for rule '%s'. %s", name, e)
-#    if '#' in r:
-#        self.log.error("Make sure '#' in rule '%s' is escaped with '\\#'", name)
-#    self.error = True
-#
-#    if not self.funcsym[state] and not self.strsym[state]:
-#          self.log.error("No rules defined for state '%s'", state)
-#    self.error = True
-#
-      ## Validate the error function
-#    efunc = self.errorf.get(state, None)
-#    if efunc:
-#          f = efunc
-#    line = f.__code__.co_firstlineno
-#    file = f.__code__.co_filename
-#    module = inspect.getmodule(f)
-#    self.modules.add(module)
-#
-#    if isinstance(f, types.MethodType):
-#          reqargs = 2
-#    else:
-#          reqargs = 1
-#    nargs = f.__code__.co_argcount
-#    if nargs > reqargs:
-#          self.log.error("%s:%d: Rule '%s' has too many arguments", file, line, f.__name__)
-#    self.error = True
-#
-#    if nargs < reqargs:
-#          self.log.error("%s:%d: Rule '%s' requires an argument", file, line, f.__name__)
-#    self.error = True
-#
-#    for module in self.modules:
-#        self.validate_module(module)
-    },
-    # -----------------------------------------------------------------------------
-    # validate_module()
-    #
-    # This checks to see if there are duplicated t_rulename() functions or strings
-    # in the parser input file.  This is done using a simple regular expression
-    # match on each line in the source code of the given module.
-    # -----------------------------------------------------------------------------
-    validate_module = function(module) {
-#      lines, linen = inspect.getsourcelines(module)
-#
-#      fre = re.compile(r'\s*def\s+(t_[a-zA-Z_0-9]*)\(')
-#      sre = re.compile(r'\s*(t_[a-zA-Z_0-9]*)\s*=')
-#
-#      counthash = {}
-#      linen += 1
-#      for line in lines:
-#          m = fre.match(line)
-#      if not m:
-#            m = sre.match(line)
-#      if m:
-#            name = m.group(1)
-#      prev = counthash.get(name)
-#      if not prev:
-#            counthash[name] = linen
-#      else:
-#            filename = inspect.getsourcefile(module)
-#      self.log.error('%s:%d: Rule %s redefined. Previously defined on line %d', filename, linen, name, prev)
-#      self.error = True
-#      linen += 1
+      for(state in names(self$stateinfo)) {
+
+        # Validate all rules defined by functions
+        for(ft in self$funcsym[[state]]) {
+          fname <- ft[[1]]
+          f <- ft[[2]]
+          tokname <- self$toknames[[fname]]
+          reqargs <- 2
+          nargs <- length(formals(f))
+          if(nargs > reqargs) {
+            dbg(sprintf("Rule '%s' has too many arguments", fname))
+            self$error <- TRUE
+            next
+          }
+          if(nargs < reqargs) {
+            dbg(sprintf("Rule '%s' requires an argument", fname))
+            self$error <- TRUE
+            next
+          }
+          if(is.null(get_regex(f))) {
+            dbg(sprintf("No regular expression defined for rule '%s'", fname))
+            self$error <- TRUE
+            next
+          }
+          if(grepl(get_regex(f), '', perl=TRUE)) {
+            dbg(sprintf("Regular expression for rule '%s' matches empty string", fname))
+            self$error <- TRUE
+            next
+          }
+        }
+
+        # Validate all rules defined by strings
+        for(nr in self$strsym[[state]]) {
+          name <- nr[[1]]
+          r <- nr[[2]]
+          tokname <- self$toknames[[name]]
+          if(tokname == 'error') {
+            dbg(sprintf("Rule '%s' must be defined as a function", name))
+            self$error <- TRUE
+            next
+          }
+          if(!(tokname %in% self$tokens) && !grepl(tokname, 'ignore_')) {
+            dbg(sprintf("Rule '%s' defined for an unspecified token %s", name, tokname))
+            self$error <- TRUE
+            next
+          }
+          if(grepl(r, '', perl=TRUE)) {
+            dbg(sprintf("Regular expression for rule '%s' matches empty string", name))
+            self$error <- TRUE
+            next
+          }
+        }
+
+        if(length(self$funcsym[[state]]) == 0 && length(self$strsym[[state]]) == 0) {
+          dbg(sprintf("No rules defined for state '%s'", state))
+          self$error <- TRUE
+        }
+
+        # Validate the error function
+        efunc <- self$errorf[[state]]
+        if(!is.null(efunc)) {
+          f <- efunc
+          reqargs <- 1
+          nargs <- length(formals(f))
+          if(nargs > reqargs) {
+            dbg("Rule error has too many arguments")
+            self$error <- TRUE
+            next
+          }
+          if(nargs < reqargs) {
+            dbg("Rule error requires an argument")
+            self$error <- TRUE
+            next
+          }
+        }
+      }
     }
   )
 )
@@ -607,9 +577,6 @@ lex = function(module=NA,
                nowarn=FALSE,
                outputdir=NA) {
   instance <- do.call("new", args, envir=module)
-  ldict <- NA
-  stateinfo <- new.env(hash=TRUE)
-  stateinfo[['INITIAL']] <- 'inclusive'
   lexobj <- Lexer$new()
 
   # Collect parser information
