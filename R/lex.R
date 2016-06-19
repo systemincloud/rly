@@ -90,7 +90,10 @@ Lexer <- R6Class("Lexer",
     #' input() - Push a new string into the lexer
     #' ------------------------------------------------------------
     input = function(s) {
-
+      if(!is.character(s)) stop('Expected a string')
+      self$lexdata <- s
+      self$lexpos <- 0
+      self$lexlen <- length(s)
     },
     #' ------------------------------------------------------------
     #' begin() - Changes the lexing state
