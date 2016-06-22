@@ -4,7 +4,7 @@
 \alias{lex}
 \title{Build all of the regular expression rules from definitions in the supplied module}
 \usage{
-lex(module = NA, debug = FALSE, reflags = 0, nowarn = FALSE,
+lex(module = NA, args = list(), debug = FALSE, nowarn = FALSE,
   outputdir = NA)
 }
 \description{

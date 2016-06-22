@@ -9,6 +9,24 @@ dbg = function(msg) cat(c("DEBUG> ", msg, "\n"))
 #' This regular expression is used to match valid token names
 reg_is_identifier = '^[a-zA-Z0-9_]+$'
 
+
+#' Token class.  This class is used to represent the tokens produced.
+#' @export
+LexToken <- R6Class("LexToken",
+  public = list(
+    type = NA,
+    value = NA,
+    lineno = NA,
+    lexpos = NA,
+    lexer = NA,
+    print = function(...) {
+      cat(sprintf("LexToken(%s,%s,%d,%d)\n", self$type, toString(self$value), self$lineno, self$lexpos))
+      invisible(self)
+    }
+  )
+)
+
+
 #' === Lexing Engine ===
 #' The following Lexer class implements the lexer runtime. There are only
 #' a few public methods and attributes:
@@ -93,7 +111,7 @@ Lexer <- R6Class("Lexer",
       if(!is.character(s)) stop('Expected a string')
       self$lexdata <- s
       self$lexpos <- 0
-      self$lexlen <- length(s)
+      self$lexlen <- nchar(s)
     },
     #' ------------------------------------------------------------
     #' begin() - Changes the lexing state
@@ -132,113 +150,114 @@ Lexer <- R6Class("Lexer",
 
       while(lexpos < lexlen) {
         # This code provides some short-circuit code for whitespace, tabs, and other ignored characters
-        if(lexdata[lexpos] %in% lexignore) {
-          lexpos = lexpos + 1
+        if(substr(lexdata, lexpos, lexpos + 1) %in% lexignore) {
+          lexpos <- lexpos + 1
           next
         }
 
         broke <- FALSE
 
+        data <- substring(lexdata, lexpos)
+
         # Look for a regular expression match
+        tok <- NA
+        idx <- 0
         for(lexre in self$lexre) {
-          m <- lexre$match(lexdata, lexpos)
-          if(!m) next
+          name <- lexre[1]
+          regx <- lexre[2]
+          func <- lexre[[3]]
+          type <- lexre[4]
+          m <- regexpr(regx, data, perl=TRUE)
+          if(m != 1) next
+
+          matched <- regmatches(data, m)
 
           # Create a token for return
           tok <- LexToken$new()
-          tok$value <- m$group()
+          tok$value <- matched
           tok$lineno <- self$lineno
           tok$lexpos <- lexpos
+          tok$type <- type
 
-          i <- m$lastindex
-          func <- lexindexfunc[i]
-
-          if(!func) {
+          if(is.null(func)) {
             # If no token type was set, it's an ignored token
-            if(tok$type) {
-              self$lexpos <- m$end()
+            if(!is.null(tok$type)) {
+              self$lexpos <- self$lexpos + nchar(matched)
               return(tok)
             } else {
-              lexpos <- m$end()
+              lexpos <- self$lexpos + nchar(matched)
               broke <- TRUE
               break
             }
           }
 
-          lexpos <- m$end()
+          lexpos <- self$lexpos + nchar(matched)
 
           # If token is processed by a function, call it
 
           tok$lexer <- self      # Set additional attributes useful in token rules
-          self$lexmatch <- m
+#          self$lexmatch <- m
           self$lexpos <- lexpos
 
-          newtok <- func(tok)
+          newtok <- func(t=tok)
 
           # Every function must return a token, if nothing, we just move to next token
-          if(!newtok) {
-            lexpos    <- self.lexpos         # This is here in case user has updated lexpos.
-            lexignore <- self.lexignore      # This is here in case there was a state change
+          if(is.null(newtok)) {
+            lexpos    <- self$lexpos         # This is here in case user has updated lexpos.
+            lexignore <- self$lexignore      # This is here in case there was a state change
             broke <- TRUE
             break
           }
 
-          # Verify type of the token.  If not in the token map, raise an error
-          if(self$lexoptimize) {
-            if(!(newtok$type %in% self$lextokens_all)) {
-              stop(sprintf("%s:%d: Rule '%s' returned an unknown token type '%s'", func$code$co_filename,
-                                                                                   func$name,
-                                                                                   newtok$type))
-            }
-          }
           return(newtok)
         }
+        break
         if(!broke) {
-          # No match, see if in literals
-          if(lexdata[lexpos] %in% self$lexliterals) {
-            tok <- LexToken()
-            tok$value <- lexdata[lexpos]
-            tok$lineno <- self$lineno
-            tok$type <- tok$value
-            tok$lexpos <- lexpos
-            self$lexpos <- lexpos + 1
-            return(tok)
-          }
-
-          # No match. Call t_error() if defined.
-          if(self$lexerrorf) {
-            tok <- LexToken$new()
-            tok$value <- head(self$lexdata, lexpos)
-            tok$lineno <- self$lineno
-            tok$type <- 'error'
-            tok$lexer <- self
-            tok$lexpos <- lexpos
-            self$lexpos <- lexpos
-            newtok <- self$lexerrorf(tok)
-            if(lexpos == self.lexpos) {
-              # Error method didn't change text position at all. This is an error.
-              stop(sprintf("Scanning error. Illegal character '%s'", lexdata[lexpos]))
-            }
-            lexpos <- self.lexpos
-            if(!newtok) continue
-            return(newtok)
-          }
-
-          self.lexpos <- lexpos
-          stop(sprintf("Illegal character '%s' at index %d", lexdata[lexpos], lexpos))
+#          # No match, see if in literals
+#          if(lexdata[lexpos] %in% self$lexliterals) {
+#            tok <- LexToken()
+#            tok$value <- lexdata[lexpos]
+#            tok$lineno <- self$lineno
+#            tok$type <- tok$value
+#            tok$lexpos <- lexpos
+#            self$lexpos <- lexpos + 1
+#            return(tok)
+#          }
+#
+#          # No match. Call t_error() if defined.
+#          if(self$lexerrorf) {
+#            tok <- LexToken$new()
+#            tok$value <- head(self$lexdata, lexpos)
+#            tok$lineno <- self$lineno
+#            tok$type <- 'error'
+#            tok$lexer <- self
+#            tok$lexpos <- lexpos
+#            self$lexpos <- lexpos
+#            newtok <- self$lexerrorf(tok)
+#            if(lexpos == self.lexpos) {
+#              # Error method didn't change text position at all. This is an error.
+#              stop(sprintf("Scanning error. Illegal character '%s'", lexdata[lexpos]))
+#            }
+#            lexpos <- self.lexpos
+#            if(!newtok) continue
+#            return(newtok)
+#          }
+#
+#          self.lexpos <- lexpos
+#          stop(sprintf("Illegal character '%s' at index %d", lexdata[lexpos], lexpos))
         }
       }
 
-      if(self$lexeoff) {
+      if(!is.na(self$lexeoff)) {
         tok <- LexToken$new()
         tok$type <- 'eof'
         tok$value <- ''
-        tok$lineno <- self.lineno
-        tok$lexpos <- lexpos
-        tok$lexer <- self
-        self$lexpos <- lexpos
-        newtok <- self$lexeoff(tok)
-        return(newtok)
+#        tok$lineno <- self.lineno
+#        tok$lexpos <- lexpos
+#        tok$lexer <- self
+#        self$lexpos <- lexpos
+#        newtok <- self$lexeoff(tok)
+#        return(newtok)
       }
 
       self$lexpos <- lexpos + 1
@@ -255,37 +274,6 @@ Lexer <- R6Class("Lexer",
 #' -----------------------------------------------------------------------------
 get_regex = function(func) {
   return(formals(func)[['re']])
-}
-
-
-#' -----------------------------------------------------------------------------
-#' form_master_re()
-#'
-#' This function takes a list of all of the regex components and attempts to
-#' form the master regular expression.
-#' -----------------------------------------------------------------------------
-form_master_re = function(relist, instance, toknames) {
-  if(length(relist) == 0) return(list())
-
-  regex <- paste(relist, collapse='|')
-
-  # Build the index to function map for the matching engine
-#  lexindexfunc <- [None] * (max(lexre.groupindex.values()) + 1)
-#  lexindexnames = lexindexfunc[:]
-#
-#  for f, i in lexre.groupindex.items():
-#      handle = ldict.get(f, None)
-#  if type(handle) in (types.FunctionType, types.MethodType):
-#        lexindexfunc[i] = (handle, toknames[f])
-#lexindexnames[i] = f
-#elif handle is not None:
-#    lexindexnames[i] = f
-#if f.find('ignore_') > 0:
-#      lexindexfunc[i] = (None, None)
-#else:
-#      lexindexfunc[i] = (None, toknames[f])
-#
-  return(list(NULL, regex, NULL))
 }
 
 
@@ -494,8 +482,7 @@ LexerReflect <- R6Class("LexerReflect",
             self$error = TRUE
           } else {
             for(s in states) {
-              if(length(self$funcsym[[s]]) == 0) self$funcsym[[s]] <- list(c(f, t))
-              else                               self$funcsym[[s]] <- list(unlist(self$funcsym[[s]]), c(f, t))
+              self$funcsym[[s]][[length(self$funcsym[[s]])+1]] <- list(f, t)
             }
           }
         } else if(typeof(t) == 'character') {
@@ -507,8 +494,7 @@ LexerReflect <- R6Class("LexerReflect",
             self$error <- TRUE
           } else {
             for(s in states) {
-              if(length(self$strsym[[s]]) == 0) self$strsym[[s]] <- list(c(f, t))
-              else                              self$strsym[[s]] <- list(unlist(self$strsym[[s]]), c(f, t))
+              self$strsym[[s]][[length(self$strsym[[s]])+1]] <- list(f, t)
             }
           }
         } else {
@@ -640,13 +626,13 @@ lex = function(module=NA,
   regexs <- new.env()
   # Build the master regular expressions
   for(state in names(stateinfo)) {
-    regex_list <- c()
+    regex_list <- list()
 
     # Add rules defined by functions first
     for(fnamef in linfo$funcsym[[state]]) {
       fname <- fnamef[[1]]
       f <- fnamef[[2]]
-      regex_list <- c(regex_list, sprintf('(?P<%s>%s)', fname, get_regex(f)))
+      regex_list[[length(regex_list)+1]] <- list(fname, get_regex(f), f, linfo$toknames[[fname]])
       if(debug) dbg(sprintf("lex: Adding rule %s -> '%s' (state '%s')", fname, get_regex(f), state))
     }
 
@@ -654,7 +640,8 @@ lex = function(module=NA,
     for(namer in linfo$strsym[[state]]) {
       name <- namer[[1]]
       r <- namer[[2]]
-      regex_list <- c(regex_list, sprintf('(?P<%s>%s)', name, r))
+      toktype <- if(grepl("ignore_", name)) linfo$toknames[[name]] else NULL
+      regex_list[[length(regex_list)+1]] <- list(name, r, NULL, toktype)
       if(debug) dbg(sprintf("lex: Adding rule %s -> '%s' (state '%s')", name, r, state))
     }
 
@@ -666,16 +653,10 @@ lex = function(module=NA,
   if(debug) dbg('lex: ==== MASTER REGEXS FOLLOW ====')
 
   for(state in names(regexs)) {
-    lexre.re_text.re_names <- form_master_re(regexs[[state]], self$instance, linfo$toknames)
-    lexre    <- lexre.re_text.re_names[[1]]
-    re_text  <- lexre.re_text.re_names[[2]]
-    re_names <- lexre.re_text.re_names[[3]]
-    lexobj$lexstatere[[state]] <- lexre
-    lexobj$lexstateretext[[state]] <- re_text
-    lexobj$lexstaterenames[[state]] <- re_names
+    lexobj$lexstatere[[state]] <- regexs[[state]]
     if(debug) {
-      for(text in re_text) {
-        dbg(sprintf("lex: state '%s' : regex = '%s'", state, text))
+      for(nr in regexs[[state]]) {
+        dbg(sprintf("lex: state '%s' : regex = '%s'", state, nr[2]))
       }
     }
   }
@@ -685,14 +666,11 @@ lex = function(module=NA,
     stype <- stateinfo[[state]]
     if(state != 'INITIAL' && stype == 'inclusive') {
       lexobj$lexstatere[[state]] <- list(lexobj$lexstatere[[state]], lexobj$lexstatere[['INITIAL']])
-      lexobj$lexstateretext[[state]] <- list(lexobj$lexstateretext[[state]], lexobj$lexstateretext[['INITIAL']])
-      lexobj$lexstaterenames[[state]] <- list(lexobj$lexstaterenames[[state]], lexobj$lexstaterenames[['INITIAL']])
     }
   }
 
   lexobj$lexstateinfo <- stateinfo
   lexobj$lexre <- lexobj$lexstatere[['INITIAL']]
-  lexobj$lexretext = lexobj$lexstateretext[['INITIAL']]
 
   # Set up ignore variables
   lexobj$lexstateignore <- linfo$ignore

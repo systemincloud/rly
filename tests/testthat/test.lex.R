@@ -28,7 +28,7 @@ CalcLexer <- R6Class("CalcLexer",
 test_that("lex: basic calculator", {
   lexer <- rly::lex(CalcLexer, debug=TRUE)
   lexer$input("5 + 3")
-#    expect_equal(lexer$token(), "5")
+  expect_equal(lexer$token()$value, 5)
 #    expect_equal(lexer$token(), "+")
 #    expect_equal(lexer$token(), "3")
   }
