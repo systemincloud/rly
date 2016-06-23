@@ -83,7 +83,7 @@ Lexer <- R6Class("Lexer",
       self$lexstateerrorf <- new.env(hash=TRUE)
       self$lexstateeoff <- new.env(hash=TRUE)
       self$lexdata <- NA
-      self$lexpos <- 0
+      self$lexpos <- 1
       self$lexlen <- 0
       self$lexerrorf <- NA
       self$lexeoff <- NA
@@ -110,7 +110,7 @@ Lexer <- R6Class("Lexer",
     input = function(s) {
       if(!is.character(s)) stop('Expected a string')
       self$lexdata <- s
-      self$lexpos <- 0
+      self$lexpos <- 1
       self$lexlen <- nchar(s)
     },
     #' ------------------------------------------------------------
@@ -148,9 +148,9 @@ Lexer <- R6Class("Lexer",
       lexignore <- self$lexignore
       lexdata   <- self$lexdata
 
-      while(lexpos < lexlen) {
+      while(lexpos <= lexlen) {
         # This code provides some short-circuit code for whitespace, tabs, and other ignored characters
-        if(substr(lexdata, lexpos, lexpos + 1) %in% lexignore) {
+        if(grepl(substring(lexdata, lexpos, lexpos), lexignore, fixed=TRUE)) {
           lexpos <- lexpos + 1
           next
         }
@@ -211,40 +211,40 @@ Lexer <- R6Class("Lexer",
 
           return(newtok)
         }
-        break
+
         if(!broke) {
-#          # No match, see if in literals
-#          if(lexdata[lexpos] %in% self$lexliterals) {
-#            tok <- LexToken()
-#            tok$value <- lexdata[lexpos]
-#            tok$lineno <- self$lineno
-#            tok$type <- tok$value
-#            tok$lexpos <- lexpos
-#            self$lexpos <- lexpos + 1
-#            return(tok)
-#          }
-#
-#          # No match. Call t_error() if defined.
-#          if(self$lexerrorf) {
-#            tok <- LexToken$new()
-#            tok$value <- head(self$lexdata, lexpos)
-#            tok$lineno <- self$lineno
-#            tok$type <- 'error'
+          # No match, see if in literals
+          if(grepl(substring(data, 1, 1), self$lexliterals, fixed=TRUE)) {
+            tok <- LexToken$new()
+            tok$value <- substring(data, 1, 1)
+            tok$lineno <- self$lineno
+            tok$type <- tok$value
+            tok$lexpos <- lexpos
+            self$lexpos <- lexpos + 1
+            return(tok)
+          }
+
+          # No match. Call t_error() if defined.
+          if(is.na(self$lexerrorf)) {
+            tok <- LexToken$new()
+            tok$value <- substring(data, 1, 1)
+            tok$lineno <- self$lineno
+            tok$type <- 'error'
 #            tok$lexer <- self
-#            tok$lexpos <- lexpos
-#            self$lexpos <- lexpos
-#            newtok <- self$lexerrorf(tok)
-#            if(lexpos == self.lexpos) {
-#              # Error method didn't change text position at all. This is an error.
-#              stop(sprintf("Scanning error. Illegal character '%s'", lexdata[lexpos]))
-#            }
-#            lexpos <- self.lexpos
-#            if(!newtok) continue
-#            return(newtok)
-#          }
-#
-#          self.lexpos <- lexpos
-#          stop(sprintf("Illegal character '%s' at index %d", lexdata[lexpos], lexpos))
+            tok$lexpos <- lexpos
+            self$lexpos <- lexpos
+            newtok <- self$lexerrorf(tok)
+            if(lexpos == self$lexpos) {
+              # Error method didn't change text position at all. This is an error.
+              stop(sprintf("Scanning error. Illegal character '%s'", substring(data, 1, 1)))
+            }
+            lexpos <- self.lexpos
+            if(is.null(newtok)) next
+            return(newtok)
+          }
+
+          self.lexpos <- lexpos
+          stop(sprintf("Illegal character '%s' at index %d", substring(data, 1, 1), lexpos))
         }
       }
 
@@ -252,12 +252,12 @@ Lexer <- R6Class("Lexer",
         tok <- LexToken$new()
         tok$type <- 'eof'
         tok$value <- ''
-#        tok$lineno <- self.lineno
-#        tok$lexpos <- lexpos
+        tok$lineno <- self$lineno
+        tok$lexpos <- lexpos
 #        tok$lexer <- self
-#        self$lexpos <- lexpos
-#        newtok <- self$lexeoff(tok)
-#        return(newtok)
+        self$lexpos <- lexpos
+        newtok <- self$lexeoff(tok)
+        return(newtok)
       }
 
       self$lexpos <- lexpos + 1
