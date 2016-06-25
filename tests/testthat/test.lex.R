@@ -17,6 +17,7 @@ CalcLexer <- R6Class("CalcLexer",
     t_ignore = " \t",
     t_newline = function(re = '\n+', t) {
       t$lexer$lineno = t$lexer$lineno + t$value$count("\n")
+      return(NULL)
     },
     t_error = function(t) {
       cat(sprintf("Illegal character '%s'", t$value[0]))

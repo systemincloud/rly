@@ -21,8 +21,9 @@ Lexer <- R6Class("Lexer",
       return(t)
     },
     t_ignore = " \t",
-    t_newline = function(re='\n+', t){
-      t$lexer$lineno <- t$lexer$lineno + t$value$count("\n")
+    t_newline = function(re='\\n+', t) {
+      t$lexer$lineno <- t$lexer$lineno + nchar(t$value)
+      return(NULL)
     },
     t_error = function(t) {
       cat(sprintf("Illegal character '%s'", t$value[1]))
@@ -57,4 +58,18 @@ test_that("calclex: without spaces", {
   expect_equal(lexer$token()$value, ")")
   expect_equal(lexer$token()$value, "*")
   expect_equal(lexer$token()$value, 4)
+})
+
+test_that("calclex: new lines", {
+  lexer <- rly::lex(Lexer)
+
+  lexer$input("x\n\ny")
+  expect_equal(lexer$token()$value, "x")
+  expect_equal(lexer$token()$lineno, 3)
+
+  lexer$input("x
+
+  y")
+  expect_equal(lexer$token()$value, "x")
+  expect_equal(lexer$token()$lineno, 5)
 })
