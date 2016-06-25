@@ -14,11 +14,11 @@ reg_is_identifier = '^[a-zA-Z0-9_]+$'
 #' @export
 LexToken <- R6Class("LexToken",
   public = list(
-    type = NA,
-    value = NA,
+    type   = NA,
+    value  = NA,
     lineno = NA,
     lexpos = NA,
-    lexer = NA,
+    lexer  = NA,
     print = function(...) {
       cat(sprintf("LexToken(%s,%s,%d,%d)\n", self$type, toString(self$value), self$lineno, self$lexpos))
       invisible(self)
@@ -71,28 +71,28 @@ Lexer <- R6Class("Lexer",
     lexoptimize = NA,        # Optimized mode
 
     initialize = function() {
-      self$lexre <- NA
-      self$lexretext <- NA
-      self$lexstatere <- new.env(hash=TRUE)
-      self$lexstateretext <- new.env(hash=TRUE)
+      self$lexre           <- NA
+      self$lexretext       <- NA
+      self$lexstatere      <- new.env(hash=TRUE)
+      self$lexstateretext  <- new.env(hash=TRUE)
       self$lexstaterenames <- new.env(hash=TRUE)
-      self$lexstate <- 'INITIAL'
-      self$lexstatestack <- c()
-      self$lexstateinfo <- NA
-      self$lexstateignore <- new.env(hash=TRUE)
-      self$lexstateerrorf <- new.env(hash=TRUE)
-      self$lexstateeoff <- new.env(hash=TRUE)
-      self$lexdata <- NA
-      self$lexpos <- 1
-      self$lexlen <- 0
-      self$lexerrorf <- NA
-      self$lexeoff <- NA
-      self$lextokens <- NA
-      self$lexignore <- ''
-      self$lexliterals <- ''
-      self$lexmodule <- NA
-      self$lineno <- 1
-      self$lexoptimize <- FALSE
+      self$lexstate        <- 'INITIAL'
+      self$lexstatestack   <- c()
+      self$lexstateinfo    <- NA
+      self$lexstateignore  <- new.env(hash=TRUE)
+      self$lexstateerrorf  <- new.env(hash=TRUE)
+      self$lexstateeoff    <- new.env(hash=TRUE)
+      self$lexdata         <- NA
+      self$lexpos          <- 1
+      self$lexlen          <- 0
+      self$lexerrorf       <- NA
+      self$lexeoff         <- NA
+      self$lextokens       <- NA
+      self$lexignore       <- ''
+      self$lexliterals     <- ''
+      self$lexmodule       <- NA
+      self$lineno          <- 1
+      self$lexoptimize     <- FALSE
     },
     #' ------------------------------------------------------------
     #' writetab() - Write lexer information to a table file
@@ -110,8 +110,8 @@ Lexer <- R6Class("Lexer",
     input = function(s) {
       if(!is.character(s)) stop('Expected a string')
       self$lexdata <- s
-      self$lexpos <- 1
-      self$lexlen <- nchar(s)
+      self$lexpos  <- 1
+      self$lexlen  <- nchar(s)
     },
     #' ------------------------------------------------------------
     #' begin() - Changes the lexing state
@@ -194,12 +194,10 @@ Lexer <- R6Class("Lexer",
 
           # If token is processed by a function, call it
 
-          tok$lexer <- self      # Set additional attributes useful in token rules
-#          self$lexmatch <- m
+          tok$lexer   <- self      # Set additional attributes useful in token rules
           self$lexpos <- lexpos
 
           newtok <- func(t=tok)
-
           # Every function must return a token, if nothing, we just move to next token
           if(is.null(newtok)) {
             lexpos    <- self$lexpos         # This is here in case user has updated lexpos.
@@ -214,11 +212,11 @@ Lexer <- R6Class("Lexer",
         if(!broke) {
           # No match, see if in literals
           if(grepl(substring(data, 1, 1), self$lexliterals, fixed=TRUE)) {
-            tok <- LexToken$new()
-            tok$value <- substring(data, 1, 1)
-            tok$lineno <- self$lineno
-            tok$type <- tok$value
-            tok$lexpos <- lexpos
+            tok         <- LexToken$new()
+            tok$value   <- substring(data, 1, 1)
+            tok$lineno  <- self$lineno
+            tok$type    <- tok$value
+            tok$lexpos  <- lexpos
             self$lexpos <- lexpos + 1
             return(tok)
           }
