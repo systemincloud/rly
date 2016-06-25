@@ -158,7 +158,6 @@ Lexer <- R6Class("Lexer",
         broke <- FALSE
 
         data <- substring(lexdata, lexpos)
-
         # Look for a regular expression match
         tok <- NA
         idx <- 0
@@ -182,10 +181,10 @@ Lexer <- R6Class("Lexer",
           if(is.null(func)) {
             # If no token type was set, it's an ignored token
             if(!is.null(tok$type)) {
-              self$lexpos <- self$lexpos + nchar(matched)
+              self$lexpos <- lexpos + nchar(matched)
               return(tok)
             } else {
-              lexpos <- self$lexpos + nchar(matched)
+              lexpos <- lexpos + nchar(matched)
               broke <- TRUE
               break
             }
@@ -230,7 +229,7 @@ Lexer <- R6Class("Lexer",
             tok$value <- substring(data, 1, 1)
             tok$lineno <- self$lineno
             tok$type <- 'error'
-#            tok$lexer <- self
+            tok$lexer <- self
             tok$lexpos <- lexpos
             self$lexpos <- lexpos
             newtok <- self$lexerrorf(tok)
@@ -254,7 +253,7 @@ Lexer <- R6Class("Lexer",
         tok$value <- ''
         tok$lineno <- self$lineno
         tok$lexpos <- lexpos
-#        tok$lexer <- self
+        tok$lexer <- self
         self$lexpos <- lexpos
         newtok <- self$lexeoff(tok)
         return(newtok)
@@ -640,7 +639,7 @@ lex = function(module=NA,
     for(namer in linfo$strsym[[state]]) {
       name <- namer[[1]]
       r <- namer[[2]]
-      toktype <- if(grepl("ignore_", name)) linfo$toknames[[name]] else NULL
+      toktype <- if(grepl("ignore_", name)) NULL else linfo$toknames[[name]]
       regex_list[[length(regex_list)+1]] <- list(name, r, NULL, toktype)
       if(debug) dbg(sprintf("lex: Adding rule %s -> '%s' (state '%s')", name, r, state))
     }
