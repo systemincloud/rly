@@ -7,6 +7,8 @@ context("calclex")
 
 Lexer <- R6Class("Lexer",
   public = list(
+    msg = NA,
+
     tokens = c('NAME','NUMBER', 'PLUS','MINUS','TIMES','DIVIDE','EQUALS', 'LPAREN','RPAREN'),
     t_PLUS = '\\+',
     t_MINUS = '-',
@@ -26,8 +28,9 @@ Lexer <- R6Class("Lexer",
       return(NULL)
     },
     t_error = function(t) {
-      cat(sprintf("Illegal character '%s'", t$value[1]))
+      self$msg <- sprintf("Illegal character '%s'", t$value[1])
       t$lexer$skip(1)
+      return(t)
     }
   )
 )
@@ -72,4 +75,14 @@ test_that("calclex: new lines", {
   y")
   expect_equal(lexer$token()$value, "x")
   expect_equal(lexer$token()$lineno, 5)
+})
+
+test_that("calclex: error", {
+  lexer <- rly::lex(Lexer)
+
+  lexer$input("x?y")
+  expect_equal(lexer$token()$value, "x")
+  lexer$token()
+  expect_equal(lexer$instance$msg, "Illegal character '?'")
+  expect_equal(lexer$token()$value, "y")
 })

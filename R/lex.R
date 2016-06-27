@@ -43,34 +43,36 @@ LexToken <- R6Class("LexToken",
 #' @keywords data
 Lexer <- R6Class("Lexer",
   public = list(
-    lexre = NA,              # Master regular expression. This is a list of
-                             # tuples (re, findex) where re is a compiled
-                             # regular expression and findex is a list
-                             # mapping regex group numbers to rules
-    lexretext = NA,          # Current regular expression strings
-    lexstatere = NA,         # Dictionary mapping lexer states to master regexs
-    lexstateretext = NA,     # Dictionary mapping lexer states to regex strings
-    lexstaterenames = NA,    # Dictionary mapping lexer states to symbol names
-    lexstate = NA,           # Current lexer state
-    lexstatestack = NA,      # Stack of lexer states
-    lexstateinfo = NA,       # State information
-    lexstateignore = NA,     # Dictionary of ignored characters for each state
-    lexstateerrorf = NA,     # Dictionary of error functions for each state
-    lexstateeoff = NA,       # Dictionary of eof functions for each state
-    lexdata = NA,            # Actual input data (as a string)
-    lexpos = NA,             # Current position in input text
-    lexlen = NA,             # Length of the input text
-    lexerrorf = NA,          # Error rule (if any)
-    lexeoff = NA,            # EOF rule (if any)
-    lextokens = NA,          # List of valid tokens
-    lextokens_all = NA,
-    lexignore = NA,          # Ignored characters
-    lexliterals = NA,        # Literal characters that can be passed through
-    lexmodule = NA,          # Module
-    lineno = NA,             # Current line number
-    lexoptimize = NA,        # Optimized mode
+    instance        = NA,
+    lexre           = NA, # Master regular expression. This is a list of
+                          # tuples (re, findex) where re is a compiled
+                          # regular expression and findex is a list
+                          # mapping regex group numbers to rules
+    lexretext       = NA, # Current regular expression strings
+    lexstatere      = NA, # Dictionary mapping lexer states to master regexs
+    lexstateretext  = NA, # Dictionary mapping lexer states to regex strings
+    lexstaterenames = NA, # Dictionary mapping lexer states to symbol names
+    lexstate        = NA, # Current lexer state
+    lexstatestack   = NA, # Stack of lexer states
+    lexstateinfo    = NA, # State information
+    lexstateignore  = NA, # Dictionary of ignored characters for each state
+    lexstateerrorf  = NA, # Dictionary of error functions for each state
+    lexstateeoff    = NA, # Dictionary of eof functions for each state
+    lexdata         = NA, # Actual input data (as a string)
+    lexpos          = NA, # Current position in input text
+    lexlen          = NA, # Length of the input text
+    lexerrorf       = NA, # Error rule (if any)
+    lexeoff         = NA, # EOF rule (if any)
+    lextokens       = NA, # List of valid tokens
+    lextokens_all   = NA,
+    lexignore       = NA, # Ignored characters
+    lexliterals     = NA, # Literal characters that can be passed through
+    lexmodule       = NA, # Module
+    lineno          = NA, # Current line number
+    lexoptimize     = NA, # Optimized mode
 
-    initialize = function() {
+    initialize = function(instance) {
+      self$instance        <- instance
       self$lexre           <- NA
       self$lexretext       <- NA
       self$lexstatere      <- new.env(hash=TRUE)
@@ -85,11 +87,11 @@ Lexer <- R6Class("Lexer",
       self$lexdata         <- NA
       self$lexpos          <- 1
       self$lexlen          <- 0
-      self$lexerrorf       <- NA
+      self$lexerrorf       <- NULL
       self$lexeoff         <- NA
       self$lextokens       <- NA
       self$lexignore       <- ''
-      self$lexliterals     <- ''
+      self$lexliterals     <- NULL
       self$lexmodule       <- NA
       self$lineno          <- 1
       self$lexoptimize     <- FALSE
@@ -137,6 +139,7 @@ Lexer <- R6Class("Lexer",
     #' skip() - Skip ahead n characters
     #' ------------------------------------------------------------
     skip = function(n) {
+      self$lexpos <- self$lexpos + n
     },
     #' ------------------------------------------------------------
     #' opttoken() - Return the next token from the Lexer
@@ -211,18 +214,20 @@ Lexer <- R6Class("Lexer",
 
         if(!broke) {
           # No match, see if in literals
-          if(grepl(substring(data, 1, 1), self$lexliterals, fixed=TRUE)) {
-            tok         <- LexToken$new()
-            tok$value   <- substring(data, 1, 1)
-            tok$lineno  <- self$lineno
-            tok$type    <- tok$value
-            tok$lexpos  <- lexpos
-            self$lexpos <- lexpos + 1
-            return(tok)
+          if(!is.null(self$lexliterals)) {
+            if(grepl(substring(data, 1, 1), self$lexliterals, fixed=TRUE)) {
+              tok         <- LexToken$new()
+              tok$value   <- substring(data, 1, 1)
+              tok$lineno  <- self$lineno
+              tok$type    <- tok$value
+              tok$lexpos  <- lexpos
+              self$lexpos <- lexpos + 1
+              return(tok)
+            }
           }
 
           # No match. Call t_error() if defined.
-          if(is.na(self$lexerrorf)) {
+          if(!is.null(self$lexerrorf)) {
             tok <- LexToken$new()
             tok$value <- substring(data, 1, 1)
             tok$lineno <- self$lineno
@@ -235,7 +240,7 @@ Lexer <- R6Class("Lexer",
               # Error method didn't change text position at all. This is an error.
               stop(sprintf("Scanning error. Illegal character '%s'", substring(data, 1, 1)))
             }
-            lexpos <- self.lexpos
+            lexpos <- self$lexpos
             if(is.null(newtok)) next
             return(newtok)
           }
@@ -414,8 +419,8 @@ LexerReflect <- R6Class("LexerReflect",
               self$error <- TRUE
               next
             }
-            name <- s [1]
-            statetype <- s [2]
+            name      <- s[1]
+            statetype <- s[2]
 
             if(!is.character(name)) {
               dbg('State name must be a string')
@@ -591,7 +596,7 @@ lex = function(module=NA,
                nowarn=FALSE,
                outputdir=NA) {
   instance <- do.call("new", args, envir=module)
-  lexobj <- Lexer$new()
+  lexobj <- Lexer$new(instance)
 
   # Collect parser information
   linfo = LexerReflect$new(module, instance)
