@@ -11,7 +11,7 @@ Lexer <- R6Class("Lexer",
   )
 )
 
-test_that("missing regex", {
+test_that("missing rules", {
   results <- capture.output(rly::lex(Lexer))[[1]]
   expect_equal(results, "DEBUG>  No rules of the form t_rulename are defined ")
 })
