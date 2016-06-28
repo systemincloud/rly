@@ -480,7 +480,7 @@ LexerReflect <- R6Class("LexerReflect",
           } else if(tokname == 'eof') {
             for(s in states) self$eoff[[s]] <- t
           } else if(tokname == 'ignore') {
-            dbg(sprintf("%s:%d: Rule '%s' must be defined as a string", as.character(t)))
+            dbg(sprintf("Rule '%s' must be defined as a string", f))
             self$error = TRUE
           } else {
             for(s in states) {
