@@ -294,7 +294,7 @@ statetoken = function(s, names) {
   i <- 0
   for(part in tail((parts), -1L)) {
     i <- i + 1
-    if((part %in% names(names)) && (part != 'ANY')) break
+    if(!(part %in% names(names)) && (part != 'ANY')) break
   }
 
   if(i > 1) states <- head(tail((parts), -1L), i - 1)
