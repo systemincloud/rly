@@ -19,5 +19,3 @@ Lexer <- R6Class("Lexer",
 test_that("t_ignore improper", {
   rly::lex(Lexer)
 })
-
-
