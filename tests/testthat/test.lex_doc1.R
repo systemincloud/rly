@@ -20,6 +20,5 @@ Lexer <- R6Class("Lexer",
 )
 
 test_that("missing regex", {
-  results <- capture.output(rly::lex(Lexer))[[1]]
-  expect_equal(results, "DEBUG>  Rule 't_NUMBER' requires an argument ")
+  expect_output(rly::lex(Lexer), "DEBUG>  Rule 't_NUMBER' requires an argument ")
 })

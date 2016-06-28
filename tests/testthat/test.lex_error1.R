@@ -15,6 +15,5 @@ Lexer <- R6Class("Lexer",
 )
 
 test_that("no t_error()", {
-  results <- capture.output(rly::lex(Lexer))[[1]]
-  expect_equal(results, "DEBUG>  No t_error rule is defined ")
+  expect_output(rly::lex(Lexer), "DEBUG>  No t_error rule is defined ")
 })
