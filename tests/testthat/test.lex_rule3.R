@@ -10,11 +10,11 @@ Lexer <- R6Class("Lexer",
     tokens = c('NUMBER', 'PLUS','MINUS'),
     t_PLUS = '\\+',
     t_MINUS = '-',
-    t_NUMBER = function(re='\\d+') { },
+    t_NUMBER = function(re='\\d+', t, s) { },
     t_error = function(t) { }
   )
 )
 
 test_that("incorect # args", {
-  expect_output(rly::lex(Lexer), "DEBUG>  Rule 't_NUMBER' requires an argument ")
+  expect_output(rly::lex(Lexer), "DEBUG>  Rule 't_NUMBER' has too many arguments ")
 })
