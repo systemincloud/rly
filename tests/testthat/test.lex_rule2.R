@@ -3,18 +3,18 @@
 library(testthat)
 library(rly)
 
-context("Rule incorrect")
+context("Rule function with incorrect number of arguments")
 
 Lexer <- R6Class("Lexer",
   public = list(
     tokens = c('NUMBER', 'PLUS','MINUS'),
     t_PLUS = '\\+',
     t_MINUS = '-',
-    t_NUMBER = 1,
+    t_NUMBER = function(re='\\d+') { },
     t_error = function(t) { }
   )
 )
 
-test_that("rule incorrect", {
-  expect_output(rly::lex(Lexer), "DEBUG>  t_NUMBER not defined as a function or string ")
+test_that("incorect # args", {
+      expect_output(rly::lex(Lexer), "DEBUG>  Rule 't_NUMBER' requires an argument ")
 })
