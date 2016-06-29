@@ -592,9 +592,7 @@ LexerReflect <- R6Class("LexerReflect",
 #' @export
 lex = function(module=NA,
                args=list(),
-               debug=FALSE,
-               nowarn=FALSE,
-               outputdir=NA) {
+               debug=FALSE) {
   instance <- do.call("new", args, envir=module)
   lexobj <- Lexer$new(instance)
 
