@@ -531,11 +531,17 @@ LexerReflect <- R6Class("LexerReflect",
             self$error <- TRUE
             next
           }
-          if(grepl(get_regex(f), '', perl=TRUE)) {
-            dbg(sprintf("Regular expression for rule '%s' matches empty string", fname))
+          if(tryCatch({
+            if(grepl(get_regex(f), '', perl=TRUE)) {
+              dbg(sprintf("Regular expression for rule '%s' matches empty string", fname))
+              self$error <- TRUE
+              TRUE
+            } else FALSE
+          }, error = function(err) {
+            dbg(sprintf("Invalid regular expression for rule '%s'", fname))
             self$error <- TRUE
-            next
-          }
+            TRUE
+          })) next
         }
 
         # Validate all rules defined by strings
@@ -553,11 +559,17 @@ LexerReflect <- R6Class("LexerReflect",
             self$error <- TRUE
             next
           }
-          if(grepl(r, '', perl=TRUE)) {
-            dbg(sprintf("Regular expression for rule '%s' matches empty string", name))
+          if(tryCatch({
+            if(grepl(r, '', perl=TRUE)) {
+              dbg(sprintf("Regular expression for rule '%s' matches empty string", name))
+              self$error <- TRUE
+              TRUE
+            } else FALSE
+          }, error = function(err) {
+            dbg(sprintf("Invalid regular expression for rule '%s'", name))
             self$error <- TRUE
-            next
-          }
+            TRUE
+          })) next
         }
 
         if(length(self$funcsym[[state]]) == 0 && length(self$strsym[[state]]) == 0) {
