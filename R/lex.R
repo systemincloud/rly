@@ -97,16 +97,6 @@ Lexer <- R6Class("Lexer",
       self$lexoptimize     <- FALSE
     },
     #' ------------------------------------------------------------
-    #' writetab() - Write lexer information to a table file
-    #' ------------------------------------------------------------
-    writetab = function(lextab, outputdir='') {
-    },
-    #' ------------------------------------------------------------
-    #' readtab() - Read lexer information from a tab file
-    #' ------------------------------------------------------------
-    readtab = function(self, tabfile, fdict) {
-    },
-    #' ------------------------------------------------------------
     #' input() - Push a new string into the lexer
     #' ------------------------------------------------------------
     input = function(s) {
