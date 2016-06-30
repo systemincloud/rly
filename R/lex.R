@@ -691,7 +691,7 @@ lex = function(module=NA,
   for(s in names(stateinfo)) {
     stype <- stateinfo[[s]]
     if(stype == 'exclusive') {
-      if(!(s %in% names(linfo$errorf))) dbg("No error rule is defined for exclusive state '%s'", s)
+      if(!(s %in% names(linfo$errorf))) dbg(sprintf("No error rule is defined for exclusive state '%s'", s))
       if(!(s %in% names(linfo$ignore)) && !(s %in% names(lexobj$lexignore))) dbg(sprintf("No ignore rule is defined for exclusive state '%s'", s))
     } else if(stype == 'inclusive') {
       if(!(s %in% names(linfo$errorf))) {
