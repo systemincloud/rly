@@ -27,5 +27,5 @@ Lexer <- R6Class("Lexer",
 )
 
 test_that("comment", {
-  expect_output(rly::lex(Lexer), "DEBUG>  State name must be a string")
+  expect_output(rly::lex(Lexer), "ERROR>  State name must be a string")
 })

@@ -27,6 +27,6 @@ Lexer <- R6Class("Lexer",
 )
 
 test_that("comment", {
-  expect_output(rly::lex(Lexer), "DEBUG>  State 'comment' already defined",
+  expect_output(rly::lex(Lexer), "ERROR>  State 'comment' already defined",
                 fixed=TRUE)
 })

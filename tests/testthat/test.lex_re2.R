@@ -16,5 +16,5 @@ Lexer <- R6Class("Lexer",
 )
 
 test_that("regex matches empty string", {
-  expect_output(rly::lex(Lexer), "DEBUG>  Regular expression for rule 't_PLUS' matches empty string ")
+  expect_output(rly::lex(Lexer), "ERROR>  Regular expression for rule 't_PLUS' matches empty string ")
 })

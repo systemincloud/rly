@@ -17,5 +17,5 @@ Lexer <- R6Class("Lexer",
 )
 
 test_that("literal not single", {
-  expect_output(rly::lex(Lexer), "DEBUG>  Invalid literal. Must be a single character ")
+  expect_output(rly::lex(Lexer), "ERROR>  Invalid literal. Must be a single character ")
 })

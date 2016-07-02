@@ -16,5 +16,5 @@ Lexer <- R6Class("Lexer",
 )
 
 test_that("incorect # args", {
-  expect_output(rly::lex(Lexer), "DEBUG>  Rule 't_NUMBER' requires an argument ")
+  expect_output(rly::lex(Lexer), "ERROR>  Rule 't_NUMBER' requires an argument ")
 })

@@ -16,5 +16,5 @@ Lexer <- R6Class("Lexer",
 )
 
 test_that("t_error not function", {
-  expect_output(rly::lex(Lexer),, "DEBUG>  Rule 't_error' must be defined as a function ")
+  expect_output(rly::lex(Lexer), "ERROR>  Rule 't_error' must be defined as a function ")
 })

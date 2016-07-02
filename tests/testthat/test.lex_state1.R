@@ -26,6 +26,6 @@ Lexer <- R6Class("Lexer",
 )
 
 test_that("comment", {
-  expect_output(rly::lex(Lexer), "DEBUG>  Invalid state specifier. Must be a tuple (statename,'exclusive|inclusive') ",
+  expect_output(rly::lex(Lexer), "ERROR>  Invalid state specifier. Must be a tuple (statename,'exclusive|inclusive') ",
                 fixed=TRUE)
 })
