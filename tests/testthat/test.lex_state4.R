@@ -8,7 +8,7 @@ context("Bad state declaration")
 Lexer <- R6Class("Lexer",
   public = list(
     tokens = c('NUMBER', 'PLUS','MINUS'),
-    states = list(c('comment', 'example')),
+    states = list(c('comment', 'exclsive')),
     t_PLUS = '\\+',
     t_MINUS = '-',
     t_NUMBER = '\\d+',
@@ -26,6 +26,6 @@ Lexer <- R6Class("Lexer",
 )
 
 test_that("comment", {
-  expect_output(rly::lex(Lexer), "DEBUG>  State type for state must be 'inclusive' or 'exclusive' ",
+  expect_output(rly::lex(Lexer), "DEBUG>  State type for state must be 'inclusive' or 'exclusive'",
                 fixed=TRUE)
 })
