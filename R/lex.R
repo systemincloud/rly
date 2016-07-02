@@ -109,6 +109,13 @@ Lexer <- R6Class("Lexer",
     #' begin() - Changes the lexing state
     #' ------------------------------------------------------------
     begin = function(state) {
+      if(!(state %in% names(self$lexstatere))) stop('Undefined state')
+      self$lexre <- self$lexstatere[[state]]
+      self$lexretext <- self$lexstateretext[[state]]
+      self$lexignore <- self$lexstateignore[[state]]
+      self$lexerrorf <- self$lexstateerrorf[[state]]
+      self$lexeoff <- self$lexstateeoff[[state]]
+      self$lexstate <- state
     },
     #' ------------------------------------------------------------
     #' push_state() - Changes the lexing state and saves old on stack
@@ -292,8 +299,7 @@ statetoken = function(s, names) {
 
   if('ANY' %in% states) states <- c(names(names))
 
-  tokenname <- unsplit(tail(parts, -i), '_')
-
+  tokenname <- paste(tail(parts, -i), collapse='_')
   return(list(states, tokenname))
 }
 
