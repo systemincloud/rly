@@ -16,10 +16,12 @@ Lexer <- R6Class("Lexer",
     t_comment = function(re='/\\*', t) {
       cat('comment\n')
       t$lexer$begin('comment')
+      return(NULL)
     },
     t_comment_body_part = function(re='(.|\\n)*\\*/',  t) {
       cat(sprintf("comment body %s\n", t$value))
       t$lexer$begin('INITIAL')
+      return(NULL)
     },
     t_error = function(t) { }
   )
@@ -33,8 +35,8 @@ test_that("comment", {
   expect_equal(lexer$token()$value, "3")
   expect_equal(lexer$token()$value, "+")
   expect_equal(lexer$token()$value, "4")
-  expect_output(lexer$token(), "comment")
-  expect_output(lexer$token(), "comment body * This is a comment */", fixed=TRUE)
-  expect_equal(lexer$token()$value, "+")
+  t <- NA
+  expect_output(t <- lexer$token(), "comment\ncomment body * This is a comment */", fixed=TRUE)
+  expect_equal(t$value, "+")
   expect_equal(lexer$token()$value, "10")
 })

@@ -208,6 +208,9 @@ Lexer <- R6Class("Lexer",
             break
           }
 
+          # Verify type of the token.  If not in the token map, raise an error
+          if(!(newtok$type %in% self$lextokens_all)) stop(sprintf("ERROR> Rule '%s' returned an unknown token type '%s'", name, newtok$type))
+
           return(newtok)
         }
 
@@ -628,7 +631,7 @@ lex = function(module=NA,
   if(is.vector(linfo$literals)) lexobj$lexliterals <- paste(linfo$literals, collapse = "")
   else                          lexobj$lexliterals <- linfo$literals
 
-  lexobj$lextokens_all <- list(lexobj$lextokens,  unique(lexobj$lexliterals))
+  lexobj$lextokens_all <- c(lexobj$lextokens,  unique(lexobj$lexliterals))
 
   # Get the stateinfo dictionary
   stateinfo <- linfo$stateinfo
