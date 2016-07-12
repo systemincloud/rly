@@ -319,13 +319,13 @@ statetoken = function(s, names) {
 #' @keywords data
 LexerReflect <- R6Class("LexerReflect",
   public = list(
-    module = NA,
-    instance = NA,
-    tokens = NA,
-    literals = NA,
-    states = NA,
+    module    = NA,
+    instance  = NA,
+    tokens    = NA,
+    literals  = NA,
+    states    = NA,
     stateinfo = NA,
-    error = NA,
+    error     = NA,
 
     toknames = NA,        # Mapping of symbols to token names
     funcsym  = NA,        # Symbols defined as functions
@@ -613,6 +613,7 @@ lex = function(module=NA,
   linfo = LexerReflect$new(module, instance)
   linfo$get_all()
   linfo$validate_all()
+#  if(linfo$error) stop("Can't build lexer")
 
   # Dump some basic debugging information
   if(debug) {
