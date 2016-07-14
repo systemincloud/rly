@@ -240,6 +240,46 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
 
 
 #' -----------------------------------------------------------------------------
+#' parse_grammar()
+#'
+#' This takes a raw grammar rule string and parses it into production data
+#' -----------------------------------------------------------------------------
+#def parse_grammar(doc, file, line):
+#    grammar = []
+## Split the doc string into lines
+#pstrings = doc.splitlines()
+#lastp = None
+#dline = line
+#for ps in pstrings:
+#    dline += 1
+#p = ps.split()
+#if not p:
+#      continue
+#try:
+#    if p[0] == '|':
+#          # This is a continuation of a previous rule
+#          if not lastp:
+#                raise SyntaxError("%s:%d: Misplaced '|'" % (file, dline))
+#                        prodname = lastp
+#syms = p[1:]
+#else:
+#      prodname = p[0]
+#lastp = prodname
+#syms   = p[2:]
+#assign = p[1]
+#if assign != ':' and assign != '::=':
+#      raise SyntaxError("%s:%d: Syntax error. Expected ':'" % (file, dline))
+#
+#              grammar.append((file, dline, prodname, syms))
+#except SyntaxError:
+#    raise
+#except Exception:
+#    raise SyntaxError('%s:%d: Syntax error in rule %r' % (file, dline, ps.strip()))
+#
+#            return grammar
+
+
+#' -----------------------------------------------------------------------------
 #' ParserReflect()
 #'
 #' This class represents information extracted for building a parser including
@@ -257,6 +297,11 @@ ParserReflect <- R6Class("ParserReflect",
     instance   = NA,
     start      = NA,
     error_func = NA,
+    tokens     = NA,
+    prec       = NA,
+    preclist   = NA,
+    pfuncs     = NA,
+    grammar    = NA,
     error      = NA,
     initialize = function(module, instance) {
       self$module <- module
@@ -278,21 +323,7 @@ ParserReflect <- R6Class("ParserReflect",
       self$validate_tokens()
       self$validate_precedence()
       self$validate_pfunctions()
-      self$validate_modules()
       return(self$error)
-    },
-    # -----------------------------------------------------------------------------
-    # validate_modules()
-    #
-    # This method checks to see if there are duplicated p_rulename() functions
-    # in the parser module file.  Without this function, it is really easy for
-    # users to make mistakes by cutting and pasting code fragments (and it's a real
-    # bugger to try and figure out why the resulting parser doesn't work).  Therefore,
-    # we just do a little regular expression pattern matching of def statements
-    # to try and detect duplicates.
-    # -----------------------------------------------------------------------------
-    validate_modules = function() {
-
     },
     # Get the start symbol
     get_start = function() {
@@ -306,35 +337,152 @@ ParserReflect <- R6Class("ParserReflect",
     },
     # Look for error handler
     get_error_func = function() {
-
+      self$error_func = self$instance$p_error
     },
     # Validate the error function
-    validate_error_func = function(self) {
-
+    validate_error_func = function() {
+      if(!is.null(self$error_func)) {
+        if(typeof(self$error_func) != 'closure') {
+          err("'p_error' defined, but is not a function or method")
+          self$error <- True
+          return
+        }
+        if(length(formals(self$error_func)) != 1) {
+          err('p_error() requires 1 argument')
+          self$error <- True
+          return
+        }
+      }
     },
     # Get the tokens map
     get_tokens = function() {
+      tokens <- self$instance$tokens
 
+      if(is.null(tokens)) {
+        err('No token list is defined')
+        self$error = TRUE
+        return
+      }
+      if(!is.vector(tokens)) {
+        err('tokens must be a vector')
+        self$error <- TRUE
+        return
+      }
+      if(length(tokens) == 0) {
+        err('tokens is empty')
+        self$error <- TRUE
+        return
+      }
+
+      self$tokens <- tokens
     },
     # Validate the tokens
     validate_tokens = function() {
+      # Validate the tokens.
+      if('error' %in% self$tokens) {
+        err("Illegal token name 'error'. Is a reserved word")
+        self$error = TRUE
+        return
+      }
 
+      terminals <- list()
+      for(n in self$tokens) {
+        if(n %in% terminals) wrn('Token %r multiply defined', n)
+        terminals[length(terminals)+1] <- n
+      }
     },
     # Get the precedence map (if any)
     get_precedence = function() {
-
+      self$prec = self$instance$precedence
     },
     # Validate and parse the precedence map
     validate_precedence = function() {
+      preclist <- list()
+      if(is.null(self$prec)) {
+        if(!is.vector(self$prec)) {
+          err("precedence must be a list")
+          self$error = TRUE
+          return
+        }
+        for(p in self$prec) {
+          if(!is.vector(p)) {
+            err("Bad precedence table")
+            self$error = TRUE
+            return
+          }
+          if(length(p) < 2) {
+            err("Malformed precedence entry. Must be (assoc, term, ..., term)")
+            self$error = TRUE
+            return
+          }
+          assoc <- p[0]
+          if(typeof(assoc) != 'character') {
+            err("precedence associativity must be a string")
+            self$error = TRUE
+            return
+          }
 
+          level <- 0
+          for(term in tail(p, -1)) {
+            if(typeof(term) != 'character') {
+              err("precedence items must be strings")
+              self$error = TRUE
+              return
+            }
+            preclist[[length(preclist)+1]] <- list(term, assoc, level+1)
+            level <- level + 1
+          }
+        }
+      }
+      self$preclist <- preclist
     },
     # Get all p_functions from the grammar
     get_pfunctions = function() {
+      p_functions <- list()
 
+      for(name in grep('^p_', names(self$module$public_methods), value=TRUE)) {
+        if(name == 'p_error') next
+        p_functions[[length(p_functions)+1]] <- list(self$instance[[name]], name)
+      }
+      self$pfuncs <- p_functions
+      dbg(toString(self$pfuncs))
     },
     # Validate all of the p_functions
     validate_pfunctions = function() {
+      grammar <- list()
+      # Check for non-empty symbols
+      if(length(self$pfuncs) == 0) {
+        err("no rules of the form p_rulename are defined")
+        self$error = TRUE
+        return
+      }
+      for(f_name in self$pfuncs) {
+        f <- f_name[1][1]
+        name <- f_name[2]
+        reqargs <- 2
+        nargs <- length(formals(f))
+        dbg(typeof(f))
+        dbg(toString(nargs))
+        if(nargs > reqargs) {
+          err(sprintf("Rule '%s' has too many arguments", name))
+          self$error <- TRUE
+          return
+        } else if(nargs < reqargs) {
+          err(sprintf("Rule '%s' requires an argument", name))
+          self$error <- TRUE
+          return
+        } else {
+#            try:
+#            parsed_g = parse_grammar(doc, file, line)
+#      for g in parsed_g:
+#          grammar.append((name, g))
+#    except SyntaxError as e:
+#        self.log.error(str(e))
+#    self.error = True
+        }
 
+      }
+      self$grammar <- grammar
     }
   )
 )

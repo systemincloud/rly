@@ -3,41 +3,44 @@
 library(testthat)
 library(rly)
 
+source("test.calclex.R")
+
 context("Rules with wrong # args")
 
 Parser <- R6Class("Parser",
   public = list(
+    tokens = Lexer$public_fields$tokens,
     # Parsing rules
     precedence = list(c('left','PLUS','MINUS'),
                       c('left','TIMES','DIVIDE'),
                       c('right','UMINUS')),
     # dictionary of names
     names = new.env(hash=TRUE),
-    p_statement_assign = function(re='statement : NAME EQUALS expression', t, s) {
+    p_statement_assign = function(doc='statement : NAME EQUALS expression', t, s) {
       names[t[1]] <- t[3]
     },
-    p_statement_expr = function(re='statement : expression') {
+    p_statement_expr = function(doc='statement : expression') {
       cat(t[1])
     },
-    p_expression_binop = function(re='expression : expression PLUS expression
-                                                 | expression MINUS expression
-                                                 | expression TIMES expression
-                                                 | expression DIVIDE expression', t) {
+    p_expression_binop = function(doc='expression : expression PLUS expression
+                                                  | expression MINUS expression
+                                                  | expression TIMES expression
+                                                  | expression DIVIDE expression', t) {
       if(t[2] == '+')      t[0] <- t[1] + t[3]
       else if(t[2] == '-') t[0] <- t[1] - t[3]
       else if(t[2] == '*') t[0] <- t[1] * t[3]
       else if(t[2] == '/') t[0] <- t[1] / t[3]
     },
-    p_expression_uminus = function(re='expression : MINUS expression %prec UMINUS', t) {
+    p_expression_uminus = function(doc='expression : MINUS expression %prec UMINUS', t) {
       t[0] <- -t[2]
     },
-    p_expression_group = function(re='expression : LPAREN expression RPAREN', t) {
+    p_expression_group = function(doc='expression : LPAREN expression RPAREN', t) {
       t[0] <- t[2]
     },
-    p_expression_number = function(re='expression : NUMBER', t) {
+    p_expression_number = function(doc='expression : NUMBER', t) {
       t[0] <- t[1]
     },
-    p_expression_name = function(re='expression : NAME', t) {
+    p_expression_name = function(doc='expression : NAME', t) {
       t[0] <- names[t[1]]
     },
     p_error = function(t) {
