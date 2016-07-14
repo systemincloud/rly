@@ -442,10 +442,9 @@ ParserReflect <- R6Class("ParserReflect",
 
       for(name in grep('^p_', names(self$module$public_methods), value=TRUE)) {
         if(name == 'p_error') next
-        p_functions[[length(p_functions)+1]] <- list(self$instance[[name]], name)
+        p_functions[[length(p_functions)+1]] <- name
       }
       self$pfuncs <- p_functions
-      dbg(toString(self$pfuncs))
     },
     # Validate all of the p_functions
     validate_pfunctions = function() {
@@ -456,13 +455,10 @@ ParserReflect <- R6Class("ParserReflect",
         self$error = TRUE
         return
       }
-      for(f_name in self$pfuncs) {
-        f <- f_name[1][1]
-        name <- f_name[2]
+      for(name in self$pfuncs) {
+        f <-self$instance[[name]]
         reqargs <- 2
         nargs <- length(formals(f))
-        dbg(typeof(f))
-        dbg(toString(nargs))
         if(nargs > reqargs) {
           err(sprintf("Rule '%s' has too many arguments", name))
           self$error <- TRUE
