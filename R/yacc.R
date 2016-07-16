@@ -244,10 +244,19 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
 #'
 #' This takes a raw grammar rule string and parses it into production data
 #' -----------------------------------------------------------------------------
-#def parse_grammar(doc, file, line):
-#    grammar = []
-## Split the doc string into lines
-#pstrings = doc.splitlines()
+parse_grammar = function(doc) {
+  grammar <- list()
+  # Split the doc string into lines
+#  pstrings <- strsplit(doc, "s/\r[\n]*/\n/gm")
+  pstrings <- strsplit(doc, "s/\n/gm", perl=TRUE)
+  dbg(toString(pstrings))
+  dbg(length(pstrings))
+  for(ps in pstrings) {
+    dbg(ps)
+  }
+}
+
+
 #lastp = None
 #dline = line
 #for ps in pstrings:
@@ -469,7 +478,8 @@ ParserReflect <- R6Class("ParserReflect",
           return
         } else {
 #            try:
-#            parsed_g = parse_grammar(doc, file, line)
+          doc <- formals(f)[['doc']]
+          parsed_g <- parse_grammar(doc)
 #      for g in parsed_g:
 #          grammar.append((name, g))
 #    except SyntaxError as e:
