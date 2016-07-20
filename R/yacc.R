@@ -192,7 +192,56 @@ LRParser <- R6Class("LRParser",
 #' @keywords data
 Grammar <- R6Class("Grammar",
   public = list(
+    Productions = NA,
+    Prodnames = NA,
+    Prodmap = NA,
+    Terminals = NA,
+    Nonterminals = NA,
+    First = NA,
+    Follow = NA,
+    Precedence = NA,
+    UsedPrecedence = NA,
+    Start = NA,
     initialize = function(terminals) {
+      self$Productions <- list()           # - A list of all of the productions.  The first
+                                           #   entry is always reserved for the purpose of
+                                           #   building an augmented grammar      
+      self$Prodnames <- new.env(hash=TRUE) # - A dictionary mapping the names of nonterminals to a list of all
+                                           #   productions of that nonterminal.
+      self$Prodmap <- new.env(hash=TRUE)   # - A dictionary that is only used to detect duplicate
+                                           #   productions.
+      self$Terminals <- new.env(hash=TRUE) # - A dictionary mapping the names of terminal symbols to a
+                                           #   list of the rules where they are used.
+      
+      for(term in terminals) {
+        self$Terminals[[term]] <- list()
+      }
+      
+      self$Terminals[['error']] <- c()
+      
+      self$Nonterminals <- new.env(hash=TRUE) # - A dictionary mapping names of nonterminals to a list
+                                              #   of rule numbers where they are used.
+      self$First <- new.env(hash=TRUE)        # - A dictionary of precomputed FIRST(x) symbols
+      self$Follow <- new.env(hash=TRUE)       # - A dictionary of precomputed FOLLOW(x) symbols
+      self$Precedence <- new.env(hash=TRUE)   # - Precedence rules for each terminal. Contains tuples of the
+                                              #   form ('right',level) or ('nonassoc', level) or ('left',level)
+      self$UsedPrecedence <- list()           # - Precedence rules that were actually used by the grammer.
+                                              # - This is only used to provide error checking and to generate
+                                              #   a warning about unused precedence rules.
+      self$Start <- NA                        # - Starting symbol for the grammar
+    },
+    # -----------------------------------------------------------------------------
+    # set_precedence()
+    #
+    # Sets the precedence for a given terminal. assoc is the associativity such as
+    # 'left','right', or 'nonassoc'.  level is a numeric level.
+    #
+    # -----------------------------------------------------------------------------
+    set_precedence = function(term, assoc, level) {
+      if(length(self$Productions) != 0) stop('Must call set_precedence() before add_production()')
+      if(term %in% names(self$recedence)) stop(sprintf('Precedence already specified for terminal %s', term))
+      if(!(assoc %in% c('left', 'right', 'nonassoc'))) stop("Associativity must be one of 'left','right', or 'nonassoc'")
+      self$Precedence[term] <- list(assoc, level) 
     }
   )
 )
@@ -244,48 +293,34 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
 #'
 #' This takes a raw grammar rule string and parses it into production data
 #' -----------------------------------------------------------------------------
-parse_grammar = function(doc) {
+parse_grammar = function(name, doc) {
   grammar <- list()
   # Split the doc string into lines
-#  pstrings <- strsplit(doc, "s/\r[\n]*/\n/gm")
-  pstrings <- strsplit(doc, "s/\n/gm", perl=TRUE)
-  dbg(toString(pstrings))
-  dbg(length(pstrings))
+  pstrings <- mapply(gsub, "^\\s+|\\s+$", "", strsplit(doc, "\n"))
+  lastp <- NA
   for(ps in pstrings) {
-    dbg(ps)
+	  p <- strsplit(ps, " ")[[1]]
+	  if(length(p) == 0) next
+	
+    prodname <- NA
+    syms <- NA
+	  if(p[1] == '|') {
+      # This is a continuation of a previous rule
+		  if(is.na(lastp)) stop(sprintf("%s: Misplaced '|'", name))
+		  prodname <- lastp
+		  syms <- tail(p, -1)
+	  } else {
+      prodname <- p[1]
+      lastp <- prodname
+      syms <- tail(p, -3)
+      assign <- p[2]
+      if(assign != ':' && assign != '::=') stop(sprintf("%s: Syntax error. Expected ':'", name))
+
+      grammar[length(grammar)+1] <- list(name, prodname, syms)
+    }
   }
+  return(grammar)
 }
-
-
-#lastp = None
-#dline = line
-#for ps in pstrings:
-#    dline += 1
-#p = ps.split()
-#if not p:
-#      continue
-#try:
-#    if p[0] == '|':
-#          # This is a continuation of a previous rule
-#          if not lastp:
-#                raise SyntaxError("%s:%d: Misplaced '|'" % (file, dline))
-#                        prodname = lastp
-#syms = p[1:]
-#else:
-#      prodname = p[0]
-#lastp = prodname
-#syms   = p[2:]
-#assign = p[1]
-#if assign != ':' and assign != '::=':
-#      raise SyntaxError("%s:%d: Syntax error. Expected ':'" % (file, dline))
-#
-#              grammar.append((file, dline, prodname, syms))
-#except SyntaxError:
-#    raise
-#except Exception:
-#    raise SyntaxError('%s:%d: Syntax error in rule %r' % (file, dline, ps.strip()))
-#
-#            return grammar
 
 
 #' -----------------------------------------------------------------------------
@@ -477,14 +512,8 @@ ParserReflect <- R6Class("ParserReflect",
           self$error <- TRUE
           return
         } else {
-#            try:
           doc <- formals(f)[['doc']]
-          parsed_g <- parse_grammar(doc)
-#      for g in parsed_g:
-#          grammar.append((name, g))
-#    except SyntaxError as e:
-#        self.log.error(str(e))
-#    self.error = True
+          grammar <- parse_grammar(name, doc)
         }
 
       }
@@ -511,15 +540,21 @@ yacc = function(module=NA,
   pinfo <- ParserReflect$new(module, instance)
   pinfo$get_all()
   pinfo$validate_all()
-
 #  if(pinfo$error) stop('Unable to build parser')
+  
+  if(is.null(pinfo$error_func)) wrn('no p_error() function is defined')
 
+  # Create a grammar object
+  grammar <- Grammar$new(pinfo$tokens)
 
-
-
-#  # Create a grammar object
-#  grammar <- Grammar$new(pinfo$tokens)
-#
+  # Set precedence level for terminals
+  for(term_assoc_level in pinfo$preclist) {
+    grammar$set_precedence(term_assoc_level[[1]], 
+                           term_assoc_level[[2]], 
+                           term_assoc_level[[3]])
+  }
+  
+  
 #  lr <- LRGeneratedTable$new(grammar)
 #
 #  # Build the parser
