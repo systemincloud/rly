@@ -179,6 +179,17 @@ LRParser <- R6Class("LRParser",
 
 
 #' -----------------------------------------------------------------------------
+#'                          === Grammar Representation ===
+#'
+#' The following functions, classes, and variables are used to represent and
+#' manipulate the rules that make up a grammar.
+#' -----------------------------------------------------------------------------
+
+#' regex matching identifiers
+is_identifier <- '^[a-zA-Z0-9_-]+$'
+
+
+#' -----------------------------------------------------------------------------
 #'                           === GRAMMAR CLASS ===
 #'
 #' The following class represents the contents of the specified grammar along
@@ -242,6 +253,200 @@ Grammar <- R6Class("Grammar",
       if(term %in% names(self$recedence)) stop(sprintf('Precedence already specified for terminal %s', term))
       if(!(assoc %in% c('left', 'right', 'nonassoc'))) stop("Associativity must be one of 'left','right', or 'nonassoc'")
       self$Precedence[term] <- list(assoc, level) 
+    },
+    # -----------------------------------------------------------------------------
+    # add_production()
+    #
+    # Given an action function, this function assembles a production rule and
+    # computes its precedence level.
+    #
+    # The production rule is supplied as a list of symbols.   For example,
+    # a rule such as 'expr : expr PLUS term' has a production name of 'expr' and
+    # symbols ['expr','PLUS','term'].
+    #
+    # Precedence is determined by the precedence of the right-most non-terminal
+    # or the precedence of a terminal specified by %prec.
+    #
+    # A variety of error checks are performed to make sure production symbols
+    # are valid and that %prec is used correctly.
+    # -----------------------------------------------------------------------------
+    add_production = function(prodname, syms, func) {
+      dbg(toString(prodname))
+      dbg(toString(syms))
+      dbg(toString(func))
+      #      if(prodname %in% self$Terminals)               stop(sprintf('%s: Illegal rule name %r. Already defined as a token', name, prodname))
+#      if(prodname == 'error')                        stop(sprintf('%s: Illegal rule name %r. error is a reserved word', name, prodname))
+#      if(!grepl(is_identifier, prodname, perl=TRUE)) stop(sprintf('%s: Illegal rule name %r', name, prodname))
+                              
+      # Look for literal tokens
+#                              for n, s in enumerate(syms):
+#                              if s[0] in "'\"":
+#                                  try:
+#                                  c = eval(s)
+#      if (len(c) > 1):
+#          raise GrammarError('%s:%d: Literal token %s in rule %r may only be a single character' %
+#              (file, line, s, prodname))
+#    if c not in self.Terminals:
+#        self.Terminals[c] = []
+#    syms[n] = c
+#    continue
+#    except SyntaxError:
+#      pass
+#    if not _is_identifier.match(s) and s != '%prec':
+#        raise GrammarError('%s:%d: Illegal name %r in rule %r' % (file, line, s, prodname))
+#            
+#            # Determine the precedence level
+#            if '%prec' in syms:
+#            if syms[-1] == '%prec':
+#                raise GrammarError('%s:%d: Syntax error. Nothing follows %%prec' % (file, line))
+#                    if syms[-2] != '%prec':
+#                        raise GrammarError('%s:%d: Syntax error. %%prec can only appear at the end of a grammar rule' %
+#                            (file, line))
+#    precname = syms[-1]
+#    prodprec = self.Precedence.get(precname)
+#    if not prodprec:
+#        raise GrammarError('%s:%d: Nothing known about the precedence of %r' % (file, line, precname))
+#            else:
+#                self.UsedPrecedence.add(precname)
+#    del syms[-2:]     # Drop %prec from the rule
+#    else:
+#        # If no %prec, precedence is determined by the rightmost terminal symbol
+#        precname = rightmost_terminal(syms, self.Terminals)
+#    prodprec = self.Precedence.get(precname, ('right', 0))
+#    
+#    # See if the rule is already in the rulemap
+#    map = '%s -> %s' % (prodname, syms)
+#      if map in self.Prodmap:
+#          m = self.Prodmap[map]
+#    raise GrammarError('%s:%d: Duplicate rule %s. ' % (file, line, m) +
+#        'Previous definition at %s:%d' % (m.file, m.line))
+#        
+#        # From this point on, everything is valid.  Create a new Production instance
+#        pnumber  = len(self.Productions)
+#    if prodname not in self.Nonterminals:
+#        self.Nonterminals[prodname] = []
+#    
+#    # Add the production number to Terminals and Nonterminals
+#    for t in syms:
+#      if t in self.Terminals:
+#          self.Terminals[t].append(pnumber)
+#    else:
+#        if t not in self.Nonterminals:
+#            self.Nonterminals[t] = []
+#    self.Nonterminals[t].append(pnumber)
+#    
+#    # Create a production and add it to the list of productions
+#    p = Production(pnumber, prodname, syms, prodprec, func, file, line)
+#    self.Productions.append(p)
+#    self.Prodmap[map] = p
+#    
+#    # Add to the global productions list
+#    try:
+#      self.Prodnames[prodname].append(p)
+#    except KeyError:
+#      self.Prodnames[prodname] = [p]
+    },
+    # -----------------------------------------------------------------------------
+    # set_start()
+    #
+    # Sets the starting symbol and creates the augmented grammar.  Production
+    # rule 0 is S' -> start where start is the start symbol.
+    # -----------------------------------------------------------------------------
+    set_start = function(start=NA) {
+    },
+    # -----------------------------------------------------------------------------
+    # find_unreachable()
+    #
+    # Find all of the nonterminal symbols that can't be reached from the starting
+    # symbol.  Returns a list of nonterminals that can't be reached.
+    # -----------------------------------------------------------------------------
+    find_unreachable = function() {
+    },
+    # -----------------------------------------------------------------------------
+    # infinite_cycles()
+    #
+    # This function looks at the various parsing rules and tries to detect
+    # infinite recursion cycles (grammar rules where there is no possible way
+    # to derive a string of only terminals).
+    # -----------------------------------------------------------------------------
+    infinite_cycles = function() {
+    },
+    # -----------------------------------------------------------------------------
+    # undefined_symbols()
+    #
+    # Find all symbols that were used the grammar, but not defined as tokens or
+    # grammar rules.  Returns a list of tuples (sym, prod) where sym in the symbol
+    # and prod is the production where the symbol was used.
+    # -----------------------------------------------------------------------------
+    undefined_symbols = function() {
+    },
+    # -----------------------------------------------------------------------------
+    # unused_terminals()
+    #
+    # Find all terminals that were defined, but not used by the grammar.  Returns
+    # a list of all symbols.
+    # -----------------------------------------------------------------------------
+    unused_terminals = function() {
+    },
+    # ------------------------------------------------------------------------------
+    # unused_rules()
+    #
+    # Find all grammar rules that were defined,  but not used (maybe not reachable)
+    # Returns a list of productions.
+    # ------------------------------------------------------------------------------
+    unused_rules = function() {
+    },
+    # -----------------------------------------------------------------------------
+    # unused_precedence()
+    #
+    # Returns a list of tuples (term,precedence) corresponding to precedence
+    # rules that were never used by the grammar.  term is the name of the terminal
+    # on which precedence was applied and precedence is a string such as 'left' or
+    # 'right' corresponding to the type of precedence.
+    # -----------------------------------------------------------------------------
+    unused_precedence = function() {
+    },
+    # -------------------------------------------------------------------------
+    # _first()
+    #
+    # Compute the value of FIRST1(beta) where beta is a tuple of symbols.
+    #
+    # During execution of compute_first1, the result may be incomplete.
+    # Afterward (e.g., when called from compute_follow()), it will be complete.
+    # -------------------------------------------------------------------------
+    first = function(beta) {
+    },
+    # -------------------------------------------------------------------------
+    # compute_first()
+    #
+    # Compute the value of FIRST1(X) for all symbols
+    # -------------------------------------------------------------------------
+    compute_first = function() {
+    },
+    # ---------------------------------------------------------------------
+    # compute_follow()
+    #
+    # Computes all of the follow sets for every non-terminal symbol.  The
+    # follow set is the set of all symbols that might follow a given
+    # non-terminal.  See the Dragon book, 2nd Ed. p. 189.
+    # ---------------------------------------------------------------------
+    compute_follow = function(start=None) {
+    },
+    # -----------------------------------------------------------------------------
+    # build_lritems()
+    #
+    # This function walks the list of productions and builds a complete set of the
+    # LR items.  The LR items are stored in two ways:  First, they are uniquely
+    # numbered and placed in the list _lritems.  Second, a linked list of LR items
+    # is built for each production.  For example:
+    #
+    #   E -> E PLUS E
+    #
+    # Creates the list
+    #
+    #  [E -> . E PLUS E, E -> E . PLUS E, E -> E PLUS . E, E -> E PLUS E . ]
+    # -----------------------------------------------------------------------------
+    build_lritems = function() {
     }
   )
 )
@@ -554,6 +759,13 @@ yacc = function(module=NA,
                            term_assoc_level[[3]])
   }
   
+  # Add productions to the grammar
+  for(gram in pinfo$grammar) {
+    name     <- gram[1]
+    prodname <- gram[2]
+    syms     <- gram[3]
+    grammar$add_production(prodname, syms, name)
+  }
   
 #  lr <- LRGeneratedTable$new(grammar)
 #
