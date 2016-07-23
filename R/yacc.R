@@ -520,9 +520,9 @@ parse_grammar = function(name, doc) {
       syms <- tail(p, -3)
       assign <- p[2]
       if(assign != ':' && assign != '::=') stop(sprintf("%s: Syntax error. Expected ':'", name))
-
-      grammar[length(grammar)+1] <- list(name, prodname, syms)
     }
+
+    grammar[length(grammar)+1] <- list(name, prodname, syms)
   }
   return(grammar)
 }
@@ -586,7 +586,7 @@ ParserReflect <- R6Class("ParserReflect",
     },
     # Look for error handler
     get_error_func = function() {
-      self$error_func = self$instance$p_error
+      self$error_func <- self$instance$p_error
     },
     # Validate the error function
     validate_error_func = function() {
