@@ -271,15 +271,14 @@ Grammar <- R6Class("Grammar",
     # are valid and that %prec is used correctly.
     # -----------------------------------------------------------------------------
     add_production = function(prodname, syms, func) {
-      dbg(toString(prodname))
-      dbg(toString(syms))
-      dbg(toString(func))
-      #      if(prodname %in% self$Terminals)               stop(sprintf('%s: Illegal rule name %r. Already defined as a token', name, prodname))
-#      if(prodname == 'error')                        stop(sprintf('%s: Illegal rule name %r. error is a reserved word', name, prodname))
-#      if(!grepl(is_identifier, prodname, perl=TRUE)) stop(sprintf('%s: Illegal rule name %r', name, prodname))
+      if(prodname %in% names(self$Terminals))        err(sprintf('%s: Illegal rule name %s. Already defined as a token', func, prodname))
+      if(prodname == 'error')                        err(sprintf('%s: Illegal rule name %s. error is a reserved word', func, prodname))
+      if(!grepl(is_identifier, prodname, perl=TRUE)) err(sprintf('%s: Illegal rule name %s', func, prodname))
                               
       # Look for literal tokens
-#                              for n, s in enumerate(syms):
+      for(s in syms) {
+        
+      }
 #                              if s[0] in "'\"":
 #                                  try:
 #                                  c = eval(s)
@@ -517,12 +516,11 @@ parse_grammar = function(name, doc) {
 	  } else {
       prodname <- p[1]
       lastp <- prodname
-      syms <- tail(p, -3)
+      syms <- tail(p, -2)
       assign <- p[2]
       if(assign != ':' && assign != '::=') stop(sprintf("%s: Syntax error. Expected ':'", name))
     }
-
-    grammar[length(grammar)+1] <- list(name, prodname, syms)
+    grammar[[length(grammar)+1]] <- list(name, prodname, syms)
   }
   return(grammar)
 }
@@ -718,7 +716,9 @@ ParserReflect <- R6Class("ParserReflect",
           return
         } else {
           doc <- formals(f)[['doc']]
-          grammar <- parse_grammar(name, doc)
+          parsed_g <- parse_grammar(name, doc)
+          for(g in parsed_g)
+            grammar[[length(grammar)+1]] <- g
         }
 
       }
@@ -761,10 +761,10 @@ yacc = function(module=NA,
   
   # Add productions to the grammar
   for(gram in pinfo$grammar) {
-    name     <- gram[1]
+    funcname <- gram[1]
     prodname <- gram[2]
     syms     <- gram[3]
-    grammar$add_production(prodname, syms, name)
+    grammar$add_production(prodname, syms, funcname)
   }
   
 #  lr <- LRGeneratedTable$new(grammar)
