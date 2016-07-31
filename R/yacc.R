@@ -190,6 +190,21 @@ is_identifier <- '^[a-zA-Z0-9_-]+$'
 
 
 #' -----------------------------------------------------------------------------
+#' rightmost_terminal()
+#'
+#' Return the rightmost terminal from a list of symbols.  Used in add_production()
+#' -----------------------------------------------------------------------------
+rightmost_terminal = function(symbols, terminals) {
+  i <- length(symbols) - 1
+  while(i >= 1) {
+    if(symbols[[i]] %in% names(terminals)) return(symbols[i])
+    i <- i - 1
+  }
+  return(NULL)
+}
+
+
+#' -----------------------------------------------------------------------------
 #'                           === GRAMMAR CLASS ===
 #'
 #' The following class represents the contents of the specified grammar along
@@ -249,8 +264,8 @@ Grammar <- R6Class("Grammar",
     #
     # -----------------------------------------------------------------------------
     set_precedence = function(term, assoc, level) {
-      if(length(self$Productions) != 0) stop('Must call set_precedence() before add_production()')
-      if(term %in% names(self$recedence)) stop(sprintf('Precedence already specified for terminal %s', term))
+      if(length(self$Productions) != 0)                stop('Must call set_precedence() before add_production()')
+      if(term %in% names(self$recedence))              stop(sprintf('Precedence already specified for terminal %s', term))
       if(!(assoc %in% c('left', 'right', 'nonassoc'))) stop("Associativity must be one of 'left','right', or 'nonassoc'")
       self$Precedence[term] <- list(assoc, level) 
     },
@@ -277,73 +292,62 @@ Grammar <- R6Class("Grammar",
                               
       # Look for literal tokens
       for(s in syms) {
-        
+        if(s[1] %in% c("'", "\"")) {
+           if(length(s) > 1) err(sprintf('%s: Literal token %s in rule %s may only be a single character', func, s, prodname))
+           if(!(s %in% names(self$Terminals))) self$Terminals[s] <- c()
+           next
+        }
+        if(!grepl(is_identifier, s, perl=TRUE) && s != '%prec') err(sprintf('%s: Illegal name %s in rule %s', func,s, prodname))
       }
-#                              if s[0] in "'\"":
-#                                  try:
-#                                  c = eval(s)
-#      if (len(c) > 1):
-#          raise GrammarError('%s:%d: Literal token %s in rule %r may only be a single character' %
-#              (file, line, s, prodname))
-#    if c not in self.Terminals:
-#        self.Terminals[c] = []
-#    syms[n] = c
-#    continue
-#    except SyntaxError:
-#      pass
-#    if not _is_identifier.match(s) and s != '%prec':
-#        raise GrammarError('%s:%d: Illegal name %r in rule %r' % (file, line, s, prodname))
-#            
-#            # Determine the precedence level
-#            if '%prec' in syms:
-#            if syms[-1] == '%prec':
-#                raise GrammarError('%s:%d: Syntax error. Nothing follows %%prec' % (file, line))
-#                    if syms[-2] != '%prec':
-#                        raise GrammarError('%s:%d: Syntax error. %%prec can only appear at the end of a grammar rule' %
-#                            (file, line))
-#    precname = syms[-1]
-#    prodprec = self.Precedence.get(precname)
-#    if not prodprec:
-#        raise GrammarError('%s:%d: Nothing known about the precedence of %r' % (file, line, precname))
-#            else:
-#                self.UsedPrecedence.add(precname)
-#    del syms[-2:]     # Drop %prec from the rule
-#    else:
-#        # If no %prec, precedence is determined by the rightmost terminal symbol
-#        precname = rightmost_terminal(syms, self.Terminals)
-#    prodprec = self.Precedence.get(precname, ('right', 0))
+            
+      # Determine the precedence level
+      if('%prec' %in% syms) {
+        if(syms[length(syms)]     == '%prec') err(sprintf('%s: Syntax error. Nothing follows %%prec', func))
+        if(syms[length(syms) - 1] != '%prec') err(sprintf('%s: Syntax error. %%prec can only appear at the end of a grammar rule', func))
+       
+        precname <- syms[length(syms)]
+        prodprec <- self$Precedence[[precname]]
+       
+        if(is.null(prodprec)) err(sprintf('%s: Nothing known about the precedence of %s', func, precname))
+        else self$UsedPrecedence[[length(self$UsedPrecedence)+1]] <- precname
+        # Drop %prec from the rule
+        syms <- setdiff(syms, c(syms[length(syms) - 1]))
+      } else {
+        # If no %prec, precedence is determined by the rightmost terminal symbol
+        precname <- rightmost_terminal(syms, self$Terminals)
+        if(!is.null(precname)) prodprec <- self$Precedence[[precname]]
+        else prodprec <- NULL
+        
+        if(is.null(prodprec)) prodprec <- list('right', 0)
+      }
+    
+      # See if the rule is already in the rulemap
+      map <- sprintf('%s -> %s', prodname, syms)
+      if(map %in% names(self$Prodmap)) {
+        m <- self$Prodmap[[map]]
+        err(sprintf('%s: Duplicate rule %s. ', func, m))
+      }
+        
+      # From this point on, everything is valid.  Create a new Production instance
+      pnumber <- length(names(self$Productions))
+      if(!(prodname %in% names(self$Nonterminals))) self$Nonterminals[prodname] <- c()
+    
+      # Add the production number to Terminals and Nonterminals
+      for(t in syms) {
+#        if(t %in% names(self$Terminals)) self$Terminals[t][[length(self$Terminals[[t]])+1]] <- pnumber
+#        else {
+#          if(!(t %in% self$Nonterminals)) self$Nonterminals[t] <- c()
+#          self$Nonterminals[t][[length(self$Nonterminals[t])+1]] <- pnumber
+#        }
+      }
+#      
+#      # Create a production and add it to the list of productions
+#      p <- Production$new(pnumber, prodname, syms, prodprec, func)
+#      self$Productions[[length(self$Productions)+1]] <-p
+#      self$Prodmap[[map]] <- p
 #    
-#    # See if the rule is already in the rulemap
-#    map = '%s -> %s' % (prodname, syms)
-#      if map in self.Prodmap:
-#          m = self.Prodmap[map]
-#    raise GrammarError('%s:%d: Duplicate rule %s. ' % (file, line, m) +
-#        'Previous definition at %s:%d' % (m.file, m.line))
-#        
-#        # From this point on, everything is valid.  Create a new Production instance
-#        pnumber  = len(self.Productions)
-#    if prodname not in self.Nonterminals:
-#        self.Nonterminals[prodname] = []
-#    
-#    # Add the production number to Terminals and Nonterminals
-#    for t in syms:
-#      if t in self.Terminals:
-#          self.Terminals[t].append(pnumber)
-#    else:
-#        if t not in self.Nonterminals:
-#            self.Nonterminals[t] = []
-#    self.Nonterminals[t].append(pnumber)
-#    
-#    # Create a production and add it to the list of productions
-#    p = Production(pnumber, prodname, syms, prodprec, func, file, line)
-#    self.Productions.append(p)
-#    self.Prodmap[map] = p
-#    
-#    # Add to the global productions list
-#    try:
-#      self.Prodnames[prodname].append(p)
-#    except KeyError:
-#      self.Prodnames[prodname] = [p]
+#      # Add to the global productions list
+#      self$Prodnames[[prodname]] <- p
     },
     # -----------------------------------------------------------------------------
     # set_start()
@@ -446,47 +450,6 @@ Grammar <- R6Class("Grammar",
     #  [E -> . E PLUS E, E -> E . PLUS E, E -> E PLUS . E, E -> E PLUS E . ]
     # -----------------------------------------------------------------------------
     build_lritems = function() {
-    }
-  )
-)
-
-
-#' -----------------------------------------------------------------------------
-#'                            == Class LRTable ==
-#'
-#' This basic class represents a basic table of LR parsing information.
-#' Methods for generating the tables are not defined here.  They are defined
-#' in the derived class LRGeneratedTable.
-#' -----------------------------------------------------------------------------
-#'
-#' @docType class
-#' @importFrom R6 R6Class
-#' @format An \code{\link{R6Class}} generator object
-#' @keywords data
-LRTable <- R6Class("LRTable",
-    public = list(
-        initialize = function() {
-        }
-    )
-)
-
-
-#' -----------------------------------------------------------------------------
-#'                             == LRGeneratedTable ==
-#'
-#' This class implements the LR table generation algorithm.  There are no
-#' public methods except for write()
-#' -----------------------------------------------------------------------------
-#'
-#' @docType class
-#' @importFrom R6 R6Class
-#' @format An \code{\link{R6Class}} generator object
-#' @keywords data
-LRGeneratedTable <- R6Class("LRGeneratedTable",
-  public = list(
-    grammar = NA,
-    initialize = function(grammar) {
-      self$grammar = grammar
     }
   )
 )
@@ -640,13 +603,13 @@ ParserReflect <- R6Class("ParserReflect",
     },
     # Get the precedence map (if any)
     get_precedence = function() {
-      self$prec = self$instance$precedence
+      self$prec <- self$instance$precedence
     },
     # Validate and parse the precedence map
     validate_precedence = function() {
       preclist <- list()
-      if(is.null(self$prec)) {
-        if(!is.vector(self$prec)) {
+      if(!is.null(self$prec)) {
+        if(!is.list(self$prec)) {
           err("precedence must be a list")
           self$error = TRUE
           return
