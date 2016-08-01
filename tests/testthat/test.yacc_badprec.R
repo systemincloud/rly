@@ -48,5 +48,5 @@ Parser <- R6Class("Parser",
 )
 
 test_that("precedence", {
-    expect_output(rly::yacc(Parser), "ERROR>  precedence must be a list")
+  expect_output(rly::yacc(Parser), "ERROR>  precedence must be a list")
 })
