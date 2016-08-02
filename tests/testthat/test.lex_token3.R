@@ -17,6 +17,6 @@ Lexer <- R6Class("Lexer",
 )
 
 test_that("comment", {
-  expect_output(rly::lex(Lexer), "ERROR>  Rule 't_MINUS' defined for an unspecified token MINUS ",
-                fixed=TRUE)
+  expect_error(rly::lex(Lexer), "ERROR> Rule 't_MINUS' defined for an unspecified token MINUS",
+               fixed=TRUE)
 })

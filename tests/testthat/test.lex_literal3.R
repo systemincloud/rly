@@ -17,5 +17,5 @@ Lexer <- R6Class("Lexer",
 )
 
 test_that("literals empty", {
-  rly::lex(Lexer)
+  expect_output(rly::lex(Lexer), NA)
 })
