@@ -50,5 +50,5 @@ Parser <- R6Class("Parser",
 )
 
 test_that("missing regex", {
-  expect_output(rly::yacc(Parser), "ERROR>  Rule 'p_statement_assign' has too many arguments \nERROR>  Rule 'p_statement_expr' requires an argument")
+  expect_error(rly::yacc(Parser), "ERROR> Rule 'p_statement_assign' has too many arguments")
 })
