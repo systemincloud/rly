@@ -3,8 +3,6 @@
 library(testthat)
 library(rly)
 
-source("test.calclex.R")
-
 context("Bad precedence specifier")
 
 Parser <- R6Class("Parser",
