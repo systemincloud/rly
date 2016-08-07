@@ -4,9 +4,9 @@
 #'
 #' @param msg message to display.
 #' @export
-dbg = function(msg) cat(c("DEBUG> ", msg, "\n"))
-wrn = function(msg) cat(c("WARN> ", msg, "\n"))
-err = function(msg) cat(c("ERROR> ", msg, "\n"))
+dbg = function(msg) cat (c("DEBUG> ", msg, "\n"))
+wrn = function(msg) cat (c("WARN> ", msg, "\n"))
+err = function(msg) stop(c("ERROR> ", msg, "\n"))
 
 #'-----------------------------------------------------------------------------
 #'                        ===  LR Parsing Engine ===
@@ -264,10 +264,10 @@ Grammar <- R6Class("Grammar",
     #
     # -----------------------------------------------------------------------------
     set_precedence = function(term, assoc, level) {
-      if(length(self$Productions) != 0)                stop('Must call set_precedence() before add_production()')
-      if(term %in% names(self$recedence))              stop(sprintf('Precedence already specified for terminal %s', term))
-      if(!(assoc %in% c('left', 'right', 'nonassoc'))) stop("Associativity must be one of 'left','right', or 'nonassoc'")
-      self$Precedence[term] <- list(assoc, level) 
+      if(length(self$Productions) != 0)                err('Must call set_precedence() before add_production()')
+      if(term %in% names(self$recedence))              err(sprintf('Precedence already specified for terminal %s', term))
+      if(!(assoc %in% c('left', 'right', 'nonassoc'))) err("Associativity must be one of 'left','right', or 'nonassoc'")
+      self$Precedence[[term]] <- list(assoc, level) 
     },
     # -----------------------------------------------------------------------------
     # add_production()
@@ -512,11 +512,9 @@ ParserReflect <- R6Class("ParserReflect",
     preclist   = NA,
     pfuncs     = NA,
     grammar    = NA,
-    error      = NA,
     initialize = function(module, instance) {
       self$module <- module
       self$instance <- instance
-      self$error <- FALSE
     },
     # Get all of the basic information
     get_all = function() {
@@ -552,48 +550,24 @@ ParserReflect <- R6Class("ParserReflect",
     # Validate the error function
     validate_error_func = function() {
       if(!is.null(self$error_func)) {
-        if(typeof(self$error_func) != 'closure') {
-          err("'p_error' defined, but is not a function or method")
-          self$error <- True
-          return
-        }
-        if(length(formals(self$error_func)) != 1) {
-          err('p_error() requires 1 argument')
-          self$error <- True
-          return
-        }
+        if(typeof(self$error_func) != 'closure')  err("'p_error' defined, but is not a function or method")
+        if(length(formals(self$error_func)) != 1) err('p_error() requires 1 argument')
       }
     },
     # Get the tokens map
     get_tokens = function() {
       tokens <- self$instance$tokens
 
-      if(is.null(tokens)) {
-        err('No token list is defined')
-        self$error = TRUE
-        return
-      }
-      if(!is.vector(tokens)) {
-        err('tokens must be a vector')
-        self$error <- TRUE
-        return
-      }
-      if(length(tokens) == 0) {
-        err('tokens is empty')
-        self$error <- TRUE
-        return
-      }
+      if(is.null(tokens))     err('No token list is defined')
+      if(!is.vector(tokens))  err('tokens must be a vector')
+      if(length(tokens) == 0) err('tokens is empty')
 
       self$tokens <- tokens
     },
     # Validate the tokens
     validate_tokens = function() {
       # Validate the tokens.
-      if('error' %in% self$tokens) {
-        err("Illegal token name 'error'. Is a reserved word")
-        self$error = TRUE
-        return
-      }
+      if('error' %in% self$tokens) err("Illegal token name 'error'. Is a reserved word")
 
       terminals <- list()
       for(n in self$tokens) {
@@ -609,36 +583,17 @@ ParserReflect <- R6Class("ParserReflect",
     validate_precedence = function() {
       preclist <- list()
       if(!is.null(self$prec)) {
-        if(!is.list(self$prec)) {
-          err("precedence must be a list")
-          self$error = TRUE
-          return
-        }
+        if(!is.list(self$prec)) err("precedence must be a list")
+        
         for(p in self$prec) {
-          if(!is.vector(p)) {
-            err("Bad precedence table")
-            self$error = TRUE
-            return
-          }
-          if(length(p) < 2) {
-            err("Malformed precedence entry. Must be (assoc, term, ..., term)")
-            self$error = TRUE
-            return
-          }
-          assoc <- p[0]
-          if(typeof(assoc) != 'character') {
-            err("precedence associativity must be a string")
-            self$error = TRUE
-            return
-          }
+          if(!is.vector(p)) err("Bad precedence table")
+          if(length(p) < 2) err("Malformed precedence entry. Must be (assoc, term, ..., term)")
+          assoc <- p[[1]]
+          if(typeof(assoc) != 'character') err("precedence associativity must be a string")
 
           level <- 0
           for(term in tail(p, -1)) {
-            if(typeof(term) != 'character') {
-              err("precedence items must be strings")
-              self$error = TRUE
-              return
-            }
+            if(typeof(term) != 'character') err("precedence items must be strings")
             preclist[[length(preclist)+1]] <- list(term, assoc, level+1)
             level <- level + 1
           }
@@ -660,29 +615,18 @@ ParserReflect <- R6Class("ParserReflect",
     validate_pfunctions = function() {
       grammar <- list()
       # Check for non-empty symbols
-      if(length(self$pfuncs) == 0) {
-        err("no rules of the form p_rulename are defined")
-        self$error = TRUE
-        return
-      }
+      if(length(self$pfuncs) == 0) err("no rules of the form p_rulename are defined")
       for(name in self$pfuncs) {
         f <-self$instance[[name]]
         reqargs <- 2
         nargs <- length(formals(f))
-        if(nargs > reqargs) {
-          err(sprintf("Rule '%s' has too many arguments", name))
-          self$error <- TRUE
-          return
-        } else if(nargs < reqargs) {
-          err(sprintf("Rule '%s' requires an argument", name))
-          self$error <- TRUE
-          return
-        } else {
-          doc <- formals(f)[['doc']]
-          parsed_g <- parse_grammar(name, doc)
-          for(g in parsed_g)
-            grammar[[length(grammar)+1]] <- g
-        }
+        if(nargs > reqargs) err(sprintf("Rule '%s' has too many arguments", name))
+        if(nargs < reqargs) err(sprintf("Rule '%s' requires an argument", name))
+
+        doc <- formals(f)[['doc']]
+        parsed_g <- parse_grammar(name, doc)
+        for(g in parsed_g)
+          grammar[[length(grammar)+1]] <- g
 
       }
       self$grammar <- grammar
@@ -708,7 +652,6 @@ yacc = function(module=NA,
   pinfo <- ParserReflect$new(module, instance)
   pinfo$get_all()
   pinfo$validate_all()
-#  if(pinfo$error) stop('Unable to build parser')
   
   if(is.null(pinfo$error_func)) wrn('no p_error() function is defined')
 

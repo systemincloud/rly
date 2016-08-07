@@ -9,7 +9,7 @@ context("Attempt to define a rule with a bad-identifier name")
 
 Parser <- R6Class("Parser",
   public = list(
-    tokens = Lexer$public_fields$tokens,
+    tokens = c('NAME','NUMBER', 'PLUS','MINUS','TIMES','DIVIDE','EQUALS', 'LPAREN','RPAREN'),
     # Parsing rules
     precedence = list(c('left','PLUS','MINUS'),
                       c('left','TIMES','DIVIDE'),
@@ -52,5 +52,5 @@ Parser <- R6Class("Parser",
 )
 
 test_that("rule name", {
-  expect_output(rly::yacc(Parser), "ERROR>  p_badrule: Illegal rule name bad&rule")
+  expect_error(rly::yacc(Parser), "ERROR> p_statement_expr2: Illegal name bad&rule in rule statement")
 })

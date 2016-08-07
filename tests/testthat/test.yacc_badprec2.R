@@ -5,27 +5,27 @@ library(rly)
 
 source("test.calclex.R")
 
-context("Rules with wrong # args")
+context("Bad precedence specifier")
 
 Parser <- R6Class("Parser",
   public = list(
     tokens = c('NAME','NUMBER', 'PLUS','MINUS','TIMES','DIVIDE','EQUALS', 'LPAREN','RPAREN'),
     # Parsing rules
-    precedence = list(c('left','PLUS','MINUS'),
+    precedence = list(42,
                       c('left','TIMES','DIVIDE'),
                       c('right','UMINUS')),
     # dictionary of names
     names = new.env(hash=TRUE),
-    p_statement_assign = function(doc='statement : NAME EQUALS expression', t, s) {
+    p_statement_assign = function(doc='statement : NAME EQUALS expression', t) {
       names[t[1]] <- t[3]
     },
-    p_statement_expr = function(doc='statement : expression') {
+    p_statement_expr = function(doc='statement : expression', t) {
       cat(t[1])
     },
     p_expression_binop = function(doc='expression : expression PLUS expression
-                                                  | expression MINUS expression
-                                                  | expression TIMES expression
-                                                  | expression DIVIDE expression', t) {
+                                     | expression MINUS expression
+                                     | expression TIMES expression
+                                     | expression DIVIDE expression', t) {
       if(t[2] == '+')      t[0] <- t[1] + t[3]
       else if(t[2] == '-') t[0] <- t[1] - t[3]
       else if(t[2] == '*') t[0] <- t[1] * t[3]
@@ -49,6 +49,6 @@ Parser <- R6Class("Parser",
   )
 )
 
-test_that("missing regex", {
-  expect_error(rly::yacc(Parser), "ERROR> Rule 'p_statement_assign' has too many arguments")
+test_that("precedence", {
+  expect_error(rly::yacc(Parser), "ERROR> Malformed precedence entry. Must be (assoc, term, ..., term)", fixed=TRUE)
 })

@@ -9,7 +9,7 @@ context("Bad precedence specifier")
 
 Parser <- R6Class("Parser",
   public = list(
-    tokens = Lexer$public_fields$tokens,
+    tokens = c('NAME','NUMBER', 'PLUS','MINUS','TIMES','DIVIDE','EQUALS', 'LPAREN','RPAREN'),
     # Parsing rules
     precedence = "blah",
     # dictionary of names
@@ -48,5 +48,5 @@ Parser <- R6Class("Parser",
 )
 
 test_that("precedence", {
-  expect_output(rly::yacc(Parser), "ERROR>  precedence must be a list")
+  expect_error(rly::yacc(Parser), "ERROR> precedence must be a list")
 })
