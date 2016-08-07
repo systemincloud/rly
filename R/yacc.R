@@ -471,19 +471,23 @@ parse_grammar = function(name, doc) {
 	
     prodname <- NA
     syms <- NA
-	  if(p[1] == '|') {
-      # This is a continuation of a previous rule
-		  if(is.na(lastp)) stop(sprintf("%s: Misplaced '|'", name))
-		  prodname <- lastp
-		  syms <- tail(p, -1)
-	  } else {
-      prodname <- p[1]
-      lastp <- prodname
-      syms <- tail(p, -2)
-      assign <- p[2]
-      if(assign != ':' && assign != '::=') stop(sprintf("%s: Syntax error. Expected ':'", name))
-    }
-    grammar[[length(grammar)+1]] <- list(name, prodname, syms)
+    tryCatch({
+  	  if(p[1] == '|') {
+        # This is a continuation of a previous rule
+  		  if(is.na(lastp)) err(sprintf("%s: Misplaced '|'", name))
+  		  prodname <- lastp
+  		  syms <- tail(p, -1)
+  	  } else {
+        prodname <- p[1]
+        lastp <- prodname
+        syms <- tail(p, -2)
+        assign <- p[2]
+        if(assign != ':' && assign != '::=') err(sprintf("%s: Syntax error. Expected ':'", name))
+      }
+      grammar[[length(grammar)+1]] <- list(name, prodname, syms)
+    }, error = function(e) { if(startsWith(e[[1]], "ERROR>")) stop(e[[1]]) 
+                             else err(sprintf("%s: Syntax error in rule %s", name, ps))})
+  
   }
   return(grammar)
 }
