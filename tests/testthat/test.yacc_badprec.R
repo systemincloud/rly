@@ -19,9 +19,9 @@ Parser <- R6Class("Parser",
       cat(t[1])
     },
     p_expression_binop = function(doc='expression : expression PLUS expression
-        | expression MINUS expression
-        | expression TIMES expression
-        | expression DIVIDE expression', t) {
+                                     | expression MINUS expression
+                                     | expression TIMES expression
+                                     | expression DIVIDE expression', t) {
       if(t[2] == '+')      t[0] <- t[1] + t[3]
       else if(t[2] == '-') t[0] <- t[1] - t[3]
       else if(t[2] == '*') t[0] <- t[1] * t[3]
