@@ -66,8 +66,8 @@ CalcLexer <- R6Class("CalcLexer",
   )
 )
 
-lexer = rly::lex(CalcLexer$new(), debug=TRUE)
-parser = rly::yacc(CalcParser$new(), debug=TRUE)
+lexer = rly::lex(CalcLexer, debug=TRUE)
+parser = rly::yacc(CalcParser, debug=TRUE)
 
 while(TRUE) {
   cat('calc > ')
