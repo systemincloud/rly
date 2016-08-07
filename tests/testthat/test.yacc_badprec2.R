@@ -3,8 +3,6 @@
 library(testthat)
 library(rly)
 
-source("test.calclex.R")
-
 context("Bad precedence specifier")
 
 Parser <- R6Class("Parser",
@@ -50,5 +48,5 @@ Parser <- R6Class("Parser",
 )
 
 test_that("precedence", {
-  expect_error(rly::yacc(Parser), "ERROR> Malformed precedence entry. Must be (assoc, term, ..., term)", fixed=TRUE)
+  expect_error(rly::yacc(Parser), "ERROR> Bad precedence table")
 })

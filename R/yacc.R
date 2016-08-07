@@ -333,15 +333,15 @@ Grammar <- R6Class("Grammar",
       if(!(prodname %in% names(self$Nonterminals))) self$Nonterminals[prodname] <- c()
     
       # Add the production number to Terminals and Nonterminals
-      for(t in syms) {
-#        if(t %in% names(self$Terminals)) self$Terminals[t][[length(self$Terminals[[t]])+1]] <- pnumber
+      for(t in syms[[1]]) {
+#        if(t %in% names(self$Terminals)) self$Terminals[[t]][[length(self$Terminals[[t]])+1]] <- pnumber
 #        else {
-#          if(!(t %in% self$Nonterminals)) self$Nonterminals[t] <- c()
-#          self$Nonterminals[t][[length(self$Nonterminals[t])+1]] <- pnumber
+#          if(!(t %in% self$Nonterminals)) self$Nonterminals[[t]] <- c()
+#          self$Nonterminals[[t]][[length(self$Nonterminals[[t]])+1]] <- pnumber
 #        }
       }
-#      
-#      # Create a production and add it to the list of productions
+      
+      # Create a production and add it to the list of productions
 #      p <- Production$new(pnumber, prodname, syms, prodprec, func)
 #      self$Productions[[length(self$Productions)+1]] <-p
 #      self$Prodmap[[map]] <- p
@@ -586,7 +586,7 @@ ParserReflect <- R6Class("ParserReflect",
         if(!is.list(self$prec)) err("precedence must be a list")
         
         for(p in self$prec) {
-          if(!is.vector(p)) err("Bad precedence table")
+          if(!is.vector(p) || length(p) < 2) err("Bad precedence table")
           if(length(p) < 2) err("Malformed precedence entry. Must be (assoc, term, ..., term)")
           assoc <- p[[1]]
           if(typeof(assoc) != 'character') err("precedence associativity must be a string")
