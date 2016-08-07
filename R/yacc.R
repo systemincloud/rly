@@ -562,9 +562,9 @@ ParserReflect <- R6Class("ParserReflect",
     get_tokens = function() {
       tokens <- self$instance$tokens
 
-      if(is.null(tokens))     err('No token list is defined')
-      if(!is.vector(tokens))  err('tokens must be a vector')
-      if(length(tokens) == 0) err('tokens is empty')
+      if(is.null(tokens))                                     err('No token list is defined')
+      if(!is.vector(tokens) || typeof(tokens) != 'character') err('tokens must be a vector of strings')
+      if(length(tokens) == 0)                                 err('tokens is empty')
 
       self$tokens <- tokens
     },
