@@ -586,7 +586,7 @@ ParserReflect <- R6Class("ParserReflect",
         if(!is.list(self$prec)) err("precedence must be a list")
         
         for(p in self$prec) {
-          if(!is.vector(p) || length(p) < 2) err("Bad precedence table")
+          if(!is.vector(p) || typeof(p) != 'character') err("Bad precedence table")
           if(length(p) < 2) err("Malformed precedence entry. Must be (assoc, term, ..., term)")
           assoc <- p[[1]]
           if(typeof(assoc) != 'character') err("precedence associativity must be a string")
