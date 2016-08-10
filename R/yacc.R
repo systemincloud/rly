@@ -633,7 +633,24 @@ ParserReflect <- R6Class("ParserReflect",
         parsed_g <- parse_grammar(name, doc)
         for(g in parsed_g)
           grammar[[length(grammar)+1]] <- g
+      }
+      
+      # Secondary validation step that looks for p_ definitions that are not functions
+      # or functions that look like they might be grammar rules.
+      for(name in names(self$instance)) {
+        if(substr(name, 1, 2) == 'p_' && typeof(self$instance[[name]]) == 'closure') next
+        if(substr(name, 1, 2) == 't_')                                               next
+        if(substr(name, 1, 2) == 'p_' && name != 'p_error')                          wrn(sprintf('%s not defined as a function', name))
 
+#        if(typeof(self$pfuncs[[name]]) == 'closure' && length(formals(self$pfuncs[[name]])) == 2) {
+#          doc <- self$pfuncs[[name]][['doc']]
+#          if(!is.null(doc)) {
+#            p <- strsplit(doc, " ")
+#            tryCatch({
+#              if(p[[2]]) wrn(sprintf('%s: Possible grammar rule defined without p_ prefix', name))
+#            }, error = function(e) {})
+#          } 
+#        }
       }
       self$grammar <- grammar
     }
