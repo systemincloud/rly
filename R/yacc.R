@@ -642,15 +642,15 @@ ParserReflect <- R6Class("ParserReflect",
         if(substr(name, 1, 2) == 't_')                                               next
         if(substr(name, 1, 2) == 'p_' && name != 'p_error')                          wrn(sprintf('%s not defined as a function', name))
 
-#        if(typeof(self$pfuncs[[name]]) == 'closure' && length(formals(self$pfuncs[[name]])) == 2) {
-#          doc <- self$pfuncs[[name]][['doc']]
-#          if(!is.null(doc)) {
-#            p <- strsplit(doc, " ")
-#            tryCatch({
-#              if(p[[2]]) wrn(sprintf('%s: Possible grammar rule defined without p_ prefix', name))
-#            }, error = function(e) {})
-#          } 
-#        }
+        if(typeof(self$instance[[name]]) == 'closure' && length(formals(self$instance[[name]])) == 2) {
+          doc <- formals(self$instance[[name]])[['doc']]
+          if(!is.null(doc)) {
+            d <- strsplit(doc, " ")[[1]]
+            tryCatch({
+                if(d[2]  == ':') wrn(sprintf('%s: Possible grammar rule defined without p_ prefix', name))
+            }, error = function(e) {})
+          }
+        }
       }
       self$grammar <- grammar
     }
