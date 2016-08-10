@@ -624,8 +624,9 @@ ParserReflect <- R6Class("ParserReflect",
         f <-self$instance[[name]]
         reqargs <- 2
         nargs <- length(formals(f))
-        if(nargs > reqargs) err(sprintf("Rule '%s' has too many arguments", name))
-        if(nargs < reqargs) err(sprintf("Rule '%s' requires an argument", name))
+        if(nargs > reqargs)              err(sprintf("Rule '%s' has too many arguments", name))
+        if(is.null(formals(f)[['doc']])) err(sprintf("No documentation string specified in function %s'", name))
+        if(nargs < reqargs)              err(sprintf("Rule '%s' requires an argument", name))
 
         doc <- formals(f)[['doc']]
         parsed_g <- parse_grammar(name, doc)
