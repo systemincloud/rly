@@ -1,7 +1,7 @@
 Introduction
 ============
 
-RLY is a 100% R implementation of the common parsing tools lex and yacc.
+RLY is a 100% R implementation of the common parsing tools lex and yacc. This project is a R clone of [Ply](https://github.com/dabeaz/ply).
 
 How to Use
 ==========
