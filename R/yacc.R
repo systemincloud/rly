@@ -289,13 +289,14 @@ Grammar <- R6Class("Grammar",
       if(prodname %in% names(self$Terminals))        err(sprintf('%s: Illegal rule name %s. Already defined as a token', func, prodname))
       if(prodname == 'error')                        err(sprintf('%s: Illegal rule name %s. error is a reserved word', func, prodname))
       if(!grepl(is_identifier, prodname, perl=TRUE)) err(sprintf('%s: Illegal rule name %s', func, prodname))
-                              
+      
       # Look for literal tokens
       for(s in syms) {
-        if(s[1] %in% c("'", "\"")) {
-           if(length(s) > 1) err(sprintf('%s: Literal token %s in rule %s may only be a single character', func, s, prodname))
-           if(!(s %in% names(self$Terminals))) self$Terminals[s] <- c()
-           next
+        if(substr(s, 1, 1) %in% c("'", "\"")) {
+          c <- eval(parse(text=s))
+          if(nchar(c) > 1) err(sprintf('%s: Literal token %s in rule %s may only be a single character', func, s, prodname))
+          if(!(c %in% names(self$Terminals))) self$Terminals[[c]] <- c()
+          next
         }
         if(!grepl(is_identifier, s, perl=TRUE) && s != '%prec') err(sprintf('%s: Illegal name %s in rule %s', func,s, prodname))
       }
@@ -674,7 +675,7 @@ yacc = function(module=NA,
   for(gram in pinfo$grammar) {
     funcname <- gram[1]
     prodname <- gram[2]
-    syms     <- gram[3]
+    syms     <- gram[[3]]
     grammar$add_production(prodname, syms, funcname)
   }
   
