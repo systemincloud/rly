@@ -383,6 +383,15 @@ Grammar <- R6Class("Grammar",
     # and prod is the production where the symbol was used.
     # -----------------------------------------------------------------------------
     undefined_symbols = function() {
+      result <- list()
+      for(p in self$Productions) {
+#        if(not p) next
+        for(s in p$prod) {
+          if(!(s %in% self$Prodnames) && !(s %in% self$Terminals) && s != 'error')
+            result[[length(result)+1]] <- c(s, p)
+        }
+      }
+      return(result)
     },
     # -----------------------------------------------------------------------------
     # unused_terminals()
@@ -667,9 +676,12 @@ yacc = function(module=NA,
                 start=NA,
                 check_recursion=TRUE) {
 
-  instance <- do.call("new", args, envir=module)
-
   # Set start symbol if it's specified directly using an argument
+  if(!is.na(start)) {
+    module$public_methods[['start']] <- start
+  }
+                
+  instance <- do.call("new", args, envir=module)
 
   # Collect parser information from the dictionary
   pinfo <- ParserReflect$new(module, instance)
@@ -694,6 +706,16 @@ yacc = function(module=NA,
     prodname <- gram[2]
     syms     <- gram[[3]]
     grammar$add_production(prodname, syms, funcname)
+  }
+  
+  # Set the grammar start symbols
+  if(is.na(start)) grammar$set_start(pinfo$start)
+  else             grammar$set_start(start)
+  
+  # Verify the grammar structure
+  undefined_symbols <- grammar$undefined_symbols()
+  for(sym_prod in undefined_symbols) {
+    err(sprintf('Symbol %s used, but not defined as a token or a rule', sym))
   }
   
 #  lr <- LRGeneratedTable$new(grammar)
