@@ -289,7 +289,7 @@ Grammar <- R6Class("Grammar",
                                            #   list of the rules where they are used.
       
       for(term in terminals) {
-        self$Terminals[[term]] <- list()
+        self$Terminals[[term]] <- c()
       }
       
       self$Terminals[['error']] <- c()
@@ -379,7 +379,7 @@ Grammar <- R6Class("Grammar",
       }
         
       # From this point on, everything is valid.  Create a new Production instance
-      pnumber <- length(names(self$Productions))
+      pnumber <- length(self$Productions) + 1
       if(!(prodname %in% names(self$Nonterminals))) self$Nonterminals[[prodname]] <- c()
     
       # Add the production number to Terminals and Nonterminals
@@ -449,6 +449,14 @@ Grammar <- R6Class("Grammar",
     # a list of all symbols.
     # -----------------------------------------------------------------------------
     unused_terminals = function() {
+      unused_tok <- list()
+      for(s in names(self$Terminals)) {
+        v <- self$Terminals[[s]]
+        if(s != 'error' && length(v) == 0)
+          unused_tok[[length(unused_tok)+1]] <- s
+      }
+      
+      return(unused_tok)
     },
     # ------------------------------------------------------------------------------
     # unused_rules()
@@ -767,17 +775,15 @@ yacc = function(module=NA,
     err(sprintf('Symbol %s used, but not defined as a token or a rule', sym_prod[[1]]))
   }
   
-#  unused_terminals = grammar.unused_terminals()
-#if unused_terminals:
-#    debuglog.info('')
-#debuglog.info('Unused terminals:')
-#debuglog.info('')
-#for term in unused_terminals:
-#  errorlog.warning('Token %r defined, but not used', term)
-#debuglog.info('    %s', term)
+  unused_terminals <- grammar$unused_terminals()
+  for(term in unused_terminals) {
+    wrn(sprintf('Token %s defined, but not used', term))
+  }
 
   # Print out all productions to the debug log
-
+  if(debug) {
+    
+  }
 
 
 
