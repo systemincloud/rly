@@ -190,6 +190,55 @@ is_identifier <- '^[a-zA-Z0-9_-]+$'
 
 
 #' -----------------------------------------------------------------------------
+#' class Production:
+#'
+#' This class stores the raw information about a single production or grammar rule.
+#' A grammar rule refers to a specification such as this:
+#'
+#'       expr : expr PLUS term
+#'
+#' Here are the basic attributes defined on all productions
+#'
+#'       name     - Name of the production.  For example 'expr'
+#'       prod     - A list of symbols on the right side ['expr','PLUS','term']
+#'       prec     - Production precedence level
+#'       number   - Production number.
+#'       func     - Function that executes on reduce
+#'
+#' The following attributes are defined or optional.
+#'
+#'       len       - Length of the production (number of symbols on right hand side)
+#'       usyms     - Set of unique symbols found in the production
+#' -----------------------------------------------------------------------------
+#'
+#' @docType class
+#' @importFrom R6 R6Class
+#' @format An \code{\link{R6Class}} generator object
+#' @keywords data
+Production <- R6Class("Production",
+  public = list(
+    name     = NA,
+    prod     = NA,
+    number   = NA,
+    func     = NA,
+    callable = NA,
+    prec     = NA,
+    initialize = function(number, name, prod, precedence, func) {
+      self$name     <- name
+      self$prod     <- prod
+      self$number   <- number
+      self$func     <- func
+      self$callable <- NA
+      self$prec     <- precedence
+    },
+    toString = function() {
+      return(sprintf('%s -> %s', self$name, paste(self$prod, collapse = ' ')))
+    }
+  )
+)
+
+
+#' -----------------------------------------------------------------------------
 #' rightmost_terminal()
 #'
 #' Return the rightmost terminal from a list of symbols.  Used in add_production()
@@ -312,7 +361,7 @@ Grammar <- R6Class("Grammar",
         if(is.null(prodprec)) err(sprintf('%s: Nothing known about the precedence of %s', func, precname))
         else self$UsedPrecedence[[length(self$UsedPrecedence)+1]] <- precname
         # Drop %prec from the rule
-        syms <- setdiff(syms, c(syms[length(syms) - 1]))
+        syms <- head(syms,-2)
       } else {
         # If no %prec, precedence is determined by the rightmost terminal symbol
         precname <- rightmost_terminal(syms, self$Terminals)
@@ -323,7 +372,7 @@ Grammar <- R6Class("Grammar",
       }
     
       # See if the rule is already in the rulemap
-      map <- sprintf('%s -> %s', prodname, syms)
+      map <- sprintf('%s -> %s', prodname, toString(syms))
       if(map %in% names(self$Prodmap)) {
         m <- self$Prodmap[[map]]
         err(sprintf('%s: Duplicate rule %s. ', func, m))
@@ -331,24 +380,25 @@ Grammar <- R6Class("Grammar",
         
       # From this point on, everything is valid.  Create a new Production instance
       pnumber <- length(names(self$Productions))
-      if(!(prodname %in% names(self$Nonterminals))) self$Nonterminals[prodname] <- c()
+      if(!(prodname %in% names(self$Nonterminals))) self$Nonterminals[[prodname]] <- c()
     
       # Add the production number to Terminals and Nonterminals
-      for(t in syms[[1]]) {
-#        if(t %in% names(self$Terminals)) self$Terminals[[t]][[length(self$Terminals[[t]])+1]] <- pnumber
-#        else {
-#          if(!(t %in% self$Nonterminals)) self$Nonterminals[[t]] <- c()
-#          self$Nonterminals[[t]][[length(self$Nonterminals[[t]])+1]] <- pnumber
-#        }
+      for(t in syms) {
+        if(t %in% names(self$Terminals)) self$Terminals[[t]][[length(self$Terminals[[t]])+1]] <- pnumber
+        else {
+          if(!(t %in% names(self$Nonterminals))) self$Nonterminals[[t]] <- c()
+          self$Nonterminals[[t]][[length(self$Nonterminals[[t]])+1]] <- pnumber
+        }
       }
       
       # Create a production and add it to the list of productions
-#      p <- Production$new(pnumber, prodname, syms, prodprec, func)
-#      self$Productions[[length(self$Productions)+1]] <-p
-#      self$Prodmap[[map]] <- p
-#    
-#      # Add to the global productions list
-#      self$Prodnames[[prodname]] <- p
+      p <- Production$new(pnumber, prodname, syms, prodprec, func)
+      self$Productions[[length(self$Productions)+1]] <- p
+      self$Prodmap[[map]] <- p
+    
+      # Add to the global productions list
+      if(!(prodname %in% names(self$Prodnames))) self$Prodnames[[prodname]] <- c()
+      self$Prodnames[[prodname]][[length(self$Prodnames[[prodname]])+1]] <- p
     },
     # -----------------------------------------------------------------------------
     # set_start()
@@ -385,9 +435,8 @@ Grammar <- R6Class("Grammar",
     undefined_symbols = function() {
       result <- list()
       for(p in self$Productions) {
-#        if(not p) next
         for(s in p$prod) {
-          if(!(s %in% self$Prodnames) && !(s %in% self$Terminals) && s != 'error')
+          if(!(s %in% names(self$Prodnames)) && !(s %in% names(self$Terminals)) && s != 'error')
             result[[length(result)+1]] <- c(s, p)
         }
       }
@@ -702,8 +751,8 @@ yacc = function(module=NA,
   
   # Add productions to the grammar
   for(gram in pinfo$grammar) {
-    funcname <- gram[1]
-    prodname <- gram[2]
+    funcname <- gram[[1]]
+    prodname <- gram[[2]]
     syms     <- gram[[3]]
     grammar$add_production(prodname, syms, funcname)
   }
@@ -715,9 +764,23 @@ yacc = function(module=NA,
   # Verify the grammar structure
   undefined_symbols <- grammar$undefined_symbols()
   for(sym_prod in undefined_symbols) {
-    err(sprintf('Symbol %s used, but not defined as a token or a rule', sym))
+    err(sprintf('Symbol %s used, but not defined as a token or a rule', sym_prod[[1]]))
   }
   
+#  unused_terminals = grammar.unused_terminals()
+#if unused_terminals:
+#    debuglog.info('')
+#debuglog.info('Unused terminals:')
+#debuglog.info('')
+#for term in unused_terminals:
+#  errorlog.warning('Token %r defined, but not used', term)
+#debuglog.info('    %s', term)
+
+  # Print out all productions to the debug log
+
+
+
+
 #  lr <- LRGeneratedTable$new(grammar)
 #
 #  # Build the parser
