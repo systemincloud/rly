@@ -223,7 +223,7 @@ Production <- R6Class("Production",
     func     = NA,
     callable = NA,
     prec     = NA,
-    initialize = function(number, name, prod, precedence, func) {
+    initialize = function(number, name, prod, precedence=NA, func=NA) {
       self$name     <- name
       self$prod     <- prod
       self$number   <- number
@@ -278,7 +278,7 @@ Grammar <- R6Class("Grammar",
     UsedPrecedence = NA,
     Start = NA,
     initialize = function(terminals) {
-      self$Productions <- list()           # - A list of all of the productions.  The first
+      self$Productions <- list(NULL)       # - A list of all of the productions.  The first
                                            #   entry is always reserved for the purpose of
                                            #   building an augmented grammar      
       self$Prodnames <- new.env(hash=TRUE) # - A dictionary mapping the names of nonterminals to a list of all
@@ -313,7 +313,7 @@ Grammar <- R6Class("Grammar",
     #
     # -----------------------------------------------------------------------------
     set_precedence = function(term, assoc, level) {
-      if(length(self$Productions) != 0)                err('Must call set_precedence() before add_production()')
+      if(length(self$Productions) > 1)                err('Must call set_precedence() before add_production()')
       if(term %in% names(self$recedence))              err(sprintf('Precedence already specified for terminal %s', term))
       if(!(assoc %in% c('left', 'right', 'nonassoc'))) err("Associativity must be one of 'left','right', or 'nonassoc'")
       self$Precedence[[term]] <- list(assoc, level) 
@@ -379,7 +379,7 @@ Grammar <- R6Class("Grammar",
       }
         
       # From this point on, everything is valid.  Create a new Production instance
-      pnumber <- length(self$Productions) + 1
+      pnumber <- length(self$Productions)
       if(!(prodname %in% names(self$Nonterminals))) self$Nonterminals[[prodname]] <- c()
     
       # Add the production number to Terminals and Nonterminals
@@ -407,6 +407,10 @@ Grammar <- R6Class("Grammar",
     # rule 0 is S' -> start where start is the start symbol.
     # -----------------------------------------------------------------------------
     set_start = function(start=NA) {
+      if(is.na(start)) start <- self$Productions[[2]]$name
+      if(!(start %in% names(self$Nonterminals))) err(sprintf('start symbol %s undefined', start))
+      dbg(toString(self$Productions))
+      self$Productions[[1]] <- Production$new(0, "S'", c(start))
     },
     # -----------------------------------------------------------------------------
     # find_unreachable()
@@ -435,6 +439,7 @@ Grammar <- R6Class("Grammar",
     undefined_symbols = function() {
       result <- list()
       for(p in self$Productions) {
+        if(is.null(p)) next
         for(s in p$prod) {
           if(!(s %in% names(self$Prodnames)) && !(s %in% names(self$Terminals)) && s != 'error')
             result[[length(result)+1]] <- c(s, p)
@@ -766,8 +771,10 @@ yacc = function(module=NA,
   }
   
   # Set the grammar start symbols
-  if(is.na(start)) grammar$set_start(pinfo$start)
-  else             grammar$set_start(start)
+  if(is.na(start)) {
+    if(is.null(pinfo$start)) grammar$set_start()
+    else                     grammar$set_start(pinfo$start)
+  } else grammar$set_start(start)
   
   # Verify the grammar structure
   undefined_symbols <- grammar$undefined_symbols()
@@ -782,10 +789,16 @@ yacc = function(module=NA,
 
   # Print out all productions to the debug log
   if(debug) {
-    
+    dbg('')
+    dbg('Grammar')
+    dbg('')
+    for(p in grammar$Productions) {
+      dbg(sprintf('Rule %s', p$toString()))
+    }
   }
 
-
+  # Find unused non-terminals
+#  unused_rules <- grammar$unused_rules()
 
 #  lr <- LRGeneratedTable$new(grammar)
 #
