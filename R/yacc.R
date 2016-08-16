@@ -409,7 +409,6 @@ Grammar <- R6Class("Grammar",
     set_start = function(start=NA) {
       if(is.na(start)) start <- self$Productions[[2]]$name
       if(!(start %in% names(self$Nonterminals))) err(sprintf('start symbol %s undefined', start))
-      dbg(toString(self$Productions))
       self$Productions[[1]] <- Production$new(0, "S'", c(start))
     },
     # -----------------------------------------------------------------------------
