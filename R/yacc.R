@@ -381,7 +381,7 @@ Grammar <- R6Class("Grammar",
       # From this point on, everything is valid.  Create a new Production instance
       pnumber <- length(self$Productions)
       if(!(prodname %in% names(self$Nonterminals))) self$Nonterminals[[prodname]] <- c()
-    
+
       # Add the production number to Terminals and Nonterminals
       for(t in syms) {
         if(t %in% names(self$Terminals)) self$Terminals[[t]][[length(self$Terminals[[t]])+1]] <- pnumber
@@ -410,6 +410,8 @@ Grammar <- R6Class("Grammar",
       if(is.na(start)) start <- self$Productions[[2]]$name
       if(!(start %in% names(self$Nonterminals))) err(sprintf('start symbol %s undefined', start))
       self$Productions[[1]] <- Production$new(0, "S'", c(start))
+      self$Nonterminals[[start]][[length(self$Nonterminals[[start]])+1]] <- 0
+      self$Start <- start
     },
     # -----------------------------------------------------------------------------
     # find_unreachable()
@@ -459,7 +461,6 @@ Grammar <- R6Class("Grammar",
         if(s != 'error' && length(v) == 0)
           unused_tok[[length(unused_tok)+1]] <- s
       }
-      
       return(unused_tok)
     },
     # ------------------------------------------------------------------------------
@@ -469,6 +470,15 @@ Grammar <- R6Class("Grammar",
     # Returns a list of productions.
     # ------------------------------------------------------------------------------
     unused_rules = function() {
+      unused_rules <- list()
+      for(s in names(self$Nonterminals)) {
+		v <- self$Nonterminals[[s]]
+		if(is.null(v)) {
+		  p <- self$Prodnames[[s]][[1]]
+		  unused_rules[[length(unused_rules)+1]] <- p
+		}
+	  }
+      return(unused_rules)
     },
     # -----------------------------------------------------------------------------
     # unused_precedence()
@@ -797,8 +807,18 @@ yacc = function(module=NA,
   }
 
   # Find unused non-terminals
-#  unused_rules <- grammar$unused_rules()
+  unused_rules <- grammar$unused_rules()
+  for(prod in unused_rules) {
+	wrn(sprintf("Rule %s defined, but not used", prod$name))
+  }
+  
+  if(length(unused_terminals) == 1) wrn('There is 1 unused token')
+  if(length(unused_terminals) > 1)  wrn(sprintf('There are %d unused tokens', length(unused_terminals)))
+  if(length(unused_rules) == 1)     wrn('There is 1 unused rule')
+  if(length(unused_rules) > 1)      wrn(sprintf('There are %d unused rules', length(unused_rules)))
 
+  
+  
 #  lr <- LRGeneratedTable$new(grammar)
 #
 #  # Build the parser
