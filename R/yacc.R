@@ -801,8 +801,10 @@ yacc = function(module=NA,
     dbg('')
     dbg('Grammar')
     dbg('')
+    n <- 0
     for(p in grammar$Productions) {
-      dbg(sprintf('Rule %s', p$toString()))
+      dbg(sprintf('Rule %-5d %s', n, p$toString()))
+      n <- n + 1
     }
   }
 
@@ -817,7 +819,24 @@ yacc = function(module=NA,
   if(length(unused_rules) == 1)     wrn('There is 1 unused rule')
   if(length(unused_rules) > 1)      wrn(sprintf('There are %d unused rules', length(unused_rules)))
 
-  
+  if(debug) {
+    dbg('')
+	  dbg('Terminals, with rules where they appear')
+	  dbg('')
+	  terms <- names(grammar$Terminals)
+	  terms <- sort(terms)
+	  for(term in terms)
+		  dbg(sprintf('%-20s : %s', term, paste(grammar$Terminals[[term]], sep=' ', collapse=' ')))
+	  
+	  dbg('')
+	  dbg('Nonterminals, with rules where they appear')
+	  dbg('')
+	  nonterms <- names(grammar$Nonterminals)
+	  nonterms <- sort(nonterms)
+	  for(nonterm in nonterms)
+		  dbg(sprintf('%-20s : %s', nonterm, paste(grammar$Nonterminals[[nonterm]], sep=' ', collapse=' ')))
+	  dbg('')
+  }
   
 #  lr <- LRGeneratedTable$new(grammar)
 #
