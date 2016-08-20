@@ -8,6 +8,9 @@ dbg = function(msg) cat (c("DEBUG> ", msg, "\n"))
 wrn = function(msg) cat (c("WARN> ", msg, "\n"))
 err = function(msg) stop(c("ERROR> ", msg, "\n"))
 
+
+'%nin%' <- Negate('%in%')
+
 #'-----------------------------------------------------------------------------
 #'                        ===  LR Parsing Engine ===
 #'
@@ -420,6 +423,9 @@ Grammar <- R6Class("Grammar",
     # symbol.  Returns a list of nonterminals that can't be reached.
     # -----------------------------------------------------------------------------
     find_unreachable = function() {
+      reachable <- c()
+      reachable <- private$mark_reachable_from(reachable, self$Productions[[1]]$prod[[1]])
+      return(setdiff(names(self$Nonterminals), reachable))
     },
     # -----------------------------------------------------------------------------
     # infinite_cycles()
@@ -532,6 +538,19 @@ Grammar <- R6Class("Grammar",
     #  [E -> . E PLUS E, E -> E . PLUS E, E -> E PLUS . E, E -> E PLUS E . ]
     # -----------------------------------------------------------------------------
     build_lritems = function() {
+    }
+  ),
+  private = list(
+    # Mark all symbols that are reachable from a symbol s
+    mark_reachable_from = function(reachable, s) {
+      if(s %in% reachable) return(reachable)
+      reachable[[length(reachable)+1]] <- s
+      reachable <- unique(reachable)
+      for(p in self$Prodnames[[s]])
+          for(r in p$prod)
+            reachable <- private$mark_reachable_from(reachable, r)
+        
+      return(reachable)
     }
   )
 )

@@ -8,6 +8,8 @@ dbg = function(msg) cat (c("DEBUG> ", msg, "\n"), sep="")
 wrn = function(msg) cat (c("WARN> ", msg, "\n"), sep="")
 err = function(msg) stop(c("ERROR> ", msg))
 
+'%nin%' <- Negate('%in%')
+
 #' This regular expression is used to match valid token names
 reg_is_identifier = '^[a-zA-Z0-9_]+$'
 
