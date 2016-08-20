@@ -472,12 +472,12 @@ Grammar <- R6Class("Grammar",
     unused_rules = function() {
       unused_rules <- list()
       for(s in names(self$Nonterminals)) {
-		v <- self$Nonterminals[[s]]
-		if(is.null(v)) {
-		  p <- self$Prodnames[[s]][[1]]
-		  unused_rules[[length(unused_rules)+1]] <- p
-		}
-	  }
+		    v <- self$Nonterminals[[s]]
+		    if(is.null(v)) {
+		      p <- self$Prodnames[[s]][[1]]
+		      unused_rules[[length(unused_rules)+1]] <- p
+		    }
+	    }
       return(unused_rules)
     },
     # -----------------------------------------------------------------------------
@@ -489,6 +489,7 @@ Grammar <- R6Class("Grammar",
     # 'right' corresponding to the type of precedence.
     # -----------------------------------------------------------------------------
     unused_precedence = function() {
+      
     },
     # -------------------------------------------------------------------------
     # _first()
@@ -810,9 +811,7 @@ yacc = function(module=NA,
 
   # Find unused non-terminals
   unused_rules <- grammar$unused_rules()
-  for(prod in unused_rules) {
-	wrn(sprintf("Rule %s defined, but not used", prod$name))
-  }
+  for(prod in unused_rules) wrn(sprintf("Rule %s defined, but not used", prod$name))
   
   if(length(unused_terminals) == 1) wrn('There is 1 unused token')
   if(length(unused_terminals) > 1)  wrn(sprintf('There are %d unused tokens', length(unused_terminals)))
@@ -838,8 +837,31 @@ yacc = function(module=NA,
 	  dbg('')
   }
   
+  if(check_recursion) {
+    unreachable <- grammar$find_unreachable()
+    for(u in unreachable) wrn(sprintf('Symbol %s is unreachable', u))
+    
+    infinite <- grammar$infinite_cycles()
+    for(inf in infinite) err(sprintf('Infinite recursion detected for symbol %s', inf))
+  }
+  
+  unused_prec <- grammar$unused_precedence()
+  for(term_assoc in unused_prec) {
+    term  <- term_assoc[[1]]
+    assoc <- term_assoc[[2]]
+    err(sprintf('Precedence rule %s defined for unknown symbol %s', assoc, term))
+  }
+  
+  # Run the LRGeneratedTable on the grammar
+  if(debug) dbg(sprintf('Generating %s tables', method))
+
 #  lr <- LRGeneratedTable$new(grammar)
-#
+
+
+
+
+
+
 #  # Build the parser
 #  parser = LRParser$new(lr, pinfo$error_func)
 
