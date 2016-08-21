@@ -8,7 +8,6 @@ dbg = function(msg) cat (c("DEBUG> ", msg, "\n"))
 wrn = function(msg) cat (c("WARN> ", msg, "\n"))
 err = function(msg) stop(c("ERROR> ", msg, "\n"))
 
-
 '%nin%' <- Negate('%in%')
 
 #'-----------------------------------------------------------------------------
@@ -553,7 +552,12 @@ Grammar <- R6Class("Grammar",
     # 'right' corresponding to the type of precedence.
     # -----------------------------------------------------------------------------
     unused_precedence = function() {
-      
+      unused <- list()
+      for(termname in names(self$Precedence)) {
+        if(!(termname %in% names(self$Terminals) || termname %in% self$UsedPrecedence))
+          unused[[length(unused)+1]] <- c(termname, self$Precedence[[termname]][[1]])
+      }
+      return(unused)
     },
     # -------------------------------------------------------------------------
     # _first()
