@@ -227,6 +227,10 @@ Production <- R6Class("Production",
     func     = NA,
     callable = NA,
     prec     = NA,
+    len      = NA,
+    usyms    = NA,
+    lr_items = NA,
+    lr_next  = NA,
     initialize = function(number, name, prod, precedence=NA, func=NA) {
       self$name     <- name
       self$prod     <- prod
@@ -234,6 +238,20 @@ Production <- R6Class("Production",
       self$func     <- func
       self$callable <- NA
       self$prec     <- precedence
+      
+      # Internal settings used during table construction
+          
+      self$len <- length(self$prod)   # Length of the production
+      
+      # Create a list of unique production symbols used in the production
+      self$usyms <- list()
+      for(s in self$prod) {
+        if(s %nin% self$usyms) self$usyms[[length(self$usyms)+1]] <- s 
+      }
+      
+      # List of all LR items for the production
+      self$lr_items <- list()
+      self$lr_next  <- NA
     },
     toString = function() {
       return(sprintf('%s -> %s', self$name, paste(self$prod, collapse = ' ')))
@@ -241,6 +259,66 @@ Production <- R6Class("Production",
   )
 )
 
+
+#' -----------------------------------------------------------------------------
+#' class LRItem
+#'
+#' This class represents a specific stage of parsing a production rule.  For
+#' example:
+#'
+#'       expr : expr . PLUS term
+#'
+#' In the above, the "." represents the current location of the parse.  Here
+#' basic attributes:
+#'
+#'       name       - Name of the production.  For example 'expr'
+#'       prod       - A list of symbols on the right side ['expr','.', 'PLUS','term']
+#'       number     - Production number.
+#'
+#'       lr_next      Next LR item. Example, if we are ' expr -> expr . PLUS term'
+#'                    then lr_next refers to 'expr -> expr PLUS . term'
+#'       lr_index   - LR item index (location of the ".") in the prod list.
+#'       lookaheads - LALR lookahead symbols for this item
+#'       len        - Length of the production (number of symbols on right hand side)
+#'       lr_after    - List of all productions that immediately follow
+#'       lr_before   - Grammar symbol immediately before
+#' -----------------------------------------------------------------------------
+#'
+#' @docType class
+#' @importFrom R6 R6Class
+#' @format An \code{\link{R6Class}} generator object
+#' @keywords data
+LRItem <- R6Class("LRItem",
+  public = list(
+    name       = NA,
+    prod       = NA,
+    number     = NA,
+    lr_index   = NA,
+    lookaheads = NA,
+    len        = NA,
+    usyms      = NA,
+    
+    lr_after   = NA,
+    lr_before  = NA,
+    lr_next    = NA,
+    initialize = function(p, n) {
+      self$name       <- p$name
+      self$prod       <- p$prod
+      self$number     <- p$number
+      self$lr_index   <- n
+      self$lookaheads <- new.env(hash=TRUE)
+      self$prod <- append(self$prod, '.', n)
+      self$len        <- length(self$prod)
+      self$usyms      <- p$usyms
+    },
+    toString = function() {
+      s <- ''
+      if(!is.null(self$prod)) s <- sprintf('%s -> %s', self$name, paste(self$prod, collapse=' '))
+      else                    s <- sprintf('%s -> <empty>',  self$name)
+      return(s)
+    }
+  )
+)
 
 #' -----------------------------------------------------------------------------
 #' rightmost_terminal()
@@ -602,6 +680,36 @@ Grammar <- R6Class("Grammar",
     #  [E -> . E PLUS E, E -> E . PLUS E, E -> E PLUS . E, E -> E PLUS E . ]
     # -----------------------------------------------------------------------------
     build_lritems = function() {
+      for(p in self$Productions) {
+        lastlri <- p
+        i <- 0
+        lr_items <- list()
+        lri <- NA
+        while(TRUE) {
+          if(i > p$len) lri <- NULL
+          else {
+            lri <- LRItem$new(p, i)
+            # Precompute the list of productions immediately following
+            tryCatch({
+              lri$lr_after <- self$Prodnames[lri$prod[[i+1]]]
+            }, error = function(e) {
+              lri$lr_after <- list()
+            })
+            tryCatch({
+              lri$lr_before <- lri$prod[[i-1]]
+            }, error = function(e) {
+              lri$lr_before <- NA
+            })
+          }
+          
+          lastlri$lr_next <- lri
+          if(is.null(lri)) break
+          lr_items[[length(lr_items)+1]] <- lri
+          lastlri <- lri
+          i <- i + 1
+        }
+        p$lr_items <- lr_items
+      }
     }
   ),
   private = list(
