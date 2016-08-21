@@ -619,6 +619,38 @@ Grammar <- R6Class("Grammar",
 
 
 #' -----------------------------------------------------------------------------
+#'                           === LR Generator ===
+#'
+#' The following classes and functions are used to generate LR parsing tables on
+#' a grammar.
+#' -----------------------------------------------------------------------------
+
+#' -----------------------------------------------------------------------------
+#'                             == LRGeneratedTable ==
+#'
+#' This class implements the LR table generation algorithm.  There are no
+#' public methods except for write()
+#' -----------------------------------------------------------------------------
+#'
+#' @docType class
+#' @importFrom R6 R6Class
+#' @format An \code{\link{R6Class}} generator object
+#' @keywords data
+LRGeneratedTable <- R6Class("LRGeneratedTable",
+  public = list(
+    initialize = function(grammar, method='LALR') {
+    }
+  )
+)
+
+#' -----------------------------------------------------------------------------
+#'                            === INTROSPECTION ===
+#'
+#' The following functions and classes are used to implement the PLY
+#' introspection features followed by the yacc() function itself.
+#' -----------------------------------------------------------------------------
+
+#' -----------------------------------------------------------------------------
 #' parse_grammar()
 #'
 #' This takes a raw grammar rule string and parses it into production data
@@ -936,7 +968,7 @@ yacc = function(module=NA,
   # Run the LRGeneratedTable on the grammar
   if(debug) dbg(sprintf('Generating %s tables', method))
 
-#  lr <- LRGeneratedTable$new(grammar)
+  lr <- LRGeneratedTable$new(grammar, method)
 
 
 
