@@ -68,114 +68,116 @@ YaccProduction <- R6Class("YaccProduction",
 )
 
 
-#' == LRParser ==
-#' The LR Parsing engine.
+#' -----------------------------------------------------------------------------
+#'                               == LRParser ==
 #'
+#' The LR Parsing engine.
+#' -----------------------------------------------------------------------------
 #' @docType class
 #' @importFrom R6 R6Class
 #' @format An \code{\link{R6Class}} generator object
 #' @keywords data
 LRParser <- R6Class("LRParser",
   public = list(
-    productions = NA,
-    action = NA,
-    goto = NA,
-    errorfunc = NA,
-    errorok = NA,
-    statestack = NA,
-    symstack = NA,
+#    productions = NA,
+#    action = NA,
+#    goto = NA,
+#    errorfunc = NA,
+#    errorok = NA,
+#    statestack = NA,
+#    symstack = NA,
     initialize = function(lrtab, errorf) {
-      self$productions <- lrtab$lr_productions
-      self$action <- lrtab$lr_action
-      self$goto <- lrtab$lr_goto
-      self$errorfunc <- errorf
-      self$errorok <- TRUE
-    },
-    errok = function() {
-      self$errorok <- TRUE
-    },
-    restart = function() {
-    },
-    parse = function(input, lexer, debug=FALSE) {
-      if(debug) dbg("LRParser:parse:start")
-      lookahead <- NA                  # Current lookahead symbol
-      lookaheadstack <- c()            # Stack of lookahead symbols
-      actions <- self$action           # Local reference to action table (to avoid lookup on self$)
-      goto <- self$goto                # Local reference to goto table (to avoid lookup on self$)
-      prod <- self$productions         # Local reference to production list (to avoid lookup on self$)
-      pslice <- YaccProduction$new(NA) # Production object passed to grammar rules
-
-      if(debug) dbg("LRParser:parse: Set up the lexer and parser objects on pslice")
-
-      pslice$lexer <- lexer
-      pslice$parser <- self
-
-      lexer$input(input)
-
-      if(debug) dbg("LRParser:parse: Set up the state and symbol stacks")
-      statestack <- c()               # Stack of parsing states
-      self$statestack <- statestack
-      symstack <- c()                 # Stack of grammar symbols
-      self$symstack <- symstack
-
-      pslice$stack <- symstack        # Put in the production
-      errtoken <- NA                  # Err token
-
-      # The start state is assumed to be (0,$end)
-
-      statestack <- c(0)
-      sym <- YaccSymbol$new()
-      sym$type = '$end'
-      symstack <- c(sym)
-      state <- 0
-
-      while(TRUE) {
-        # Get the next symbol on the input.  If a lookahead symbol
-        # is already set, we just use that. Otherwise, we'll pull
-        # the next token off of the lookaheadstack or from the lexer
-
-        if(debug) dbg(sprintf("LRParser:parse: State  : %s", state))
-
-        t <- NA
-
-        if(is.na(lookahead)) {
-          if(debug) dbg("LRParser:parse: lookahead  : NA")
-
-          if(length(lookaheadstack) == 0) lookahead <- lexer$token() # Get the next token
-          else {
-            lookahead <- tail(lookaheadstack,n=1)[0]
-            lookaheadstack <- head(lookaheadstack,-1)
-          }
-
-          if(is.na(lookahead)) {
-            lookahead <- YaccSymbol$new()
-            lookahead$type <- '$end'
-          }
-        }
-
-        # Check the action table
-        ltype <- lookahead$type
-        t <- actions[state]$get(ltype)
-
-        if(!is.na(t)) {
-          if(t > 0) {
-
-          }
-          if(t < 0) {
-
-          }
-          if(t == 0) {
-            n = tail(symstack, n=1)
-            result = n$value
-
-            if(debug) dbg(sprintf('Done   : Returning %s', result))
-            if(debug) dbg('PARSE DEBUG END')
-
-            return(result)
-          }
-        } else stop("yacc: internal parser error!!!")
-      }
+#      self$productions <- lrtab$lr_productions
+#      self$action <- lrtab$lr_action
+#      self$goto <- lrtab$lr_goto
+#      self$errorfunc <- errorf
+#      self$errorok <- TRUE
     }
+#    errok = function() {
+#      self$errorok <- TRUE
+#    },
+#    restart = function() {
+#    },
+#    parse = function(input, lexer, debug=FALSE) {
+#      if(debug) dbg("LRParser:parse:start")
+#      lookahead <- NA                  # Current lookahead symbol
+#      lookaheadstack <- c()            # Stack of lookahead symbols
+#      actions <- self$action           # Local reference to action table (to avoid lookup on self$)
+#      goto <- self$goto                # Local reference to goto table (to avoid lookup on self$)
+#      prod <- self$productions         # Local reference to production list (to avoid lookup on self$)
+#      pslice <- YaccProduction$new(NA) # Production object passed to grammar rules
+#
+#      if(debug) dbg("LRParser:parse: Set up the lexer and parser objects on pslice")
+#
+#      pslice$lexer <- lexer
+#      pslice$parser <- self
+#
+#      lexer$input(input)
+#
+#      if(debug) dbg("LRParser:parse: Set up the state and symbol stacks")
+#      statestack <- c()               # Stack of parsing states
+#      self$statestack <- statestack
+#      symstack <- c()                 # Stack of grammar symbols
+#      self$symstack <- symstack
+#
+#      pslice$stack <- symstack        # Put in the production
+#      errtoken <- NA                  # Err token
+#
+#      # The start state is assumed to be (0,$end)
+#
+#      statestack <- c(0)
+#      sym <- YaccSymbol$new()
+#      sym$type = '$end'
+#      symstack <- c(sym)
+#      state <- 0
+#
+#      while(TRUE) {
+#        # Get the next symbol on the input.  If a lookahead symbol
+#        # is already set, we just use that. Otherwise, we'll pull
+#        # the next token off of the lookaheadstack or from the lexer
+#
+#        if(debug) dbg(sprintf("LRParser:parse: State  : %s", state))
+#
+#        t <- NA
+#
+#        if(is.na(lookahead)) {
+#          if(debug) dbg("LRParser:parse: lookahead  : NA")
+#
+#          if(length(lookaheadstack) == 0) lookahead <- lexer$token() # Get the next token
+#          else {
+#            lookahead <- tail(lookaheadstack,n=1)[0]
+#            lookaheadstack <- head(lookaheadstack,-1)
+#          }
+#
+#          if(is.na(lookahead)) {
+#            lookahead <- YaccSymbol$new()
+#            lookahead$type <- '$end'
+#          }
+#        }
+#
+#        # Check the action table
+#        ltype <- lookahead$type
+#        t <- actions[state]$get(ltype)
+#
+#        if(!is.na(t)) {
+#          if(t > 0) {
+#
+#          }
+#          if(t < 0) {
+#
+#          }
+#          if(t == 0) {
+#            n = tail(symstack, n=1)
+#            result = n$value
+#
+#            if(debug) dbg(sprintf('Done   : Returning %s', result))
+#            if(debug) dbg('PARSE DEBUG END')
+#
+#            return(result)
+#          }
+#        } else stop("yacc: internal parser error!!!")
+#      }
+#    }
   )
 )
 
@@ -269,23 +271,23 @@ rightmost_terminal = function(symbols, terminals) {
 #' @keywords data
 Grammar <- R6Class("Grammar",
   public = list(
-    Productions = NA,
-    Prodnames = NA,
-    Prodmap = NA,
-    Terminals = NA,
-    Nonterminals = NA,
-    First = NA,
-    Follow = NA,
-    Precedence = NA,
+    Productions    = NA,
+    Prodnames      = NA,
+    Prodmap        = NA,
+    Terminals      = NA,
+    Nonterminals   = NA,
+    First          = NA,
+    Follow         = NA,
+    Precedence     = NA,
     UsedPrecedence = NA,
-    Start = NA,
+    Start          = NA,
     initialize = function(terminals) {
       self$Productions <- list(NULL)       # - A list of all of the productions.  The first
                                            #   entry is always reserved for the purpose of
                                            #   building an augmented grammar      
       self$Prodnames <- new.env(hash=TRUE) # - A dictionary mapping the names of nonterminals to a list of all
                                            #   productions of that nonterminal.
-      self$Prodmap <- new.env(hash=TRUE)   # - A dictionary that is only used to detect duplicate
+      self$Prodmap   <- new.env(hash=TRUE) # - A dictionary that is only used to detect duplicate
                                            #   productions.
       self$Terminals <- new.env(hash=TRUE) # - A dictionary mapping the names of terminal symbols to a
                                            #   list of the rules where they are used.
@@ -298,8 +300,8 @@ Grammar <- R6Class("Grammar",
       
       self$Nonterminals <- new.env(hash=TRUE) # - A dictionary mapping names of nonterminals to a list
                                               #   of rule numbers where they are used.
-      self$First <- new.env(hash=TRUE)        # - A dictionary of precomputed FIRST(x) symbols
-      self$Follow <- new.env(hash=TRUE)       # - A dictionary of precomputed FOLLOW(x) symbols
+      self$First      <- new.env(hash=TRUE)   # - A dictionary of precomputed FIRST(x) symbols
+      self$Follow     <- new.env(hash=TRUE)   # - A dictionary of precomputed FOLLOW(x) symbols
       self$Precedence <- new.env(hash=TRUE)   # - Precedence rules for each terminal. Contains tuples of the
                                               #   form ('right',level) or ('nonassoc', level) or ('left',level)
       self$UsedPrecedence <- list()           # - Precedence rules that were actually used by the grammer.
@@ -617,6 +619,27 @@ Grammar <- R6Class("Grammar",
   )
 )
 
+#' -----------------------------------------------------------------------------
+#'                            == Class LRTable ==
+#'
+#' This basic class represents a basic table of LR parsing information.
+#' Methods for generating the tables are not defined here.  They are defined
+#' in the derived class LRGeneratedTable.
+#' -----------------------------------------------------------------------------
+#'
+#' @docType class
+#' @importFrom R6 R6Class
+#' @format An \code{\link{R6Class}} generator object
+#' @keywords data
+LRTable <- R6Class("LRTable",
+  public = list(
+    # Bind all production function names to callable objects in pdict
+    bind_callables = function(instance) {
+      
+    }
+  )
+)
+
 
 #' -----------------------------------------------------------------------------
 #'                           === LR Generator ===
@@ -624,6 +647,28 @@ Grammar <- R6Class("Grammar",
 #' The following classes and functions are used to generate LR parsing tables on
 #' a grammar.
 #' -----------------------------------------------------------------------------
+
+#' -----------------------------------------------------------------------------
+#' digraph()
+#' traverse()
+#'
+#' The following two functions are used to compute set valued functions
+#' of the form:
+#'
+#'     F(x) = F'(x) U U{F(y) | x R y}
+#'
+#' This is used to compute the values of Read() sets as well as FOLLOW sets
+#' in LALR(1) generation.
+#'
+#' Inputs:  X    - An input set
+#'          R    - A relation
+#'          FP   - Set-valued function
+#' ------------------------------------------------------------------------------
+digraph = function(X, R, FP) {
+}
+
+traverse = function(x, N, stack, F, X, R, FP) {
+}
 
 #' -----------------------------------------------------------------------------
 #'                             == LRGeneratedTable ==
@@ -637,9 +682,212 @@ Grammar <- R6Class("Grammar",
 #' @format An \code{\link{R6Class}} generator object
 #' @keywords data
 LRGeneratedTable <- R6Class("LRGeneratedTable",
+  inherit = LRTable,
   public = list(
+    grammar        = NA,
+    lr_method      = NA,
+    lr_action      = NA,
+    lr_goto        = NA,
+    lr_productions = NA,
+    lr_goto_cache  = NA,
+    lr0_cidhash    = NA,
+    sr_conflict    = NA,
+    rr_conflict    = NA,
+    conflicts      = NA,
+    sr_conflicts   = NA,
+    rr_conflicts   = NA,
     initialize = function(grammar, method='LALR') {
+      if(method %nin% c('SLR', 'LALR')) err(sprintf('Unsupported method %s', method))
+      
+      self$grammar   <- grammar
+      self$lr_method <- method
+      
+      # Internal attributes
+      self$lr_action      <- new.env(hash=TRUE)  # Action table
+      self$lr_goto        <- new.env(hash=TRUE)  # Goto table
+      self$lr_productions <- grammar$Productions # Copy of grammar Production array
+      self$lr_goto_cache  <- new.env(hash=TRUE)  # Cache of computed gotos
+      self$lr0_cidhash    <- new.env(hash=TRUE)  # Cache of closures      
+
+      private$add_count   <- 0                   # Internal counter used to detect cycles
+      
+      # Diagonistic information filled in by the table generator
+      self$sr_conflict <- 0
+      self$rr_conflict <- 0
+      self$conflicts   <- list()        # List of conflicts
+          
+      self$sr_conflicts <- list()
+      self$rr_conflicts <- list()
+          
+      # Build the tables
+      self$grammar$build_lritems()
+      self$grammar$compute_first()
+      self$grammar$compute_follow()
+      self$lr_parse_table()   
+    },
+    # Compute the LR(0) closure operation on I, where I is a set of LR(0) items.
+    lr0_closure = function(I) {
+    },
+    # Compute the LR(0) goto function goto(I,X) where I is a set
+    # of LR(0) items and X is a grammar symbol.   This function is written
+    # in a way that guarantees uniqueness of the generated goto sets
+    # (i.e. the same goto set will never be returned as two different Python
+    # objects).  With uniqueness, we can later do fast set comparisons using
+    # id(obj) instead of element-wise comparison.
+    lr0_goto = function(I, x) {
+    },
+    # Compute the LR(0) sets of item function
+    lr0_items = function() {
+    },
+    
+    # -----------------------------------------------------------------------------
+    #                       ==== LALR(1) Parsing ====
+    #
+    # LALR(1) parsing is almost exactly the same as SLR except that instead of
+    # relying upon Follow() sets when performing reductions, a more selective
+    # lookahead set that incorporates the state of the LR(0) machine is utilized.
+    # Thus, we mainly just have to focus on calculating the lookahead sets.
+    #
+    # The method used here is due to DeRemer and Pennelo (1982).
+    #
+    # DeRemer, F. L., and T. J. Pennelo: "Efficient Computation of LALR(1)
+    #     Lookahead Sets", ACM Transactions on Programming Languages and Systems,
+    #     Vol. 4, No. 4, Oct. 1982, pp. 615-649
+    #
+    # Further details can also be found in:
+    #
+    #  J. Tremblay and P. Sorenson, "The Theory and Practice of Compiler Writing",
+    #      McGraw-Hill Book Company, (1985).
+    #
+    # -----------------------------------------------------------------------------
+    
+    # -----------------------------------------------------------------------------
+    # compute_nullable_nonterminals()
+    #
+    # Creates a dictionary containing all of the non-terminals that might produce
+    # an empty production.
+    # -----------------------------------------------------------------------------
+    compute_nullable_nonterminals = function() {
+    },
+    # -----------------------------------------------------------------------------
+    # find_nonterminal_trans(C)
+    #
+    # Given a set of LR(0) items, this functions finds all of the non-terminal
+    # transitions.    These are transitions in which a dot appears immediately before
+    # a non-terminal.   Returns a list of tuples of the form (state,N) where state
+    # is the state number and N is the nonterminal symbol.
+    #
+    # The input C is the set of LR(0) items.
+    # -----------------------------------------------------------------------------
+    find_nonterminal_transitions = function(C) {
+    },
+    # -----------------------------------------------------------------------------
+    # dr_relation()
+    #
+    # Computes the DR(p,A) relationships for non-terminal transitions.  The input
+    # is a tuple (state,N) where state is a number and N is a nonterminal symbol.
+    #
+    # Returns a list of terminals.
+    # -----------------------------------------------------------------------------
+    dr_relation = function(C, trans, nullable) {
+    },
+    # -----------------------------------------------------------------------------
+    # reads_relation()
+    #
+    # Computes the READS() relation (p,A) READS (t,C).
+    # -----------------------------------------------------------------------------
+    reads_relation = function(C, trans, empty) {
+    },
+    # -----------------------------------------------------------------------------
+    # compute_lookback_includes()
+    #
+    # Determines the lookback and includes relations
+    #
+    # LOOKBACK:
+    #
+    # This relation is determined by running the LR(0) state machine forward.
+    # For example, starting with a production "N : . A B C", we run it forward
+    # to obtain "N : A B C ."   We then build a relationship between this final
+    # state and the starting state.   These relationships are stored in a dictionary
+    # lookdict.
+    #
+    # INCLUDES:
+    #
+    # Computes the INCLUDE() relation (p,A) INCLUDES (p',B).
+    #
+    # This relation is used to determine non-terminal transitions that occur
+    # inside of other non-terminal transition states.   (p,A) INCLUDES (p', B)
+    # if the following holds:
+    #
+    #       B -> LAT, where T -> epsilon and p' -L-> p
+    #
+    # L is essentially a prefix (which may be empty), T is a suffix that must be
+    # able to derive an empty string.  State p' must lead to state p with the string L.
+    #
+    # -----------------------------------------------------------------------------
+    compute_lookback_includes = function(C, trans, nullable) {
+    },
+    # -----------------------------------------------------------------------------
+    # compute_read_sets()
+    #
+    # Given a set of LR(0) items, this function computes the read sets.
+    #
+    # Inputs:  C        =  Set of LR(0) items
+    #          ntrans   = Set of nonterminal transitions
+    #          nullable = Set of empty transitions
+    #
+    # Returns a set containing the read sets
+    # -----------------------------------------------------------------------------
+    compute_read_sets = function(C, ntrans, nullable) {
+    },
+    # -----------------------------------------------------------------------------
+    # compute_follow_sets()
+    #
+    # Given a set of LR(0) items, a set of non-terminal transitions, a readset,
+    # and an include set, this function computes the follow sets
+    #
+    # Follow(p,A) = Read(p,A) U U {Follow(p',B) | (p,A) INCLUDES (p',B)}
+    #
+    # Inputs:
+    #            ntrans     = Set of nonterminal transitions
+    #            readsets   = Readset (previously computed)
+    #            inclsets   = Include sets (previously computed)
+    #
+    # Returns a set containing the follow sets
+    # -----------------------------------------------------------------------------
+    compute_follow_sets = function(ntrans, readsets, inclsets) {
+    },
+    # -----------------------------------------------------------------------------
+    # add_lookaheads()
+    #
+    # Attaches the lookahead symbols to grammar rules.
+    #
+    # Inputs:    lookbacks         -  Set of lookback relations
+    #            followset         -  Computed follow set
+    #
+    # This function directly attaches the lookaheads to productions contained
+    # in the lookbacks set
+    # -----------------------------------------------------------------------------
+    add_lookaheads = function(lookbacks, followset) {
+    },
+    # -----------------------------------------------------------------------------
+    # add_lalr_lookaheads()
+    #
+    # This function does all of the work of adding lookahead information for use
+    # with LALR parsing
+    # -----------------------------------------------------------------------------
+    add_lalr_lookaheads = function(C) {
+    },
+    # -----------------------------------------------------------------------------
+    # lr_parse_table()
+    #
+    # This function constructs the parse tables for SLR or LALR
+    # -----------------------------------------------------------------------------
+    lr_parse_table = function() {
     }
+  ),
+  private = list(
+    add_count = NA
   )
 )
 
@@ -970,13 +1218,32 @@ yacc = function(module=NA,
 
   lr <- LRGeneratedTable$new(grammar, method)
 
+  if(debug) {
+    num_sr <- length(lr$sr_conflicts)
+    
+    # Report shift/reduce and reduce/reduce conflicts
+    if     (num_sr == 1) wrn('1 shift/reduce conflict')
+    else if(num_sr > 1)  wrn(sprintf('%d shift/reduce conflicts', num_sr))
+    
+    num_rr <- length(lr$rr_conflicts)
+    if     (num_rr == 1) wrn('1 reduce/reduce conflict')
+    else if(num_rr > 1)  wrn(sprintf('%d reduce/reduce conflicts', num_rr))
+  }
 
+  # Write out conflicts to the output file
+  if(debug && (length(lr$sr_conflicts) > 0 || length(lr$rr_conflicts)) > 0) {
+    wrn('')
+    wrn('Conflicts:')
+    wrn('')
+    
+    # ...
+  }
 
+  # ...
 
+  #  # Build the parser
+  lr$bind_callables(instance)
+  parser <- LRParser$new(lr, pinfo$error_func)
 
-
-#  # Build the parser
-#  parser = LRParser$new(lr, pinfo$error_func)
-
-#  return(parser)
+  return(parser)
 }
