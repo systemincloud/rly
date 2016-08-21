@@ -435,6 +435,64 @@ Grammar <- R6Class("Grammar",
     # to derive a string of only terminals).
     # -----------------------------------------------------------------------------
     infinite_cycles = function() {
+      terminates <- new.env(hash=TRUE)
+      
+      # Terminals:
+      for(t in names(self$Terminals)) terminates[[t]] <- TRUE
+      
+      terminates[['$end']] <- TRUE
+      
+      # Nonterminals:
+  
+      # Initialize to false:
+      for(n in names(self$Nonterminals)) terminates[[n]] <- FALSE
+      
+      # Then propagate termination until no change:
+      while(TRUE) {
+        some_change <- FALSE
+        for(n in names(self$Prodnames)) {
+          pl <- self$Prodnames[[n]]
+          # Nonterminal n terminates if any of its productions terminates.
+          for(p in pl) {
+            # Production p terminates if all of its rhs symbols terminate.
+        
+            # didn't break from the loop,
+            # so every symbol s terminates
+            # so production p terminates.
+            p_terminates <- TRUE
+            for(s in p$prod) {
+              if(!terminates[[s]]) {
+                # The symbol s does not terminate,
+                # so production p does not terminate.
+                p_terminates <- FALSE
+                break
+              }
+            }
+            
+            if(p_terminates) {
+              # symbol n terminates!
+              if(!terminates[[n]]) {
+                terminates[[n]] <- TRUE
+                some_change <- TRUE
+              }
+              # Don't need to consider any more productions for this n.
+              break
+            }
+          }
+        }
+        if(!some_change) break
+      }
+      
+      infinite <- list()
+      for(s in names(terminates)) {
+        term <- terminates[[s]]
+        if(!term) {
+          if(s %nin% names(self$Prodnames) && s %nin% names(self$Terminals) && s != 'error') { }
+          else infinite[[length(infinite)+1]] <- s
+        }
+      }
+      
+      return(infinite)
     },
     # -----------------------------------------------------------------------------
     # undefined_symbols()
