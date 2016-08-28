@@ -648,6 +648,32 @@ Grammar <- R6Class("Grammar",
     # Afterward (e.g., when called from compute_follow()), it will be complete.
     # -------------------------------------------------------------------------
     first = function(beta) {
+      
+      # We are computing First(x1,x2,x3,...,xn)
+      result <- c()
+      broke <- FALSE
+      for(x in beta) {
+        x_produces_empty <- FALSE
+        
+        # Add all the non-<empty> symbols of First[x] to the result.
+        for(f in self$First[[x]]) {
+          if(f == '<empty>') x_produces_empty <- TRUE
+          else if(f %nin% result) result <- append(result, f)
+        }
+        
+        if(x_produces_empty) {
+          # We have to consider the next x in beta,
+          # i.e. stay in the loop.         
+        } else {
+          # We don't have to consider any further symbols in beta.
+          broke <- TRUE
+          break
+        }
+      }
+      
+      if(!broke) result <- append(result, '<empty>')
+      dbg(toString(result))
+      return(result)
     },
     # -------------------------------------------------------------------------
     # compute_first()
@@ -655,6 +681,35 @@ Grammar <- R6Class("Grammar",
     # Compute the value of FIRST1(X) for all symbols
     # -------------------------------------------------------------------------
     compute_first = function() {
+      if(length(names(self$First)) > 0) return(self$First)
+
+      # Terminals:
+      for(t in names(self$Terminals)) self$First[[t]] <- c(t)
+
+      self$First[['$end']] <- c('$end')
+      
+      # Nonterminals:
+  
+      # Initialize to the empty set:
+      for(n in names(self$Nonterminals)) self$First[[n]] <- c()
+      
+      # Then propagate symbols until no change:
+      while(TRUE) {
+        some_change <- FALSE
+        for(n in names(self$Nonterminals)) {
+          for(p in self$Prodnames[[n]]) {
+            for(f in self$first(p$prod)) {
+              if(f %nin% self$First[[n]]) {
+                self$First[[n]] <- append(self$First[[n]], f)
+                some_change <- TRUE
+              }
+            }
+          }
+        }
+        if(!some_change) break
+      }
+  
+      return(self$First)
     },
     # ---------------------------------------------------------------------
     # compute_follow()
