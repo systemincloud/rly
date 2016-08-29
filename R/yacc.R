@@ -648,7 +648,7 @@ Grammar <- R6Class("Grammar",
     # Afterward (e.g., when called from compute_follow()), it will be complete.
     # -------------------------------------------------------------------------
     first = function(beta) {
-      
+
       # We are computing First(x1,x2,x3,...,xn)
       result <- c()
       broke <- FALSE
@@ -672,7 +672,7 @@ Grammar <- R6Class("Grammar",
       }
       
       if(!broke) result <- append(result, '<empty>')
-      dbg(toString(result))
+      
       return(result)
     },
     # -------------------------------------------------------------------------
@@ -718,7 +718,52 @@ Grammar <- R6Class("Grammar",
     # follow set is the set of all symbols that might follow a given
     # non-terminal.  See the Dragon book, 2nd Ed. p. 189.
     # ---------------------------------------------------------------------
-    compute_follow = function(start=None) {
+    compute_follow = function(start=NA) {
+      # If already computed, return the result
+      if(length(names(self$Follow)) > 0) return(self$Follow)
+      
+      # If first sets not computed yet, do that first.
+      if(length(names(self$First)) == 0) self$compute_first()
+      
+      # Add '$end' to the follow list of the start symbol
+      for(k in names(self$Nonterminals)) self$First[[k]] <- c()
+      
+      if(is.na(start)) start <- self$Productions[[1]]$name
+      
+      self$Follow[[start]] <- c('$end')
+      
+      while(TRUE) {
+        didadd <- FALSE
+        for(p in tail(self$Productions, -1)) {
+          # Here is the production set
+          i <- 1
+          for(B in p$prod) {
+            if(B %in% names(self$Nonterminals)) {
+              # Okay. We got a non-terminal in a production
+              fst <- self$first(tail(p$prod, -i))
+              hasempty <- FALSE
+              for(f in fst) {
+                if(f != '<empty>' && f %nin% self$Follow[[B]]) {
+                  self$Follow[[B]] <- append(self$Follow[[B]], f)
+                  didadd <- TRUE
+                }
+                if(f == '<empty>') hasempty <- TRUE
+              }
+              if(hasempty || i == (length(p$prod)-1)) {
+                # Add elements of follow(a) to follow(b)
+                for(f in self$Follow[[p$name]]) {
+                  if(f %nin% self$Follow[[B]]) {
+                    self$Follow[[B]] <- append(self$Follow[[B]], f)
+                    didadd <- TRUE
+                  }
+                }
+              }
+            }
+            i <- i + 1
+          }
+        }
+        if(!didadd) break
+      }
     },
     # -----------------------------------------------------------------------------
     # build_lritems()
