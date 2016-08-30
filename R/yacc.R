@@ -10,6 +10,9 @@ err = function(msg) stop(c("ERROR> ", msg, "\n"))
 
 '%nin%' <- Negate('%in%')
 
+id = function(x) substring(capture.output(.Internal(inspect(x)))[1],2,17)
+
+
 #'-----------------------------------------------------------------------------
 #'                        ===  LR Parsing Engine ===
 #'
@@ -221,16 +224,17 @@ is_identifier <- '^[a-zA-Z0-9_-]+$'
 #' @keywords data
 Production <- R6Class("Production",
   public = list(
-    name     = NA,
-    prod     = NA,
-    number   = NA,
-    func     = NA,
-    callable = NA,
-    prec     = NA,
-    len      = NA,
-    usyms    = NA,
-    lr_items = NA,
-    lr_next  = NA,
+    name      = NA,
+    prod      = NA,
+    number    = NA,
+    func      = NA,
+    callable  = NA,
+    prec      = NA,
+    len       = NA,
+    usyms     = NA,
+    lr_items  = NA,
+    lr_next   = NA,
+    lr0_added = NA,
     initialize = function(number, name, prod, precedence=NA, func=NA) {
       self$name     <- name
       self$prod     <- prod
@@ -252,6 +256,9 @@ Production <- R6Class("Production",
       # List of all LR items for the production
       self$lr_items <- list()
       self$lr_next  <- NA
+    },
+    # Return the nth lr_item from the production (or None if at the end)
+    lr_item = function(n) {
     },
     toString = function() {
       return(sprintf('%s -> %s', self$name, paste(self$prod, collapse = ' ')))
@@ -307,7 +314,8 @@ LRItem <- R6Class("LRItem",
       self$number     <- p$number
       self$lr_index   <- n
       self$lookaheads <- new.env(hash=TRUE)
-      self$prod <- append(self$prod, '.', n)
+      if(n == 1) self$prod <- c('.', self$prod)
+      else       self$prod <- append(self$prod, '.', n - 1)
       self$len        <- length(self$prod)
       self$usyms      <- p$usyms
     },
@@ -788,17 +796,17 @@ Grammar <- R6Class("Grammar",
         while(TRUE) {
           if(i > p$len) lri <- NULL
           else {
-            lri <- LRItem$new(p, i)
+            lri <- LRItem$new(p, (i+1))
             # Precompute the list of productions immediately following
             tryCatch({
-              lri$lr_after <- self$Prodnames[lri$prod[[i+1]]]
+              lri$lr_after <- self$Prodnames[[lri$prod[[i+2]]]]
             }, error = function(e) {
               lri$lr_after <- list()
             })
             tryCatch({
               lri$lr_before <- lri$prod[[i-1]]
             }, error = function(e) {
-              lri$lr_before <- NA
+              lri$lr_before <- NULL
             })
           }
           
@@ -935,6 +943,26 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
     },
     # Compute the LR(0) closure operation on I, where I is a set of LR(0) items.
     lr0_closure = function(I) {
+      private$add_count <- private$add_count + 1
+      
+      # Add everything in I to J
+      J <- I
+      didadd <- TRUE
+      while(didadd) {
+        didadd <- FALSE
+        for(j in J) {
+          for(x in j$lr_after) {
+            if     ( is.na(x$lr0_added) && private$add_count == 0)           next
+            else if(!is.na(x$lr0_added) && x$lr0_added == private$add_count) next
+            # Add B --> .G to J
+            J <- append(J, x$lr_next)
+            x$lr0_added <- private$add_count
+            didadd <- TRUE
+          }
+        }
+      }
+      
+      return(J)
     },
     # Compute the LR(0) goto function goto(I,X) where I is a set
     # of LR(0) items and X is a grammar symbol.   This function is written
@@ -943,9 +971,71 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
     # objects).  With uniqueness, we can later do fast set comparisons using
     # id(obj) instead of element-wise comparison.
     lr0_goto = function(I, x) {
+      # First we look for a previously cached entry
+#      g <- self$lr_goto_cache$get(id(I), x)
+#      if(g) return(g)
+#      
+#      # Now we generate the goto set in a way that guarantees uniqueness
+#      # of the result
+#  
+#      s <- self$lr_goto_cache.get(x)
+#      if(s) {
+#        s <- {}
+#      }
+#        s = {}
+#  self.lr_goto_cache[x] = s
+#  
+#  gs = []
+#  for p in I:
+#      n = p.lr_next
+#  if n and n.lr_before == x:
+#        s1 = s.get(id(n))
+#  if not s1:
+#        s1 = {}
+#  s[id(n)] = s1
+#  gs.append(n)
+#  s = s1
+#  g = s.get('$end')
+#  if not g:
+#        if gs:
+#              g = self.lr0_closure(gs)
+#  s['$end'] = g
+#  else:
+#        s['$end'] = gs
+#  self.lr_goto_cache[(id(I), x)] = g
+#return g
     },
     # Compute the LR(0) sets of item function
     lr0_items = function() {
+      C <- c(self$lr0_closure(c(self$grammar$Productions[[1]]$lr_next)))
+      i <- 0
+      for(I in C) {
+#        self$lr0_cidhash[[id(I)]] <- i
+        i <- i + 1
+      }
+      
+      # Loop over the items in C and each grammar symbols
+      i <- 0
+#      while(i < length(C)) {
+#        I = C[[i]]
+#        i <- i + 1
+#        
+#        # Collect all of the symbols that could possibly be in the goto(I,X) sets
+#        asyms <- new.env(hash=TRUE)
+#        for(ii in I)
+#            for(s in ii$usyms)
+#              asyms[[s]] <- NA
+#          
+#        for(x in asyms) {
+#          g <- self$lr0_goto(I, x)
+#          if(!g || id(g) %in% self$lr0_cidhash) next
+#          self$lr0_cidhash[[id(g)]] <- length(C)
+#          C <- append(C, g)
+#        }
+#        
+#      }
+            
+      return(C)
     },
     
     # -----------------------------------------------------------------------------
@@ -1092,6 +1182,26 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
     # This function constructs the parse tables for SLR or LALR
     # -----------------------------------------------------------------------------
     lr_parse_table = function() {
+      Productions <- self$grammar$Productions
+      Precedence  <- self$grammar$Precedence
+      goto   <- self$lr_goto         # Goto array
+      action <- self$lr_action       # Action array
+      log    <- self$log             # Logger for output
+      
+      actionp <- new.env(hash=TRUE)  # Action production array (temporary)
+      
+      # Step 1: Construct C = { I0, I1, ... IN}, collection of LR(0) items
+      # This determines the number of states
+  
+      C <- self$lr0_items()
+      
+#      if(self$lr_method == 'LALR') self$add_lalr_lookaheads(C)
+      
+      # Build the parser table, state by state
+#      st <- 0
+#      for(I in C) {
+#        
+#      }
     }
   ),
   private = list(
