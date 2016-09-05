@@ -1070,6 +1070,29 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
     # an empty production.
     # -----------------------------------------------------------------------------
     compute_nullable_nonterminals = function() {
+      nullable <- c()
+      num_nullable <- 0
+      while(TRUE) {
+        for(p in tail(self$grammar$Productions, -1)) {
+          if(p$len == 0) {
+            if(p$name %nin% nullable) nullable <- append(nullable, p$name)
+            next
+          }
+          broke <- FALSE
+          for(t in p$prod) {
+            if(t %nin% nullable) {
+              broke <- TRUE
+              break
+            }
+          }
+          if(!broke) {
+            if(p$name %nin% nullable) nullable <- append(nullable, p$name)
+          }
+        }
+        if(length(nullable) == num_nullable) break
+        num_nullable <- length(nullable)
+      }
+      return(nullable)      
     },
     # -----------------------------------------------------------------------------
     # find_nonterminal_trans(C)
@@ -1179,6 +1202,14 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
     # with LALR parsing
     # -----------------------------------------------------------------------------
     add_lalr_lookaheads = function(C) {
+      # Determine all of the nullable nonterminals
+      nullable <- self$compute_nullable_nonterminals()
+
+      # Find all non-terminal transitions
+      trans <- self$find_nonterminal_transitions(C)
+      
+      # ...
+  
     },
     # -----------------------------------------------------------------------------
     # lr_parse_table()
@@ -1193,19 +1224,19 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
       log    <- self$log             # Logger for output
       
       actionp <- new.env(hash=TRUE)  # Action production array (temporary)
-      
+            
       # Step 1: Construct C = { I0, I1, ... IN}, collection of LR(0) items
       # This determines the number of states
   
       C <- self$lr0_items()
       
-#      if(self$lr_method == 'LALR') self$add_lalr_lookaheads(C)
+      if(self$lr_method == 'LALR') self$add_lalr_lookaheads(C)
       
       # Build the parser table, state by state
-#      st <- 0
-#      for(I in C) {
-#        
-#      }
+      st <- 0
+      for(I in C) {
+        
+      }
     }
   ),
   private = list(
