@@ -10,8 +10,7 @@ err = function(msg) stop(c("ERROR> ", msg, "\n"))
 
 '%nin%' <- Negate('%in%')
 
-id = function(x) substring(capture.output(.Internal(inspect(x)))[1],2,17)
-
+id = function(x) substring(capture.output(.Internal(inspect(x, 5)))[1],2,8)
 
 #'-----------------------------------------------------------------------------
 #'                        ===  LR Parsing Engine ===
@@ -804,7 +803,7 @@ Grammar <- R6Class("Grammar",
               lri$lr_after <- list()
             })
             tryCatch({
-              lri$lr_before <- lri$prod[[i-1]]
+              lri$lr_before <- lri$prod[[i]]
             }, error = function(e) {
               lri$lr_before <- NULL
             })
@@ -961,7 +960,7 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
           }
         }
       }
-      
+
       return(J)
     },
     # Compute the LR(0) goto function goto(I,X) where I is a set
@@ -972,68 +971,73 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
     # id(obj) instead of element-wise comparison.
     lr0_goto = function(I, x) {
       # First we look for a previously cached entry
-#      g <- self$lr_goto_cache$get(id(I), x)
-#      if(g) return(g)
-#      
-#      # Now we generate the goto set in a way that guarantees uniqueness
-#      # of the result
-#  
-#      s <- self$lr_goto_cache.get(x)
-#      if(s) {
-#        s <- {}
-#      }
-#        s = {}
-#  self.lr_goto_cache[x] = s
-#  
-#  gs = []
-#  for p in I:
-#      n = p.lr_next
-#  if n and n.lr_before == x:
-#        s1 = s.get(id(n))
-#  if not s1:
-#        s1 = {}
-#  s[id(n)] = s1
-#  gs.append(n)
-#  s = s1
-#  g = s.get('$end')
-#  if not g:
-#        if gs:
-#              g = self.lr0_closure(gs)
-#  s['$end'] = g
-#  else:
-#        s['$end'] = gs
-#  self.lr_goto_cache[(id(I), x)] = g
-#return g
+      g <- self$lr_goto_cache[[paste(id(I), x)]]
+      if(!is.null(g)) return(g)
+      
+      # Now we generate the goto set in a way that guarantees uniqueness
+      # of the result
+  
+      s <- self$lr_goto_cache[[x]]
+      if(is.null(s)) {
+        s <- new.env(hash=TRUE)
+        self$lr_goto_cache[[x]] <- s
+      }
+
+      gs <- c()
+      for(p in I) {
+        n <- p$lr_next
+        if(!is.null(n) && n$lr_before == x) {
+          s1 <- s[[id(n)]]
+          if(is.null(s1)) {
+            s1 <- new.env(hash=TRUE)
+            s[[id(n)]] <- s1
+          }
+          gs <- append(gs, n)
+          s <- s1
+        }
+      }
+      g <- s[['$end']]
+      if(is.null(g)) {
+        if(length(gs) > 0) {
+          g <- self$lr0_closure(gs)
+          s[['$end']] <- g
+        } else s[['$end']] <- gs
+      }
+      
+      self$lr_goto_cache[[paste(id(I), x)]] <- g
+      return(g)
     },
     # Compute the LR(0) sets of item function
     lr0_items = function() {
-      C <- c(self$lr0_closure(c(self$grammar$Productions[[1]]$lr_next)))
-      i <- 0
+      C <- list(self$lr0_closure(c(self$grammar$Productions[[1]]$lr_next)))
+
+      i <- 1
       for(I in C) {
-#        self$lr0_cidhash[[id(I)]] <- i
+        self$lr0_cidhash[[id(I)]] <- i
         i <- i + 1
       }
       
       # Loop over the items in C and each grammar symbols
-      i <- 0
-#      while(i < length(C)) {
-#        I = C[[i]]
-#        i <- i + 1
-#        
-#        # Collect all of the symbols that could possibly be in the goto(I,X) sets
-#        asyms <- new.env(hash=TRUE)
-#        for(ii in I)
-#            for(s in ii$usyms)
-#              asyms[[s]] <- NA
-#          
-#        for(x in asyms) {
-#          g <- self$lr0_goto(I, x)
-#          if(!g || id(g) %in% self$lr0_cidhash) next
-#          self$lr0_cidhash[[id(g)]] <- length(C)
-#          C <- append(C, g)
-#        }
-#        
-#      }
+      i <- 1
+      while(i <= length(C)) {
+        I <- C[[i]]
+        i <- i + 1
+        
+        # Collect all of the symbols that could possibly be in the goto(I,X) sets
+        asyms <- new.env(hash=TRUE)
+        for(ii in I) {
+          for(s in ii$usyms) {
+            asyms[[s]] <- NULL
+          }
+        }
+        
+        for(x in names(asyms)) {
+          g <- self$lr0_goto(I, x)
+          if(is.null(g) || id(g) %in% names(self$lr0_cidhash)) next
+          self$lr0_cidhash[[id(g)]] <- length(C)
+          C[[length(C)+1]] <- g
+        }
+      }
             
       return(C)
     },
