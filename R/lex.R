@@ -125,16 +125,22 @@ Lexer <- R6Class("Lexer",
     #' push_state() - Changes the lexing state and saves old on stack
     #' ------------------------------------------------------------
     push_state = function(state) {
+      self$lexstatestack <- append(self$lexstatestack, self$lexstate)
+      self$begin(state)
     },
     #' ------------------------------------------------------------
     #' pop_state() - Restores the previous state
     #' ------------------------------------------------------------
-    pop_state = function(self) {
+    pop_state = function() {
+      state <- tail(self$lexstatestack, 1)
+      self$lexstatestack <- head(self$lexstatestack, -1)
+      self$begin(state)
     },
     #' ------------------------------------------------------------
     #' current_state() - Returns the current lexing state
     #' ------------------------------------------------------------
     current_state = function() {
+      return(self$lexstate)
     },
     #' ------------------------------------------------------------
     #' skip() - Skip ahead n characters
