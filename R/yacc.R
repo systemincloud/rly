@@ -1105,6 +1105,24 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
     # The input C is the set of LR(0) items.
     # -----------------------------------------------------------------------------
     find_nonterminal_transitions = function(C) {
+      trans <- list()
+      stateno <- 1
+      for(state in C) {
+        for(p in state) {
+          if(p$lr_index < p$len) {
+            t <- c(stateno, p$prod[[p$lr_index+1]])
+            if(t[[2]] %in% names(self$grammar$Nonterminals)) {
+              exist <- FALSE
+              for(i in trans) {
+                if(i[[1]] == t[[1]] && i[[2]] == t[[2]]) exist <- TRUE
+              }
+              if(!exist) trans[[length(trans)+1]] <- t
+            }
+          }
+        }
+        stateno <- stateno + 1
+      }
+      return(trans)
     },
     # -----------------------------------------------------------------------------
     # dr_relation()
@@ -1207,7 +1225,9 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
 
       # Find all non-terminal transitions
       trans <- self$find_nonterminal_transitions(C)
-      
+      dbg(toString(trans))
+      # Compute read sets
+  
       # ...
   
     },
