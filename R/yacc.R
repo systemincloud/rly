@@ -863,27 +863,6 @@ LRTable <- R6Class("LRTable",
 #' a grammar.
 #' -----------------------------------------------------------------------------
 
-#' -----------------------------------------------------------------------------
-#' digraph()
-#' traverse()
-#'
-#' The following two functions are used to compute set valued functions
-#' of the form:
-#'
-#'     F(x) = F'(x) U U{F(y) | x R y}
-#'
-#' This is used to compute the values of Read() sets as well as FOLLOW sets
-#' in LALR(1) generation.
-#'
-#' Inputs:  X    - An input set
-#'          R    - A relation
-#'          FP   - Set-valued function
-#' ------------------------------------------------------------------------------
-digraph = function(X, R, FP) {
-}
-
-traverse = function(x, N, stack, F, X, R, FP) {
-}
 
 #' -----------------------------------------------------------------------------
 #'                             == LRGeneratedTable ==
@@ -1133,6 +1112,33 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
     # Returns a list of terminals.
     # -----------------------------------------------------------------------------
     dr_relation = function(C, trans, nullable) {
+      dbg('dr_relation')
+      dr_set <- new.env(hash=TRUE)
+      state <- as.numeric(trans[1])
+      N <- trans[2]
+      terms <- c()
+      
+      dbg(toString(C[[state]]))
+      for(c in C[[state]]) {
+        dbg(c$toString())
+      }
+      dbg(N)
+      g <- self$lr0_goto(C[[state]], N)
+      for(p in g) {
+        dbg(p$toString())
+        if(p$lr_index < p$len) {
+          a <- p$prod[[p$lr_index+1]]
+          dbg(toString(a))
+          if(a %in% names(self$grammar$Terminals))
+            if(a %nin% terms) terms <- append(terms, a)
+        }
+      }
+      
+      # This extra bit is to handle the start state
+      if(state == 1 && N == self$grammar$Productions[[1]]$prod[[1]])
+        terms <- append(terms, '$end')
+      
+      return(terms)
     },
     # -----------------------------------------------------------------------------
     # reads_relation()
@@ -1140,6 +1146,24 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
     # Computes the READS() relation (p,A) READS (t,C).
     # -----------------------------------------------------------------------------
     reads_relation = function(C, trans, empty) {
+      dbg('reads_relation')
+      # Look for empty transitions
+      rel <- list()
+      state <- as.numeric(trans[1])
+      N <- trans[2]
+      
+      g <- self$lr0_goto(C[[state]], N)
+      dbg('gggggggggggggggggggggggggggggggggggggg')
+      dbg(toString(g))
+      j <- self$lr0_cidhash[[id(g)]]
+      for(p in g) {
+        dbg(toString(p$lr_index))
+        if(p$lr_index < p$len - 1) {
+          a <- p$prod[[p$lr_index + 1]]
+          if(a %in% empty) rel[[length(rel)+1]] <- c(j, a)
+        }
+      }
+      return(rel)
     },
     # -----------------------------------------------------------------------------
     # compute_lookback_includes()
@@ -1171,6 +1195,85 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
     compute_lookback_includes = function(C, trans, nullable) {
     },
     # -----------------------------------------------------------------------------
+    # digraph()
+    # traverse()
+    #
+    # The following two functions are used to compute set valued functions
+    # of the form:
+    #
+    #     F(x) = F'(x) U U{F(y) | x R y}
+    #
+    # This is used to compute the values of Read() sets as well as FOLLOW sets
+    # in LALR(1) generation.
+    #
+    # Inputs:  X    - An input set
+    #          R    - A relation
+    #          FP   - Set-valued function
+    # ------------------------------------------------------------------------------
+    digraph = function(X, C, nullable) {
+      dbg('digraph')
+      N <- new.env(hash=TRUE)
+      for(x in X) N[[paste(x, collapse = ' ')]] <- 0
+      dbg(toString(names(N)))
+      stack <- c()
+      F <- new.env(hash=TRUE)
+      for(x in X) {
+        dbg(toString(x))
+        if(N[[paste(x, collapse = ' ')]] == 0) {
+          stack <- self$traverse(x, N, stack, F, C, nullable)
+          dbg('stack')
+          dbg(toString(stack))
+          dbg('N:START')
+          for(n in names(N)) {
+            dbg(toString(n))
+            dbg(toString(N[[n]]))
+          }
+          dbg('N:STOP')
+          dbg('F:START')
+          for(f in names(F)) {
+            dbg(toString(f))
+            dbg(toString(F[[f]]))
+          }
+          dbg('F:STOP')
+        }
+      }
+      return(F)
+    },
+    traverse = function(x, N, stack, F, C, nullable) {
+      stack[[length(stack)+1]] <- x
+      d <- length(stack)
+      N[[paste(x, collapse = ' ')]] <- d
+      F[[paste(x, collapse = ' ')]] <- self$dr_relation(C, x, nullable) # F(X) <- F'(x)
+      dbg(toString(F[[paste(x, collapse = ' ')]]))
+  
+      rel <- self$reads_relation(C, x, nullable)                            # Get y's related to x
+      dbg('rel')
+      dbg(toString(rel))
+      for(y in rel) {
+        dbg('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX')
+#    if(N[[y]] == 0) stack <- self$traverse(y, N, stack, F, R, FP)
+#    N[[x]] <- min(N[x], N[y])
+#    for(a in F[[y]])
+#      if(a %in% F[[x]]) F[[x]] <- append(F[[x]], a)
+    }
+
+    if(N[[paste(x, collapse = ' ')]] == d) {
+      dbg('if')
+      N[[paste(tail(stack, 1)[[1]], collapse = ' ')]] <- .Machine$integer.max
+      F[[paste(tail(stack, 1)[[1]], collapse = ' ')]] <- F[[paste(x, collapse = ' ')]]
+      element <- tail(stack, 1)
+      stack <- head(stack, -1)
+#    while(element != x) {
+#      N[[tail(stack, 1)]] <- .Machine$integer.max
+#      F[[tail(stack, 1)]] <- F[[x]]
+#      element <- tail(stack, 1)
+#      stack <- head(stack, -1)
+#    }
+  }
+      
+      return(stack)
+    },
+    # -----------------------------------------------------------------------------
     # compute_read_sets()
     #
     # Given a set of LR(0) items, this function computes the read sets.
@@ -1182,6 +1285,9 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
     # Returns a set containing the read sets
     # -----------------------------------------------------------------------------
     compute_read_sets = function(C, ntrans, nullable) {
+      dbg('compute_read_sets')
+      F <- self$digraph(ntrans, C, nullable)
+      return(F)
     },
     # -----------------------------------------------------------------------------
     # compute_follow_sets()
@@ -1225,9 +1331,11 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
 
       # Find all non-terminal transitions
       trans <- self$find_nonterminal_transitions(C)
-      dbg(toString(trans))
+      
       # Compute read sets
-  
+      readsets <- self$compute_read_sets(C, trans, nullable)
+      dbg(toString(names(readsets)))
+      dbg('ENDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD')
       # ...
   
     },
