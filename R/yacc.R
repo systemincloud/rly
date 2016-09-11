@@ -1013,7 +1013,7 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
         for(x in names(asyms)) {
           g <- self$lr0_goto(I, x)
           if(is.null(g) || id(g) %in% names(self$lr0_cidhash)) next
-          self$lr0_cidhash[[id(g)]] <- length(C)
+          self$lr0_cidhash[[id(g)]] <- length(C) + 1
           C[[length(C)+1]] <- g
         }
       }
@@ -1157,7 +1157,6 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
       dbg(toString(g))
       j <- self$lr0_cidhash[[id(g)]]
       for(p in g) {
-        dbg(toString(p$lr_index))
         if(p$lr_index < p$len - 1) {
           a <- p$prod[[p$lr_index + 1]]
           if(a %in% empty) rel[[length(rel)+1]] <- c(j, a)
@@ -1193,6 +1192,87 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
     #
     # -----------------------------------------------------------------------------
     compute_lookback_includes = function(C, trans, nullable) {
+      lookdict <- new.env(hash=TRUE)       # Dictionary of lookback relations
+      includedict <- new.env(hash=TRUE)    # Dictionary of include relations
+      
+      # Make a dictionary of non-terminal transitions
+      dtrans <- new.env(hash=TRUE)
+      for(t in trans) dtrans[[paste(t, collapse = ' ')]] <- 1
+      
+      # Loop over all transitions and compute lookbacks and includes
+      for(state_N in trans) {
+        state <- as.numeric(state_N[1])
+        N <- state_N[2]
+        lookb <- list()
+        includes <- list()
+        for(p in C[[state]]) {
+          if(p$name != N) next
+          
+          # Okay, we have a name match.  We now follow the production all the way
+          # through the state machine until we get the . on the right hand side
+      
+          lr_index <- p$lr_index
+          j <- state
+          
+          while(lr_index < p$len) {
+            lr_index <- lr_index + 1
+            t <- p$prod[[lr_index]]
+            
+            # Check to see if this symbol and state are a non-terminal transition
+            if(paste(c(j, t), collapse=' ') %in% names(dtrans)) {
+              # Yes.  Okay, there is some chance that this is an includes relation
+              # the only way to know for certain is whether the rest of the
+              # production derives empty
+              
+              li <- lr_index + 1
+              broke <- FALSE
+              while(li < p$len + 1) {
+                if(p$prod[[li]] %in% names(self$grammar$Terminals)) {
+                  broke <- TRUE
+                  break      # No forget it
+                }
+                if(p$prod[[li]] %nin% nullable) {
+                  broke <- TRUE
+                  break
+                }
+                li <- li + 1
+              }
+              if(!broke) {
+                # Appears to be a relation between (j,t) and (state,N)
+                includes[[length(includes)+1]] <- c(j, t)
+              }
+            }
+            
+            g <- self$lr0_goto(C[[j]], t)        # Go to next set
+            j <- self$lr0_cidhash[[id(g)]]       # Go to next state
+          }
+          
+          # When we get here, j is the final state, now we have to locate the production
+          for(r in C[[j]]) {
+            if(r$name != p$name) next
+            if(r$len != p$len) next
+            i <- 1
+            # This look is comparing a production ". A B C" with "A B C ."
+            broke <- FALSE
+            while(i < r$lr_index) {
+              if(r$prod[[i]] != p$prod[[i+1]]) {
+                broke <- TRUE
+                break
+              }
+              i <- i + 1
+            }
+            if(!broke) lookb[[length(lookb)+1]] <- c(j, r)
+          }
+        }
+        for(i in includes) {
+          if(paste(i, collapse=' ') %nin% names(includedict)) {
+            includedict[[paste(i, collapse=' ')]] <- list()
+          }
+          includedict[[paste(i, collapse=' ')]][[length(includedict[[paste(i, collapse=' ')]])+1]] <- c(state, N)
+        }
+        lookdict[[paste(c(state, N), collapse=' ')]] <- lookb
+      }
+      return(list(lookdict, includedict))
     },
     # -----------------------------------------------------------------------------
     # digraph()
@@ -1336,6 +1416,16 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
       readsets <- self$compute_read_sets(C, trans, nullable)
       dbg(toString(names(readsets)))
       dbg('ENDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD')
+      
+      # Compute lookback/includes relations
+      lookd_included <- self$compute_lookback_includes(C, trans, nullable)
+      lookd <- lookd_included[[1]]
+      included <- lookd_included[[2]]
+
+      # Compute LALR FOLLOW sets
+      
+# 		# Add all of the lookaheads
+  
       # ...
   
     },
