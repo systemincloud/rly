@@ -1287,7 +1287,6 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
     #          FP   - Set-valued function
     # ------------------------------------------------------------------------------
     digraph = function(X, C, nullable, readsets, inclsets) {
-      dbg('digraph')
       N <- new.env(hash=TRUE)
       for(x in X) N[[paste(x, collapse = ' ')]] <- 0
       stack <- c()
@@ -1384,6 +1383,19 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
     # in the lookbacks set
     # -----------------------------------------------------------------------------
     add_lookaheads = function(lookbacks, followset) {
+      for(trans in names(lookbacks)) {
+        lb <- lookbacks[[trans]]
+        # Loop over productions in lookback
+        for(state_p in lb) {
+          state <- state_p[[1]]
+          p <- state_p[[2]]
+          if(as.character(state) %nin% names(p$lookaheads)) p$lookaheads[[as.character(state)]] <- c()
+          f <- followset[[trans]]
+          for(a in f)
+            if(a %nin% p$lookaheads[[as.character(state)]])
+              p$lookaheads[[as.character(state)]] <- append(p$lookaheads[[as.character(state)]], a)
+        }
+      }
     },
     # -----------------------------------------------------------------------------
     # add_lalr_lookaheads()
@@ -1409,10 +1421,8 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
       # Compute LALR FOLLOW sets
       followsets <- self$compute_follow_sets(trans, readsets, included)
   
-# 		# Add all of the lookaheads
-  
-      # ...
-  
+ 		  # Add all of the lookaheads
+      self$add_lookaheads(lookd, followsets)
     },
     # -----------------------------------------------------------------------------
     # lr_parse_table()
