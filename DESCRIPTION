@@ -11,7 +11,8 @@ URL: https://github.com/systemincloud/rly
 BugReports: https://github.com/systemincloud/rly/issues
 Suggests: testthat
 Depends:
-    R6
+    R6,
+    futile.logger
 RoxygenNote: 5.0.1
 Collate:
     'lex.R'

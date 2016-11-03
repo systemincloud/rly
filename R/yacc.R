@@ -12,6 +12,40 @@ err = function(msg) stop(c("ERROR> ", msg, "\n"))
 
 id = function(x) substring(capture.output(.Internal(inspect(x, 1)))[1],2,8)
 
+randomString <- function(lenght=12) {
+  return(paste(sample(c(0:9, letters, LETTERS), lenght, replace=TRUE), collapse=""))
+}
+
+#' This object is a stand-in for a logging object created by the
+#' logging module.   RLY will use this by default to create things
+#' such as the parser.out file.  If a user wants more detailed
+#' information, they can create their own logging object and pass
+#' it into RLY.
+
+RlyLogger <- R6Class("RlyLogger",
+  public = list(
+    name = NA,
+    initialize = function(dir=NA, name=NA) {
+      self$name <- randomString(4)
+      if(is.na(name)) flog.appender(appender.console(), name=self$name)
+      else            flog.appender(appender.file(name), name=self$name)
+    },
+    info  = function(msg) { flog.info(msg, name=self$name) },
+    debug = function(msg) { flog.debug(msg, name=self$name) }
+  )
+)
+
+#' Null logger is used when no output is generated. Does nothing.
+NullLogger <- R6Class("NullLogger",
+  public = list(
+    initialize = function(f) {
+    },
+    info  = function(msg) { },
+    debug = function(msg) { }
+  )
+)
+
+
 #'-----------------------------------------------------------------------------
 #'                        ===  LR Parsing Engine ===
 #'
@@ -223,6 +257,7 @@ is_identifier <- '^[a-zA-Z0-9_-]+$'
 #' @keywords data
 Production <- R6Class("Production",
   public = list(
+    reduced   = 0,
     name      = NA,
     prod      = NA,
     number    = NA,
@@ -880,6 +915,7 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
   public = list(
     grammar        = NA,
     lr_method      = NA,
+    log            = NA,
     lr_action      = NA,
     lr_goto        = NA,
     lr_productions = NA,
@@ -890,11 +926,15 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
     conflicts      = NA,
     sr_conflicts   = NA,
     rr_conflicts   = NA,
-    initialize = function(grammar, method='LALR') {
+    initialize = function(grammar, method='LALR', log=NA) {
       if(method %nin% c('SLR', 'LALR')) err(sprintf('Unsupported method %s', method))
       
       self$grammar   <- grammar
       self$lr_method <- method
+      
+      # Set up the logger
+      if(is.na(log)) log <- NullLogger$new()
+      self$log <- log
       
       # Internal attributes
       self$lr_action      <- new.env(hash=TRUE)  # Action table
@@ -1432,23 +1472,229 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
     lr_parse_table = function() {
       Productions <- self$grammar$Productions
       Precedence  <- self$grammar$Precedence
-      goto   <- self$lr_goto         # Goto array
-      action <- self$lr_action       # Action array
-      log    <- self$log             # Logger for output
+      log <- self$log             # Logger for output
       
       actionp <- new.env(hash=TRUE)  # Action production array (temporary)
+      
+      log$info(sprintf('Parsing method: %s', self$lr_method))
             
       # Step 1: Construct C = { I0, I1, ... IN}, collection of LR(0) items
       # This determines the number of states
   
       C <- self$lr0_items()
-      
+
       if(self$lr_method == 'LALR') self$add_lalr_lookaheads(C)
       
       # Build the parser table, state by state
-      st <- 0
+      st <- 1
       for(I in C) {
+        # Loop over each production in I
+        actlist <- list()              # List of actions
+        st_action  <- new.env(hash=TRUE)
+        st_actionp <- new.env(hash=TRUE)
+        st_goto    <- new.env(hash=TRUE)
+        log$info('')
+        log$info(sprintf('state %d', st))
+        log$info('')
+        for(p in I)
+          log$info(sprintf('    (%d) %s', p$number, p$toString()))
+        log$info('')
         
+        for(p in I) {
+          if(p$len == p$lr_index) {
+            if(p$name == "S'") {
+              # Start symbol. Accept!
+              st_action[['$end']] <- 0
+              st_actionp[['$end']] <- p
+            } else {
+              # We are at the end of a production.  Reduce!
+              laheads <- NA
+              if(self$lr_method == 'LALR') laheads <- p$lookaheads[[as.character(st)]]
+              else                         laheads <- self$grammar$Follow[[p$name]]
+              for(a in laheads) {
+                actlist[[length(actlist)+1]] <- c(a, p, sprintf('reduce using rule %d (%s)', p$number, p$toString()))
+                r <- st_action[[a]]
+                if(!is.null(r)) {
+                  # Whoa. Have a shift/reduce or reduce/reduce conflict
+                  if(r > 0) {
+                    # Need to decide on shift or reduce here
+                    # By default we favor shifting. Need to add
+                    # some precedence rules here.
+              
+                    # Shift precedence comes from the token
+                    sprec_slevel <- Precedence[[a]]
+                    if(rprec_rlevel == NULL) sprec_slevel <- c('right', 0)
+                    
+                    sprec  <- sprec_slevel[[1]]
+                    slevel <- sprec_slevel[[2]]
+                    
+                    # Reduce precedence comes from rule being reduced (p)
+                    rprec_rlevel <- Productions[[p$number]]$prec
+                    
+                    rprec  <- rprec_rlevel[[1]]
+                    rlevel <- rprec_rlevel[[2]]
+                    
+                    if((slevel < rlevel) || ((slevel == rlevel) && (rprec == 'left'))) {
+                      # We really need to reduce here.
+                      st_action[[a]] <- -p$number
+                      st_actionp[[a]] <- p
+                      if(!is.null(slevel) && !is.null(rlevel)) {
+                        log$info(sprintf('  ! shift/reduce conflict for %s resolved as reduce', a))
+                        self$sr_conflicts[[lenght(self$sr_conflicts)+1]] <- c(st, a, 'reduce')
+                      }
+                      Productions[[p$number]]$reduced <- Productions[[p$number]]$reduced + 1
+                    } else if((slevel == rlevel) && (rprec == 'nonassoc')) {
+                      st_action[[a]] <- NULL
+                    } else {
+                      # Hmmm. Guess we'll keep the shift
+                      if(rlevel == 0) {
+                        log$info('  ! shift/reduce conflict for %s resolved as shift', a)
+                        self$sr_conflicts[[length(self$sr_conflicts)+1]] <- c(st, a, 'shift')
+                      }
+                    }
+                  } else if(r < 0) {
+                    # Reduce/reduce conflict.   In this case, we favor the rule
+                    # that was defined first in the grammar file
+                    oldp <- tail(Productions, -r)
+                    pp <- Productions[[p$number]]
+                    if(oldp$line > pp$line) {
+                      st_action[[a]] <- -p$number
+                      st_actionp[[a]] <- p
+                      chosenp <- pp
+                      rejectp <- oldp
+                      Productions[[p$number]]$reduced <- Productions[[p$number]]$reduced + 1
+                      Productions[[oldp$number]]$reduced <- Productions[[oldp$number]]$reduced - 1
+                    } else {
+                      chosenp <- oldp
+                      rejectp <- pp
+                    }
+                    self$rr_conflicts[[length(self$rr_conflicts)+1]] <-c(st, chosenp, rejectp)
+                    log$info(sprintf('  ! reduce/reduce conflict for %s resolved using rule %d (%s)',
+                                     a, st_actionp[[a]]$number, st_actionp[[a]]$toString()))
+                  } else {
+                    err(sprintf('Unknown conflict in state %d', st))
+                  }
+                } else {
+                  st_action[[a]] <- -p$number
+                  st_actionp[[a]] <- p
+                  Productions[[p$number]]$reduced <- Productions[[p$number]]$reduced + 1
+                }
+              }
+            }
+          } else {
+            i <- p$lr_index
+            a <- p$prod[[i+1]]       # Get symbol right after the "."
+            if(a %in% names(self$grammar$Terminals)) {
+              g <- self$lr0_goto(I, a)
+              j <- self$lr0_cidhash[[id(g)]]
+              if(j >= 0) {
+                # We are in a shift state
+                actlist[[length(actlist)+1]] <- c(a, p, sprintf('shift and go to state %d', j))
+                r <- st_action[[a]]
+                if(!is.null(r)) {
+                  # Whoa have a shift/reduce or shift/shift conflict
+                  if(r > 0) {
+                    if(r != j) err(sprintf('Shift/shift conflict in state %d', st))
+                  } else if(r < 0) {
+                    # Do a precedence check.
+                    #   -  if precedence of reduce rule is higher, we reduce.
+                    #   -  if precedence of reduce is same and left assoc, we reduce.
+                    #   -  otherwise we shift
+          
+                    # Shift precedence comes from the token
+                    sprec_slevel <- Precedence[[a]]
+                    if(is.null(sprec_slevel)) sprec_slevel <- c('right', 0)
+                     
+                    sprec  <- sprec_slevel[[1]]
+                    slevel <- sprec_slevel[[2]]
+                    
+                    # Reduce precedence comes from the rule that could have been reduced
+                    rprec_rlevel <- Productions[[st_actionp[[a]]$number+1]]$prec
+                    
+                    rprec  <- rprec_rlevel[[1]]
+                    rlevel <- rprec_rlevel[[2]]
+                    
+                    if((slevel > rlevel) || ((slevel == rlevel) && (rprec == 'right'))) {
+                      # We decide to shift here... highest precedence to shift
+                      Productions[[st_actionp[[a]]$number]]$reduced <- Productions[[st_actionp[[a]]$number]]$reduced - 1
+                      st_action[[a]] <- j
+                      st_actionp[[a]] <- p
+                      if(rlevel == 0) {
+                        log$info(sprintf('  ! shift/reduce conflict for %s resolved as shift', a))
+                        self$sr_conflicts[[length(self$sr_conflicts)+1]] <- c(st, a, 'shift')
+                      }
+                    } else if((slevel == rlevel) && (rprec == 'nonassoc')) {
+                      st_action[[a]] <- NULL
+                    } else {
+                      # Hmmm. Guess we'll keep the reduce
+                      if(slevel == 0 && rlevel == 0) {
+                        log$info(sprintf('  ! shift/reduce conflict for %s resolved as reduce', a))
+                        self$sr_conflicts[[length(self$sr_conflicts)+1]] <- c(st, a, 'reduce')
+                      }
+                    }
+                  } else err(sprintf('Unknown conflict in state %d', st))
+                } else {
+                  st_action[[a]] <- j
+                  st_actionp[[a]] <- p
+                }
+              }
+            }
+          }
+        }
+        
+        # Print the actions associated with each terminal
+        actprint <- {}
+        for(a_p_m in actlist) {
+          a <- a_p_m[[1]]
+          p <- a_p_m[[2]]
+          m <- a_p_m[[3]]
+          if(a %in% names(st_action)) {
+            if(identical(p, st_actionp[[a]])) {
+              log$info(sprintf('    %-15s %s', a, m))
+              actprint[[paste(a, m, collapse=' ')]] <- 1
+            }
+          }
+        }
+        log$info('')
+        # Print the actions that were not used. (debugging)
+        not_used <- 0
+        for(a_p_m in actlist) {
+          a <- a_p_m[[1]]
+          p <- a_p_m[[2]]
+          m <- a_p_m[[3]]
+          if(a %in% names(st_action)) {
+            if(!identical(p, st_actionp[[a]])) {
+              if(paste(a, m, collapse=' ') %nin% names(actprint)) {
+                log$info(sprintf('  ! %-15s [ %s ]', a, m))
+                not_used <- 1
+                actprint[[paste(a, m, collapse=' ')]] <- 1
+              }
+            }
+          }
+        }
+        if(not_used == 1) log$info('')
+        
+        # Construct the goto table for this state
+
+        nkeys <- new.env(hash=TRUE)
+        for(ii in I)
+          for(s in ii$usyms)
+            if(s %in% names(self$grammar$Nonterminals))
+              nkeys[[s]] <- NULL
+              
+        for(n in names(nkeys)) {
+          g <- self$lr0_goto(I, n)
+          j <- self$lr0_cidhash[[id(g)]]
+          if(is.null(j)) j <- -1
+          if(j >= 0) {
+            st_goto[[n]] <- j
+            log$info(sprintf('    %-30s shift and go to state %d', n, j))
+          }
+        }
+        self$lr_action[[as.character(st)]] <- st_action
+        actionp[[as.character(st)]] <- st_actionp
+        self$lr_goto[[as.character(st)]] <- st_goto
+        st <- st + 1
       }
     }
   ),
@@ -1598,18 +1844,17 @@ ParserReflect <- R6Class("ParserReflect",
       if(!is.null(self$prec)) {
         if(!is.list(self$prec)) err("precedence must be a list")
         
+        level <- 0
         for(p in self$prec) {
           if(!is.vector(p) || typeof(p) != 'character') err("Bad precedence table")
           if(length(p) < 2) err("Malformed precedence entry. Must be (assoc, term, ..., term)")
           assoc <- p[[1]]
           if(typeof(assoc) != 'character') err("precedence associativity must be a string")
-
-          level <- 0
           for(term in tail(p, -1)) {
             if(typeof(term) != 'character') err("precedence items must be strings")
             preclist[[length(preclist)+1]] <- list(term, assoc, level+1)
-            level <- level + 1
           }
+          level <- level + 1
         }
       }
       self$preclist <- preclist
@@ -1673,8 +1918,15 @@ yacc = function(module=NA,
                 method='LALR',
                 debug=FALSE,
                 start=NA,
-                check_recursion=TRUE) {
+                check_recursion=TRUE,
+                debugfile='parser.out',
+                outputdir=NA,
+                debuglog=NA,
+                errorlog=NA) {
 
+  if(is.na(errorlog))
+    errorlog <- RlyLogger$new()
+              
   # Set start symbol if it's specified directly using an argument
   if(!is.na(start)) {
     module$public_methods[['start']] <- start
@@ -1685,6 +1937,14 @@ yacc = function(module=NA,
   # Collect parser information from the dictionary
   pinfo <- ParserReflect$new(module, instance)
   pinfo$get_all()
+  
+  if(is.na(debuglog)) {
+    if(debug) debuglog <- RlyLogger$new(outputdir, debugfile)
+    else      debuglog <- NullLogger$new()
+  }
+
+  debuglog$info('Created by RLY (https://github.com/systemincloud/rly)')
+  
   pinfo$validate_all()
   
   if(is.null(pinfo$error_func)) wrn('no p_error() function is defined')
@@ -1726,12 +1986,12 @@ yacc = function(module=NA,
 
   # Print out all productions to the debug log
   if(debug) {
-    dbg('')
-    dbg('Grammar')
-    dbg('')
+    debuglog$info('')
+    debuglog$info('Grammar')
+    debuglog$info('')
     n <- 0
     for(p in grammar$Productions) {
-      dbg(sprintf('Rule %-5d %s', n, p$toString()))
+      debuglog$info(sprintf('Rule %-5d %s', n, p$toString()))
       n <- n + 1
     }
   }
@@ -1746,22 +2006,22 @@ yacc = function(module=NA,
   if(length(unused_rules) > 1)      wrn(sprintf('There are %d unused rules', length(unused_rules)))
 
   if(debug) {
-    dbg('')
-	  dbg('Terminals, with rules where they appear')
-	  dbg('')
+    debuglog$info('')
+    debuglog$info('Terminals, with rules where they appear')
+    debuglog$info('')
 	  terms <- names(grammar$Terminals)
 	  terms <- sort(terms)
 	  for(term in terms)
-		  dbg(sprintf('%-20s : %s', term, paste(grammar$Terminals[[term]], sep=' ', collapse=' ')))
+      debuglog$info(sprintf('%-20s : %s', term, paste(grammar$Terminals[[term]], sep=' ', collapse=' ')))
 	  
-	  dbg('')
-	  dbg('Nonterminals, with rules where they appear')
-	  dbg('')
+    debuglog$info('')
+    debuglog$info('Nonterminals, with rules where they appear')
+    debuglog$info('')
 	  nonterms <- names(grammar$Nonterminals)
 	  nonterms <- sort(nonterms)
 	  for(nonterm in nonterms)
-		  dbg(sprintf('%-20s : %s', nonterm, paste(grammar$Nonterminals[[nonterm]], sep=' ', collapse=' ')))
-	  dbg('')
+      debuglog$info(sprintf('%-20s : %s', nonterm, paste(grammar$Nonterminals[[nonterm]], sep=' ', collapse=' ')))
+    debuglog$info('')
   }
   
   if(check_recursion) {
@@ -1782,11 +2042,11 @@ yacc = function(module=NA,
   # Run the LRGeneratedTable on the grammar
   if(debug) dbg(sprintf('Generating %s tables', method))
 
-  lr <- LRGeneratedTable$new(grammar, method)
+  lr <- LRGeneratedTable$new(grammar, method, debuglog)
 
   if(debug) {
     num_sr <- length(lr$sr_conflicts)
-    
+    dbg(toString(lr$sr_conflicts))
     # Report shift/reduce and reduce/reduce conflicts
     if     (num_sr == 1) wrn('1 shift/reduce conflict')
     else if(num_sr > 1)  wrn(sprintf('%d shift/reduce conflicts', num_sr))
