@@ -30,6 +30,7 @@ RlyLogger <- R6Class("RlyLogger",
       if(is.na(name)) flog.appender(appender.console(), name=self$name)
       else            flog.appender(appender.file(name), name=self$name)
     },
+    warn  = function(msg) { flog.warn(msg, name=self$name) },
     info  = function(msg) { flog.info(msg, name=self$name) },
     debug = function(msg) { flog.debug(msg, name=self$name) }
   )
@@ -40,6 +41,7 @@ NullLogger <- R6Class("NullLogger",
   public = list(
     initialize = function(f) {
     },
+    warn  = function(msg) { },
     info  = function(msg) { },
     debug = function(msg) { }
   )
@@ -954,12 +956,10 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
       self$rr_conflicts <- list()
           
       # Build the tables
-      dbg(toString(format(Sys.time(), "%H:%M:%OS3")))
       self$grammar$build_lritems()
       self$grammar$compute_first()
       self$grammar$compute_follow()
       self$lr_parse_table()
-      dbg(toString(format(Sys.time(), "%H:%M:%OS3")))
     },
     # Compute the LR(0) closure operation on I, where I is a set of LR(0) items.
     lr0_closure = function(I) {
@@ -1499,7 +1499,7 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
         for(p in I)
           log$info(sprintf('    (%d) %s', p$number, p$toString()))
         log$info('')
-        
+
         for(p in I) {
           if(p$len == p$lr_index) {
             if(p$name == "S'") {
@@ -1555,9 +1555,9 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
                   } else if(r < 0) {
                     # Reduce/reduce conflict.   In this case, we favor the rule
                     # that was defined first in the grammar file
-                    oldp <- tail(Productions, -r)
-                    pp <- Productions[[p$number]]
-                    if(oldp$line > pp$line) {
+                    oldp <- Productions[[-r+1]]
+                    pp <- Productions[[p$number+1]]
+                    if(-r+1 > p$number+1) {
                       st_action[[a]] <- -p$number
                       st_actionp[[a]] <- p
                       chosenp <- pp
@@ -2046,7 +2046,6 @@ yacc = function(module=NA,
 
   if(debug) {
     num_sr <- length(lr$sr_conflicts)
-    dbg(toString(lr$sr_conflicts))
     # Report shift/reduce and reduce/reduce conflicts
     if     (num_sr == 1) wrn('1 shift/reduce conflict')
     else if(num_sr > 1)  wrn(sprintf('%d shift/reduce conflicts', num_sr))
@@ -2058,14 +2057,44 @@ yacc = function(module=NA,
 
   # Write out conflicts to the output file
   if(debug && (length(lr$sr_conflicts) > 0 || length(lr$rr_conflicts)) > 0) {
-    wrn('')
-    wrn('Conflicts:')
-    wrn('')
+    debuglog$warn('')
+    debuglog$warn('Conflicts:')
+    debuglog$warn('')
     
-    # ...
+    for(state_tok_resolution in lr$sr_conflicts) {}
+      state      <- state_tok_resolution[[1]]
+      tok        <- state_tok_resolution[[2]]
+      resolution <- state_tok_resolution[[3]]
+      debuglog$warn(sprintf('shift/reduce conflict for %s in state %d resolved as %s',  tok, state, resolution))
+    }
+      
+    already_reported <- list()
+    for(state_rule_rejected in lr$rr_conflicts) {
+      state    <- state_rule_rejected[[1]]
+      rule     <- state_rule_rejected[[2]]
+      rejected <- state_rule_rejected[[3]]
+      
+      if(paste(state, id(rule), id(rejected)) %in% already_reported) next
+      
+      debuglog$warn(sprintf('reduce/reduce conflict in state %d resolved using rule (%s)', state, rule$toString()))
+      debuglog$warn(sprintf('rejected rule (%s) in state %d', rejected$toString(), state))
+      wrn(sprintf('reduce/reduce conflict in state %d resolved using rule (%s)', state, rule$toString()))
+      wrn(sprintf('rejected rule (%s) in state %d', rejected$toString(), state))
+      already_reported[[length(already_reported)+1]] <- c(state, id(rule), id(rejected))
+  
+    warned_never <- list()
+    for(state_rule_rejected in lr$rr_conflicts) {
+      state    <- state_rule_rejected[[1]]
+      rule     <- state_rule_rejected[[2]]
+      rejected <- state_rule_rejected[[3]]
+      
+      if(rejected$reduced == 0 && rejected %nin% warned_never) {
+        debuglog$warn(sprintf('Rule (%s) is never reduced', rejected$toString()))
+        wrn(sprintf('Rule (%s) is never reduced', rejected$toString()))
+        warned_never <- append(warned_never, rejected)
+      }
+    }
   }
-
-  # ...
 
   #  # Build the parser
   lr$bind_callables(instance)
