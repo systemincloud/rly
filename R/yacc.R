@@ -2061,11 +2061,11 @@ yacc = function(module=NA,
     debuglog$warn('Conflicts:')
     debuglog$warn('')
     
-    for(state_tok_resolution in lr$sr_conflicts) {}
+    for(state_tok_resolution in lr$sr_conflicts) {
       state      <- state_tok_resolution[[1]]
       tok        <- state_tok_resolution[[2]]
       resolution <- state_tok_resolution[[3]]
-      debuglog$warn(sprintf('shift/reduce conflict for %s in state %d resolved as %s',  tok, state, resolution))
+      debuglog$warn(sprintf('shift/reduce conflict for %s in state %s resolved as %s',  tok, state, resolution))
     }
       
     already_reported <- list()
@@ -2081,7 +2081,8 @@ yacc = function(module=NA,
       wrn(sprintf('reduce/reduce conflict in state %d resolved using rule (%s)', state, rule$toString()))
       wrn(sprintf('rejected rule (%s) in state %d', rejected$toString(), state))
       already_reported[[length(already_reported)+1]] <- c(state, id(rule), id(rejected))
-  
+    }
+    
     warned_never <- list()
     for(state_rule_rejected in lr$rr_conflicts) {
       state    <- state_rule_rejected[[1]]
@@ -2096,7 +2097,7 @@ yacc = function(module=NA,
     }
   }
 
-  #  # Build the parser
+  # Build the parser
   lr$bind_callables(instance)
   parser <- LRParser$new(lr, pinfo$error_func)
 
