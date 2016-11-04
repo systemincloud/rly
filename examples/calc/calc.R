@@ -79,5 +79,5 @@ while(TRUE) {
   cat('calc > ')
   s = readLines(file("stdin"), n=1)
   if(s == 'exit') break
-#  parser$parse(s, lexer, debug=TRUE)
+  parser$parse(s, lexer, debug=TRUE)
 }

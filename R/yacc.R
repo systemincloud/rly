@@ -117,105 +117,45 @@ YaccProduction <- R6Class("YaccProduction",
 #' @keywords data
 LRParser <- R6Class("LRParser",
   public = list(
-#    productions = NA,
-#    action = NA,
-#    goto = NA,
-#    errorfunc = NA,
-#    errorok = NA,
+    productions = NA,
+    action      = NA,
+    goto        = NA,
+    errorfunc   = NA,
+    errorok     = NA,
+    
+    defaulted_states = NA,
 #    statestack = NA,
 #    symstack = NA,
     initialize = function(lrtab, errorf) {
-#      self$productions <- lrtab$lr_productions
-#      self$action <- lrtab$lr_action
-#      self$goto <- lrtab$lr_goto
-#      self$errorfunc <- errorf
-#      self$errorok <- TRUE
+      self$productions <- lrtab$lr_productions
+      self$action      <- lrtab$lr_action
+      self$goto        <- lrtab$lr_goto
+      self$errorfunc   <- errorf
+      self$set_defaulted_states()
+      self$errorok     <- TRUE
+    },
+    parse = function(input, lexer, debug=FALSE) {
+    },
+    # Defaulted state support.
+    # This method identifies parser states where there is only one possible reduction action.
+    # For such states, the parser can make a choose to make a rule reduction without consuming
+    # the next look-ahead token.  This delayed invocation of the tokenizer can be useful in
+    # certain kinds of advanced parsing situations where the lexer and parser interact with
+    # each other or change states (i.e., manipulation of scope, lexer states, etc.).
+    #
+    # See:  http://www.gnu.org/software/bison/manual/html_node/Default-Reductions.html#Default-Reductions
+    set_defaulted_states = function() {
+      self$defaulted_states <- new.env(hash=TRUE)
+      for(state in names(self$action)) {
+        actions <- self$action[[state]]
+        if(length(names(actions)) == 1 && actions[[names(actions)[[1]]]] < 0) {
+          self$defaulted_states[[state]] <- actions[[names(actions)[[1]]]]
+        }
+      }
+    },
+    disable_defaulted_states = function() {
+      self$defaulted_states <- new.env(hash=TRUE)
     }
-#    errok = function() {
-#      self$errorok <- TRUE
-#    },
-#    restart = function() {
-#    },
-#    parse = function(input, lexer, debug=FALSE) {
-#      if(debug) dbg("LRParser:parse:start")
-#      lookahead <- NA                  # Current lookahead symbol
-#      lookaheadstack <- c()            # Stack of lookahead symbols
-#      actions <- self$action           # Local reference to action table (to avoid lookup on self$)
-#      goto <- self$goto                # Local reference to goto table (to avoid lookup on self$)
-#      prod <- self$productions         # Local reference to production list (to avoid lookup on self$)
-#      pslice <- YaccProduction$new(NA) # Production object passed to grammar rules
-#
-#      if(debug) dbg("LRParser:parse: Set up the lexer and parser objects on pslice")
-#
-#      pslice$lexer <- lexer
-#      pslice$parser <- self
-#
-#      lexer$input(input)
-#
-#      if(debug) dbg("LRParser:parse: Set up the state and symbol stacks")
-#      statestack <- c()               # Stack of parsing states
-#      self$statestack <- statestack
-#      symstack <- c()                 # Stack of grammar symbols
-#      self$symstack <- symstack
-#
-#      pslice$stack <- symstack        # Put in the production
-#      errtoken <- NA                  # Err token
-#
-#      # The start state is assumed to be (0,$end)
-#
-#      statestack <- c(0)
-#      sym <- YaccSymbol$new()
-#      sym$type = '$end'
-#      symstack <- c(sym)
-#      state <- 0
-#
-#      while(TRUE) {
-#        # Get the next symbol on the input.  If a lookahead symbol
-#        # is already set, we just use that. Otherwise, we'll pull
-#        # the next token off of the lookaheadstack or from the lexer
-#
-#        if(debug) dbg(sprintf("LRParser:parse: State  : %s", state))
-#
-#        t <- NA
-#
-#        if(is.na(lookahead)) {
-#          if(debug) dbg("LRParser:parse: lookahead  : NA")
-#
-#          if(length(lookaheadstack) == 0) lookahead <- lexer$token() # Get the next token
-#          else {
-#            lookahead <- tail(lookaheadstack,n=1)[0]
-#            lookaheadstack <- head(lookaheadstack,-1)
-#          }
-#
-#          if(is.na(lookahead)) {
-#            lookahead <- YaccSymbol$new()
-#            lookahead$type <- '$end'
-#          }
-#        }
-#
-#        # Check the action table
-#        ltype <- lookahead$type
-#        t <- actions[state]$get(ltype)
-#
-#        if(!is.na(t)) {
-#          if(t > 0) {
-#
-#          }
-#          if(t < 0) {
-#
-#          }
-#          if(t == 0) {
-#            n = tail(symstack, n=1)
-#            result = n$value
-#
-#            if(debug) dbg(sprintf('Done   : Returning %s', result))
-#            if(debug) dbg('PARSE DEBUG END')
-#
-#            return(result)
-#          }
-#        } else stop("yacc: internal parser error!!!")
-#      }
-#    }
   )
 )
 
