@@ -439,7 +439,7 @@ Grammar <- R6Class("Grammar",
     #
     # -----------------------------------------------------------------------------
     set_precedence = function(term, assoc, level) {
-      if(length(self$Productions) > 1)                err('Must call set_precedence() before add_production()')
+      if(length(self$Productions) > 1)                 err('Must call set_precedence() before add_production()')
       if(term %in% names(self$recedence))              err(sprintf('Precedence already specified for terminal %s', term))
       if(!(assoc %in% c('left', 'right', 'nonassoc'))) err("Associativity must be one of 'left','right', or 'nonassoc'")
       self$Precedence[[term]] <- list(assoc, level) 
@@ -466,11 +466,14 @@ Grammar <- R6Class("Grammar",
       if(!grepl(is_identifier, prodname, perl=TRUE)) err(sprintf('%s: Illegal rule name %s', func, prodname))
       
       # Look for literal tokens
+      n <- 0
       for(s in syms) {
+        n <- n + 1
         if(substr(s, 1, 1) %in% c("'", "\"")) {
           c <- eval(parse(text=s))
           if(nchar(c) > 1) err(sprintf('%s: Literal token %s in rule %s may only be a single character', func, s, prodname))
           if(!(c %in% names(self$Terminals))) self$Terminals[[c]] <- c()
+          syms[n] <- c
           next
         }
         if(!grepl(is_identifier, s, perl=TRUE) && s != '%prec') err(sprintf('%s: Illegal name %s in rule %s', func,s, prodname))
@@ -928,14 +931,14 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
     conflicts      = NA,
     sr_conflicts   = NA,
     rr_conflicts   = NA,
-    initialize = function(grammar, method='LALR', log=NA) {
+    initialize = function(grammar, method='LALR', log=NULL) {
       if(method %nin% c('SLR', 'LALR')) err(sprintf('Unsupported method %s', method))
       
       self$grammar   <- grammar
       self$lr_method <- method
       
       # Set up the logger
-      if(is.na(log)) log <- NullLogger$new()
+      if(is.null(log)) log <- NullLogger$new()
       self$log <- log
       
       # Internal attributes

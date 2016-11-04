@@ -37,7 +37,7 @@ Parser <- R6Class("Parser",
                       c('right','UMINUS')),
     # dictionary of names
     names = new.env(hash=TRUE),
-    p_statement_assign = function(doc="statement : NAME '=' expression", p) {
+    p_statement_assign = function(doc='statement : NAME "=" expression', p) {
       names[[p[2]]] <- p[4]
     },
     p_statement_expr = function(doc='statement : expression', p) {
