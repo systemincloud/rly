@@ -134,8 +134,6 @@ LRParser <- R6Class("LRParser",
       self$set_defaulted_states()
       self$errorok     <- TRUE
     },
-    parse = function(input, lexer, debug=FALSE) {
-    },
     # Defaulted state support.
     # This method identifies parser states where there is only one possible reduction action.
     # For such states, the parser can make a choose to make a rule reduction without consuming
@@ -155,6 +153,15 @@ LRParser <- R6Class("LRParser",
     },
     disable_defaulted_states = function() {
       self$defaulted_states <- new.env(hash=TRUE)
+    },
+    parse = function(input, lexer, debug=FALSE) {
+      debuglog <- NULL
+      if(debug) debuglog <- RlyLogger()
+      else      debuglog <- NullLogger()
+      
+      lookahead <- NA                         # Current lookahead symbol
+      lookaheadstack <- list()                # Stack of lookahead symbols
+      
     }
   )
 )
