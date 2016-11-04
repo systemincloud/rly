@@ -1577,7 +1577,7 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
                 } else {
                   st_action[[a]] <- -p$number
                   st_actionp[[a]] <- p
-                  Productions[[p$number]]$reduced <- Productions[[p$number]]$reduced + 1
+                  Productions[[p$number+1]]$reduced <- Productions[[p$number+1]]$reduced + 1
                 }
               }
             }
@@ -2089,10 +2089,10 @@ yacc = function(module=NA,
       rule     <- state_rule_rejected[[2]]
       rejected <- state_rule_rejected[[3]]
       
-      if(rejected$reduced == 0 && rejected %nin% warned_never) {
+      if(rejected$reduced == 0 && id(rejected) %nin% warned_never) {
         debuglog$warn(sprintf('Rule (%s) is never reduced', rejected$toString()))
         wrn(sprintf('Rule (%s) is never reduced', rejected$toString()))
-        warned_never <- append(warned_never, rejected)
+        warned_never <- append(warned_never, id(rejected))
       }
     }
   }
