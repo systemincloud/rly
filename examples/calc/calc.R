@@ -1,77 +1,83 @@
 #! /usr/bin/env Rscript
 
-library(R6)
+library(rly)
 
-CalcParser <- R6Class("CalcParser",
-  public = list(
-    precedence = c(c('left','+','-'),
-                   c('left','*','/'),
-                   c('right','UMINUS')),
-    names = NA, # dictionary of names
-    initialize = function() {
-      self$names <- new.env(hash=TRUE)
-    },
-    p_statement_assign = function(p) {   # statement : NAME "=" expression
-      self$names[p[1]] <- p[3]
-    },
-    p_statement_expr = function(p) {     # statement : expression
-      print(p[1])
-    },
-    # expression : expression '+' expression
-    #            | expression '-' expression
-    #            | expression '*' expression
-    #            | expression '/' expression
-    p_expression_binop = function(p) {
-      if(p[2] == '+') p[0] = p[1] + p[3]
-      else if(p[2] == '-') p[0] = p[1] - p[3]
-      else if(p[2] == '*') p[0] = p[1] * p[3]
-      else if(p[2] == '/') p[0] = p[1] / p[3]
-    },
-    p_expression_uminus = function(p) {  # expression : '-' expression %prec UMINUS
-      p[0] = -p[2]
-    },
-    p_expression_group = function(p) {   # expression : '(' expression ')'
-      p[0] = p[2]
-    },
-    p_expression_number = function(p) {  # expression : NUMBER
-      p[0] = p[1]
-    },
-    p_expression_name = function(p) {    # expression : NAME
-      p[0] = self$names[p[1]]
-    },
-    p_error = function(p) {
-      if(missing(p)) stop(sprintf("Syntax error at '%s'", p.value))
-      else stop("Syntax error at EOF")
-    }
-  )
-)
+TOKENS = c('NAME', 'NUMBER')
+LITERALS = c('=','+','-','*','/', '(',')')
 
-CalcLexer <- R6Class("CalcLexer",
+Lexer <- R6Class("Lexer",
   public = list(
-    tokens = c('NAME','NUMBER'),
-    literals = c('=','+','-','*','/', '(',')'),
+    tokens = TOKENS,
+    literals = LITERALS,
     t_NAME = '[a-zA-Z_][a-zA-Z0-9_]*',
-    t_NUMBER = function(re = '\\d+', t) {
-      t$value = strtoi(t$value)
+    t_NUMBER = function(re='\\d+', t) {
+      t$value <- strtoi(t$value)
       return(t)
     },
     t_ignore = " \t",
-    t_newline = function(re = '\n+', t) {
-      t$lexer$lineno = t$lexer$lineno + t$value$count("\n")
+    t_newline = function(re='\\n+', t) {
+      t$lexer$lineno <- t$lexer$lineno + nchar(t$value)
+      return(NULL)
     },
     t_error = function(t) {
-      cat(sprintf("Illegal character '%s'", t$value[0]))
+      cat(sprintf("Illegal character '%s'", t$value[1]))
       t$lexer$skip(1)
+      return(t)
     }
   )
 )
 
-lexer = rly::lex(CalcLexer, debug=TRUE)
-parser = rly::yacc(CalcParser, debug=TRUE)
+Parser <- R6Class("Parser",
+  public = list(
+    tokens = TOKENS,
+    literals = LITERALS,
+    # Parsing rules
+    precedence = list(c('left','+','-'),
+                      c('left','*','/'),
+                      c('right','UMINUS')),
+    # dictionary of names
+    names = new.env(hash=TRUE),
+    p_statement_assign = function(doc="statement : NAME '=' expression", p) {
+      names[[p[2]]] <- p[4]
+    },
+    p_statement_expr = function(doc='statement : expression', p) {
+      cat(p[2])
+      cat('\n')
+    },
+    p_expression_binop = function(doc="expression : expression '+' expression
+                                                  | expression '-' expression
+                                                  | expression '*' expression
+                                                  | expression '/' expression", p) {
+      if(p[3] == '+') p[1] <- p[2] + p[4]
+      else if(p[3] == '-') p[1] <- p[2] - p[4]
+      else if(p[3] == '*') p[1] <- p[2] * p[4]
+      else if(p[3] == '/') p[1] <- p[2] / p[4]
+    },
+    p_expression_uminus = function(doc="expression : '-' expression %prec UMINUS", p) {
+      p[1] <- -p[3]
+    },
+    p_expression_group = function(doc="expression : '(' expression ')'", p) {
+      p[1] <- p[3]
+    },
+    p_expression_number = function(doc='expression : NUMBER', p) {
+      p[1] <- p[2]
+    },
+    p_expression_name = function(doc='expression : NAME', p) {
+      p[1] <- names[[t[2]]]
+    },
+    p_error = function(p) {
+      if(is.null(p)) cat("Syntax error at EOF")
+      else           cat(sprintf("Syntax error at '%s'", p$value))
+    }
+  )
+)
+
+lexer  <- rly::lex(Lexer)
+parser <- rly::yacc(Parser)
 
 while(TRUE) {
   cat('calc > ')
   s = readLines(file("stdin"), n=1)
   if(s == 'exit') break
-  parser$parse(s, lexer, debug=TRUE)
+#  parser$parse(s, lexer, debug=TRUE)
 }
