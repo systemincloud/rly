@@ -51,7 +51,6 @@ Parser <- R6Class("Parser",
 )
 
 test_that("reduce", {
-#      rly::yacc(Parser)
   expect_output(rly::yacc(Parser), 
 "WARN>  reduce/reduce conflict in state 21 resolved using rule (statement -> NAME EQUALS NUMBER) 
 WARN>  rejected rule (expression -> NUMBER) in state 21 ", fixed=TRUE)
