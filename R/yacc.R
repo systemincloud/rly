@@ -124,8 +124,8 @@ LRParser <- R6Class("LRParser",
     errorok     = NA,
     
     defaulted_states = NA,
-#    statestack = NA,
-#    symstack = NA,
+    statestack = NA,
+    symstack = NA,
     initialize = function(lrtab, errorf) {
       self$productions <- lrtab$lr_productions
       self$action      <- lrtab$lr_action
@@ -156,12 +156,71 @@ LRParser <- R6Class("LRParser",
     },
     parse = function(input, lexer, debug=FALSE) {
       debuglog <- NULL
-      if(debug) debuglog <- RlyLogger()
-      else      debuglog <- NullLogger()
+      if(debug) debuglog <- RlyLogger$new()
+      else      debuglog <- NullLogger$new()
       
-      lookahead <- NA                         # Current lookahead symbol
-      lookaheadstack <- list()                # Stack of lookahead symbols
+      lookahead      <- NULL                   # Current lookahead symbol
+      lookaheadstack <- list()                 # Stack of lookahead symbols
+      pslice         <- YaccProduction$new(NA) # Production object passed to grammar rules
       
+      debuglog$info('RLY: PARSE DEBUG START')
+      
+      # Set up the lexer and parser objects on pslice
+      pslice$lexer  <- lexer
+      pslice$parser <- self
+      
+      # If input was supplied, pass to lexer
+      if(!is.na(input)) lexer$input(input)
+      
+      # Set up the state and symbol stacks
+      self$statestack <- list() # Stack of parsing states
+      self$symstack   <- list() # Stack of grammar symbols
+      
+      pslice$stack <- self$symstack  # Put in the production
+      
+      # The start state is assumed to be (0,$end)
+  
+      self$statestack <- append(self$statestack, 0)
+      sym <- YaccSymbol$new()
+      sym$type <- '$end'
+      self$symstack <- append(self$symstack, sym)
+      state <- 1
+      while(TRUE) {
+        # Get the next symbol on the input.  If a lookahead symbol
+        # is already set, we just use that. Otherwise, we'll pull
+        # the next token off of the lookaheadstack or from the lexer
+        
+        debuglog$info('')
+        debuglog$info(sprintf('State  : %s', state))
+        
+        if(state %nin% names(self$defaulted_states)) {
+          if(is.null(lookahead)) {
+            if(length(lookaheadstack) == 0) lookahead <- lexer$token() # Get the next token
+            else {
+              lookahead <- tail(lookaheadstack, 1)
+              lookaheadstack <- head(lookaheadstack, -1)
+            }
+            if(is.null(lookahead)) {
+              lookahead <- YaccSymbol$new()
+              lookahead$type <- '$end'
+            }
+          }
+          
+          # Check the action table
+          ltype <- lookahead$type
+          t <- self$actions[[state]][[ltype]]
+        } else {
+          t <- defaulted_states[[state]]
+          debug$info(sprintf('Defaulted state %s: Reduce using %d', state, -t))
+        }
+        
+#        debug.info('Stack  : %s',
+#            ('%s . %s' % (' '.join([xx.type for xx in symstack][1:]), str(lookahead))).lstrip())
+        
+        
+        
+        break
+      }
     }
   )
 )
