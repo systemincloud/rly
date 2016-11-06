@@ -48,6 +48,10 @@ NullLogger <- R6Class("NullLogger",
 )
 
 
+format_stack_entry = function(r) {
+  return(toString(r$value))
+}
+
 #'-----------------------------------------------------------------------------
 #'                        ===  LR Parsing Engine ===
 #'
@@ -72,7 +76,8 @@ NullLogger <- R6Class("NullLogger",
 #' @keywords data
 YaccSymbol <- R6Class("YaccSymbol",
   public = list(
-    type = NA
+    type = NA,
+    value = NA
   )
 )
 
@@ -162,6 +167,7 @@ LRParser <- R6Class("LRParser",
       lookahead      <- NULL                   # Current lookahead symbol
       lookaheadstack <- list()                 # Stack of lookahead symbols
       pslice         <- YaccProduction$new(NA) # Production object passed to grammar rules
+      errorcount     <- 0                      # Used during error recovery
       
       debuglog$info('RLY: PARSE DEBUG START')
       
@@ -193,6 +199,7 @@ LRParser <- R6Class("LRParser",
         debuglog$info('')
         debuglog$info(sprintf('State  : %s', state))
         
+        t <- NULL
         if(state %nin% names(self$defaulted_states)) {
           if(is.null(lookahead)) {
             if(length(lookaheadstack) == 0) lookahead <- lexer$token() # Get the next token
@@ -207,8 +214,8 @@ LRParser <- R6Class("LRParser",
           }
           
           # Check the action table
-          ltype <- lookahead$type
-          t <- self$actions[[state]][[ltype]]
+          ltype <- lookahead$type[[1]]
+          t <- self$action[[as.character(state)]][[ltype]]
         } else {
           t <- defaulted_states[[state]]
           debuglog$info(sprintf('Defaulted state %s: Reduce using %d', state, -t))
@@ -220,7 +227,56 @@ LRParser <- R6Class("LRParser",
           debuglog$info(sprintf('Stack  : %s', stack))
         }
         
-        
+        if(!is.null(t)) {
+          if(t > 0) {
+            # shift a symbol on the stack
+            self$statestack <- append(self$statestack, t)
+            state <- t
+            
+            debuglog$info(sprintf('Action : Shift and goto state %s', t))
+            
+            self$symstack <- append(self$symstack, lookahead)
+            lookahead <- NULL
+            
+            # Decrease error count on successful shift
+            if(errorcount != 0) errorcount <- errorcount - 1
+            next
+
+          } else if(t < 0) {
+            # reduce a symbol on the stack, emit a production
+            p <- self$productions[[-t + 1]]
+            pname <- p$name
+            plen  <- p$len
+            
+            # Get production function
+            sym <- YaccSymbol$new()
+            sym$type <- pname       # Production name
+            sym$value <- NULL
+            
+            if(plen > 0) {
+              debuglog$info(sprintf('Action : Reduce rule [%s] with %s and goto state %d', 
+                                     p$toString(),
+                                     paste('[', 
+                                           paste(lapply(tail(self$symstack, -plen), format_stack_entry), sep=','),
+                                           ']', collapse='', sep=''),
+                                     self$goto[[as.character(tail(self$statestack, plen+1)[[1]]+1)]][[pname]]))
+            } else {
+              debuglog$info(sprintf('Action : Reduce rule [%s] with %s and goto state %d', 
+                                     p$toString(), 
+                                     '[]',
+                                     self$goto[[as.character(tail(self$statestack, 1)+1)]][[pname]]))
+            }
+            
+            if(plen > 0) {
+              
+            } else {
+              
+            }
+            
+          } else if(t == 0) {
+            
+          }
+        }
         
         break
       }
