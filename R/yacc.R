@@ -211,11 +211,14 @@ LRParser <- R6Class("LRParser",
           t <- self$actions[[state]][[ltype]]
         } else {
           t <- defaulted_states[[state]]
-          debug$info(sprintf('Defaulted state %s: Reduce using %d', state, -t))
+          debuglog$info(sprintf('Defaulted state %s: Reduce using %d', state, -t))
         }
         
-#        debug.info('Stack  : %s',
-#            ('%s . %s' % (' '.join([xx.type for xx in symstack][1:]), str(lookahead))).lstrip())
+        if(debug) {
+          stack <- sprintf('%s . %s', paste(tail(lapply(self$symstack, function(x) x$type), -1), collapse=' '),
+                                      lookahead$toString())
+          debuglog$info(sprintf('Stack  : %s', stack))
+        }
         
         
         

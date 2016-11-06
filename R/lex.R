@@ -23,6 +23,9 @@ LexToken <- R6Class("LexToken",
     lineno = NA,
     lexpos = NA,
     lexer  = NA,
+    toString = function() {
+      return(sprintf("LexToken(%s,%s,%d,%d)", self$type, toString(self$value), self$lineno, self$lexpos))
+    },
     print = function(...) {
       cat(sprintf("LexToken(%s,%s,%d,%d)\n", self$type, toString(self$value), self$lineno, self$lexpos))
       invisible(self)
