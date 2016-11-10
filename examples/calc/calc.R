@@ -38,43 +38,34 @@ Parser <- R6Class("Parser",
     # dictionary of names
     names = new.env(hash=TRUE),
     p_statement_assign = function(doc='statement : NAME "=" expression', p) {
-      cat('p_statement_assign\n')
-      names[[p[[2]]]] <- p[[4]]
+      names[[p$get(2)]] <- p$get(4)
     },
     p_statement_expr = function(doc='statement : expression', p) {
-      cat('p_statement_expr\n')
-      cat(p[[2]])
+      cat(p$get(2))
       cat('\n')
     },
     p_expression_binop = function(doc="expression : expression '+' expression
                                                   | expression '-' expression
                                                   | expression '*' expression
                                                   | expression '/' expression", p) {
-      cat('p_expression_binop\n')
-      if(p[[3]] == '+') p[[1]] <- p[[2]] + p[[4]]
-      else if(p[[3]] == '-') p[[1]] <- p[[2]] - p[[4]]
-      else if(p[[3]] == '*') p[[1]] <- p[[2]] * p[[4]]
-      else if(p[[3]] == '/') p[[1]] <- p[[2]] / p[[4]]
+           if(p$get(3) == '+') p$set(1, p$get(2) + p$get(4))
+      else if(p$get(3) == '-') p$set(1, p$get(2) - p$get(4))
+      else if(p$get(3) == '*') p$set(1, p$get(2) * p$get(4))
+      else if(p$get(3) == '/') p$set(1, p$get(2) / p$get(4))
     },
     p_expression_uminus = function(doc="expression : '-' expression %prec UMINUS", p) {
-      cat('p_expression_uminus\n')
-      p[[1]] <- -p[[3]]
+      p$set(1, -p$get(2))
     },
     p_expression_group = function(doc="expression : '(' expression ')'", p) {
-      cat('p_expression_group\n')
-      p[[1]] <- p[[3]]
+      p$set(1, p$get(3))
     },
     p_expression_number = function(doc='expression : NUMBER', p) {
       p$set(1, p$get(2))
     },
     p_expression_name = function(doc='expression : NAME', p) {
-      cat('p_expression_name\n')
-      cat(toString(p))
-      cat('\n')
-      p[[1]] <- names[[p[[2]]]]
+      p$set(1, names[[p$get(2)]])
     },
     p_error = function(p) {
-      cat('p_error\n')
       if(is.null(p)) cat("Syntax error at EOF")
       else           cat(sprintf("Syntax error at '%s'", p$value))
     }
