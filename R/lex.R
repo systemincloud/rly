@@ -95,7 +95,7 @@ Lexer <- R6Class("Lexer",
       self$lexpos          <- 1
       self$lexlen          <- 0
       self$lexerrorf       <- NULL
-      self$lexeoff         <- NA
+      self$lexeoff         <- NULL
       self$lextokens       <- NA
       self$lexignore       <- ''
       self$lexliterals     <- NULL
@@ -117,12 +117,12 @@ Lexer <- R6Class("Lexer",
     #' ------------------------------------------------------------
     begin = function(state) {
       if(!(state %in% names(self$lexstatere))) err('Undefined state')
-      self$lexre <- self$lexstatere[[state]]
+      self$lexre     <- self$lexstatere[[state]]
       self$lexretext <- self$lexstateretext[[state]]
       self$lexignore <- self$lexstateignore[[state]]
       self$lexerrorf <- self$lexstateerrorf[[state]]
-      self$lexeoff <- self$lexstateeoff[[state]]
-      self$lexstate <- state
+      self$lexeoff   <- self$lexstateeoff[[state]]
+      self$lexstate  <- state
     },
     #' ------------------------------------------------------------
     #' push_state() - Changes the lexing state and saves old on stack
@@ -262,8 +262,8 @@ Lexer <- R6Class("Lexer",
           err(sprintf("Illegal character '%s' at index %d", substring(data, 1, 1), lexpos))
         }
       }
-
-      if(!is.na(self$lexeoff)) {
+      
+      if(!is.null(self$lexeoff)) {
         tok <- LexToken$new()
         tok$type <- 'eof'
         tok$value <- ''

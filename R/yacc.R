@@ -47,6 +47,9 @@ NullLogger <- R6Class("NullLogger",
   )
 )
 
+format_result = function(r) {
+  return(r$toString())
+}
 
 format_stack_entry = function(r) {
   return(toString(r$value))
@@ -77,7 +80,10 @@ format_stack_entry = function(r) {
 YaccSymbol <- R6Class("YaccSymbol",
   public = list(
     type = NA,
-    value = NA
+    value = NA,
+    toString = function() {
+      return(self$type)
+    }
   )
 )
 
@@ -106,6 +112,17 @@ YaccProduction <- R6Class("YaccProduction",
       self$stack <- stack
       self$lexer <- NA
       self$parser <- NA
+    },
+    toString = function() {
+      return(toString(sapply(self$slice, function(x) x$value)))
+    },
+    get = function(n) {
+      if(n > 0) return(self$slice[[n]]$value)
+      else      return(tail(self$stack, -n)[[1]]$value)
+    },
+    set = function(n, value) {
+      if(n > 0) self$slice[[n]]$value <- value
+      else      tail(self$stack, -n)[[1]]$value <- value
     }
   )
 )
@@ -131,6 +148,8 @@ LRParser <- R6Class("LRParser",
     defaulted_states = NA,
     statestack = NA,
     symstack = NA,
+    
+    state = NA,
     initialize = function(lrtab, errorf) {
       self$productions <- lrtab$lr_productions
       self$action      <- lrtab$lr_action
@@ -159,7 +178,7 @@ LRParser <- R6Class("LRParser",
     disable_defaulted_states = function() {
       self$defaulted_states <- new.env(hash=TRUE)
     },
-    parse = function(input, lexer, debug=FALSE) {
+    parse = function(input, lexer, debug=FALSE, tracking=FALSE) {
       debuglog <- NULL
       if(debug) debuglog <- RlyLogger$new()
       else      debuglog <- NullLogger$new()
@@ -222,7 +241,7 @@ LRParser <- R6Class("LRParser",
         }
         
         if(debug) {
-          stack <- sprintf('%s . %s', paste(tail(lapply(self$symstack, function(x) x$type), -1), collapse=' '),
+          stack <- sprintf('%s . %s', paste(tail(sapply(self$symstack, function(x) x$type), -1), collapse=' '),
                                       lookahead$toString())
           debuglog$info(sprintf('Stack  : %s', stack))
         }
@@ -268,9 +287,87 @@ LRParser <- R6Class("LRParser",
             }
             
             if(plen > 0) {
+              targ <- tail(self$symstack, plen+1)
+              targ[[1]] <- sym
+              
+              if(tracking) {
+#                t1 = targ[1]
+#                sym.lineno = t1.lineno
+#                sym.lexpos = t1.lexpos
+#                t1 = targ[-1]
+#                sym.endlineno = getattr(t1, 'endlineno', t1.lineno)
+#                sym.endlexpos = getattr(t1, 'endlexpos', t1.lexpos)
+              }
+              
+              pslice$slice <- targ
+              
+#              tryCatch({
+                # Call the grammar rule with our special slice object
+                self$symstack <- tail(self$symstack, plen)
+                self$state <- state
+                p$callable(p=pslice)
+                self$statestack <- tail(self$statestack, plen)
+                
+                debuglog$info(sprintf('Result : %s', format_result(pslice)))
+                
+                self$symstack <- append(self$symstack, sym)
+                state <- self$goto[[as.character(tail(self$statestack, 1)[[1]]+1)]][[pname]]
+                self$statestack <- append(self$statestack, state)
+#              }, error = function(e) {
+                # If an error was set. Enter error recovery state
+#                lookaheadstack.append(lookahead)    # Save the current lookahead token
+#                symstack.extend(targ[1:-1])         # Put the production slice back on the stack
+#                statestack.pop()                    # Pop back one state (before the reduce)
+#                state = statestack[-1]
+#                sym.type = 'error'
+#                sym.value = 'error'
+#                lookahead = sym
+#                errorcount = error_count
+#                self.errorok = False
+#              })
+            
+              next
               
             } else {
               
+              if(tracking) {
+#                sym.lineno = lexer.lineno
+#                sym.lexpos = lexer.lexpos
+              }
+              
+              targ <- c(sym)
+              
+              # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+              # The code enclosed in this section is duplicated
+              # above as a performance optimization.  Make sure
+              # changes get made in both locations.
+  
+              pslice$slice <- targ
+              
+#              tryCatch({
+              # Call the grammar rule with our special slice object
+              self$state <- state
+              p$callable(p=pslice)
+              
+              debuglog$info(sprintf('Result : %s', format_result(pslice)))
+              
+              self$symstack <- append(self$symstack, sym)
+              state <- self$goto[[as.character(tail(self$statestack, 1)[[1]]+1)]][[pname]]
+              self$statestack <- append(self$statestack, state)
+#              }, error = function(e) {
+              # If an error was set. Enter error recovery state
+#                lookaheadstack.append(lookahead)    # Save the current lookahead token
+#                symstack.extend(targ[1:-1])         # Put the production slice back on the stack
+#                statestack.pop()                    # Pop back one state (before the reduce)
+#                state = statestack[-1]
+#                sym.type = 'error'
+#                sym.value = 'error'
+#                lookahead = sym
+#                errorcount = error_count
+#                self.errorok = False
+#              })
+  
+               next
             }
             
           } else if(t == 0) {
@@ -363,6 +460,9 @@ Production <- R6Class("Production",
     },
     toString = function() {
       return(sprintf('%s -> %s', self$name, paste(self$prod, collapse = ' ')))
+    },
+    bind = function(instance) {
+      if(!is.na(self$func)) self$callable <- instance[[self$func]]
     }
   )
 )
@@ -953,10 +1053,6 @@ Grammar <- R6Class("Grammar",
 #' @keywords data
 LRTable <- R6Class("LRTable",
   public = list(
-    # Bind all production function names to callable objects in pdict
-    bind_callables = function(instance) {
-      
-    }
   )
 )
 
@@ -1763,6 +1859,12 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
         actionp[[as.character(st)]] <- st_actionp
         self$lr_goto[[as.character(st)]] <- st_goto
         st <- st + 1
+      }
+    },
+    # Bind all production function names to callable objects in pdict
+    bind_callables = function(instance) {
+      for(p in self$lr_productions){
+        p$bind(instance)
       }
     }
   ),
