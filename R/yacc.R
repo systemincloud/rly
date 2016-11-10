@@ -48,7 +48,10 @@ NullLogger <- R6Class("NullLogger",
 )
 
 format_result = function(r) {
-  return(r$toString())
+  result <- NULL
+  if(typeof(r) == "environment") result <- sprintf('<%s> (%s)', typeof(r$toString()[[1]]), r$toString())
+  else                           result <- sprintf('<%s> (%s)', typeof(r), toString(r))
+  return(result)
 }
 
 format_stack_entry = function(r) {
@@ -114,7 +117,7 @@ YaccProduction <- R6Class("YaccProduction",
       self$parser <- NA
     },
     toString = function() {
-      return(toString(sapply(self$slice, function(x) x$value)))
+      return(self$slice[[1]]$value)
     },
     get = function(n) {
       if(n > 0) return(self$slice[[n]]$value)
@@ -235,6 +238,8 @@ LRParser <- R6Class("LRParser",
           # Check the action table
           ltype <- lookahead$type[[1]]
           t <- self$action[[as.character(state)]][[ltype]]
+          dbg('t')
+          dbg(toString(t))
         } else {
           t <- defaulted_states[[state]]
           debuglog$info(sprintf('Defaulted state %s: Reduce using %d', state, -t))
@@ -276,7 +281,7 @@ LRParser <- R6Class("LRParser",
               debuglog$info(sprintf('Action : Reduce rule [%s] with %s and goto state %d', 
                                      p$toString(),
                                      paste('[', 
-                                           paste(lapply(tail(self$symstack, -plen), format_stack_entry), sep=','),
+                                           paste(sapply(tail(self$symstack, plen), format_stack_entry), sep=','),
                                            ']', collapse='', sep=''),
                                      self$goto[[as.character(tail(self$statestack, plen+1)[[1]]+1)]][[pname]]))
             } else {
@@ -303,15 +308,23 @@ LRParser <- R6Class("LRParser",
               
 #              tryCatch({
                 # Call the grammar rule with our special slice object
-                self$symstack <- tail(self$symstack, plen)
+                dbg(toString(sapply(self$symstack, function(x) x$toString())))
+                self$symstack <- head(self$symstack, -plen)
+                dbg(toString(sapply(self$symstack, function(x) x$toString())))
                 self$state <- state
+                dbg(toString(state))
                 p$callable(p=pslice)
-                self$statestack <- tail(self$statestack, plen)
+                dbg(toString(self$statestack))
+                self$statestack <- head(self$statestack, -plen)
+                dbg(toString(self$statestack))
                 
                 debuglog$info(sprintf('Result : %s', format_result(pslice)))
                 
+                dbg(toString(sapply(self$symstack, function(x) x$toString())))
                 self$symstack <- append(self$symstack, sym)
+                dbg(toString(sapply(self$symstack, function(x) x$toString())))
                 state <- self$goto[[as.character(tail(self$statestack, 1)[[1]]+1)]][[pname]]
+                dbg(toString(state))
                 self$statestack <- append(self$statestack, state)
 #              }, error = function(e) {
                 # If an error was set. Enter error recovery state
@@ -367,15 +380,22 @@ LRParser <- R6Class("LRParser",
 #                self.errorok = False
 #              })
   
-               next
+              next
+              # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             }
             
           } else if(t == 0) {
+            n <- tail(self$symstack, 1)[[1]]
+            result <- n[['value']]
             
+            debuglog$info(sprintf('Done   : Returning %s', format_result(result)))
+            debuglog$info('PLY: PARSE DEBUG END')
+            
+            return(result)
           }
+        } else {
+          # Error
         }
-        
-        break
       }
     }
   )
