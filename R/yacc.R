@@ -226,7 +226,7 @@ LRParser <- R6Class("LRParser",
           if(is.null(lookahead)) {
             if(length(lookaheadstack) == 0) lookahead <- lexer$token() # Get the next token
             else {
-              lookahead <- tail(lookaheadstack, 1)
+              lookahead <- tail(lookaheadstack, 1)[[1]]
               lookaheadstack <- head(lookaheadstack, -1)
             }
             if(is.null(lookahead)) {
@@ -238,8 +238,6 @@ LRParser <- R6Class("LRParser",
           # Check the action table
           ltype <- lookahead$type[[1]]
           t <- self$action[[as.character(state)]][[ltype]]
-          dbg('t')
-          dbg(toString(t))
         } else {
           t <- defaulted_states[[state]]
           debuglog$info(sprintf('Defaulted state %s: Reduce using %d', state, -t))
@@ -308,23 +306,15 @@ LRParser <- R6Class("LRParser",
               
 #              tryCatch({
                 # Call the grammar rule with our special slice object
-                dbg(toString(sapply(self$symstack, function(x) x$toString())))
                 self$symstack <- head(self$symstack, -plen)
-                dbg(toString(sapply(self$symstack, function(x) x$toString())))
                 self$state <- state
-                dbg(toString(state))
                 p$callable(p=pslice)
-                dbg(toString(self$statestack))
                 self$statestack <- head(self$statestack, -plen)
-                dbg(toString(self$statestack))
                 
                 debuglog$info(sprintf('Result : %s', format_result(pslice)))
                 
-                dbg(toString(sapply(self$symstack, function(x) x$toString())))
                 self$symstack <- append(self$symstack, sym)
-                dbg(toString(sapply(self$symstack, function(x) x$toString())))
                 state <- self$goto[[as.character(tail(self$statestack, 1)[[1]]+1)]][[pname]]
-                dbg(toString(state))
                 self$statestack <- append(self$statestack, state)
 #              }, error = function(e) {
                 # If an error was set. Enter error recovery state
