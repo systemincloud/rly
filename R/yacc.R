@@ -206,9 +206,9 @@ LRParser <- R6Class("LRParser",
       
       pslice$stack <- self$symstack  # Put in the production
       
-      # The start state is assumed to be (0,$end)
+      # The start state is assumed to be (1,$end)
   
-      self$statestack <- append(self$statestack, 0)
+      self$statestack <- append(self$statestack, 1)
       sym <- YaccSymbol$new()
       sym$type <- '$end'
       self$symstack <- append(self$symstack, sym)
@@ -281,7 +281,7 @@ LRParser <- R6Class("LRParser",
                                      paste('[', 
                                            paste(sapply(tail(self$symstack, plen), format_stack_entry), sep=','),
                                            ']', collapse='', sep=''),
-                                     self$goto[[as.character(tail(self$statestack, plen+1)[[1]]+1)]][[pname]]))
+                                     self$goto[[as.character(tail(self$statestack, plen+1)[[1]])]][[pname]]))
             } else {
               debuglog$info(sprintf('Action : Reduce rule [%s] with %s and goto state %d', 
                                      p$toString(), 
@@ -314,7 +314,7 @@ LRParser <- R6Class("LRParser",
                 debuglog$info(sprintf('Result : %s', format_result(pslice)))
                 
                 self$symstack <- append(self$symstack, sym)
-                state <- self$goto[[as.character(tail(self$statestack, 1)[[1]]+1)]][[pname]]
+                state <- self$goto[[as.character(tail(self$statestack, 1)[[1]])]][[pname]]
                 self$statestack <- append(self$statestack, state)
 #              }, error = function(e) {
                 # If an error was set. Enter error recovery state
