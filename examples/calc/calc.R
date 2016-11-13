@@ -54,7 +54,7 @@ Parser <- R6Class("Parser",
       else if(p$get(3) == '/') p$set(1, p$get(2) / p$get(4))
     },
     p_expression_uminus = function(doc="expression : '-' expression %prec UMINUS", p) {
-      p$set(1, -p$get(2))
+      p$set(1, -p$get(3))
     },
     p_expression_group = function(doc="expression : '(' expression ')'", p) {
       p$set(1, p$get(3))
