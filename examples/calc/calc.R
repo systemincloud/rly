@@ -76,8 +76,11 @@ lexer  <- rly::lex(Lexer)
 parser <- rly::yacc(Parser)
 
 while(TRUE) {
-  cat('calc > ')
-  s = readLines(file("stdin"), n=1)
-  if(s == 'exit') break
-  parser$parse(s, lexer, debug=TRUE)
+  tryCatch({
+    cat('calc > ')
+    s = readLines(file("stdin"), n=1)
+    if(s == 'exit') break
+    parser$parse(s, lexer, debug=TRUE)
+  }, warning=function(w) {
+  })
 }
