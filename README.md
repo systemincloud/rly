@@ -8,7 +8,7 @@ How to Use
 
 RLY consists of two files : lex.R and yacc.R.
 
-     library(rly)
+     soon
 
 The examples directory contains several different examples.
 
