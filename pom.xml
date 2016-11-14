@@ -4,12 +4,46 @@
 
   <groupId>rly</groupId>
   <artifactId>rly</artifactId>
-  <version>0.1.0</version>
+  <version>1.0.0</version>
   <packaging>pom</packaging>
-  <name>RLY is a 100% Python implementation of the common parsing tools lex and yacc.</name>
+  <name>RLY</name>
+  
+  <description>RLY is a 100% Python implementation of the common parsing tools lex and yacc.</description>
+  <url>https://github.com/systemincloud/rly</url>
+
+  <organization>
+    <name>System in Cloud</name>
+    <url>http://systemincloud.com/</url>
+  </organization>
+  
+  <developers>
+    <developer><name>Marek Jagielski</name><email>marek.jagielski@gmail.com</email></developer>
+  </developers>
+  
+  <issueManagement>
+    <url>https://github.com/systemincloud/rly/issues</url>
+  </issueManagement>
+
+  <properties>
+    <maven.build.timestamp.format>yyyy-MM-dd</maven.build.timestamp.format>
+    <date>${maven.build.timestamp}</date>
+  </properties>
 
   <build>
     <plugins>
+      <plugin><artifactId>maven-resources-plugin</artifactId>  
+        <executions>  
+          <execution><id>copy-resources</id><phase>validate</phase>  
+            <goals><goal>copy-resources</goal></goals>  
+            <configuration>  
+              <outputDirectory>${basedir}</outputDirectory>  
+              <resources>  
+                <resource><directory>resources</directory><filtering>true</filtering></resource>  
+              </resources>  
+            </configuration>  
+          </execution>  
+        </executions>  
+      </plugin>  
       <plugin><groupId>org.codehaus.mojo</groupId><artifactId>exec-maven-plugin</artifactId><version>1.4.0</version>
         <configuration>
           <executable>R</executable>
@@ -31,7 +65,9 @@
           <execution><id>install</id><phase>install</phase>
             <goals><goal>exec</goal></goals>
             <configuration>
-              <arguments><argument>CMD</argument><argument>INSTALL</argument><argument>${project.artifactId}</argument></arguments>
+              <arguments><argument>CMD</argument><argument>INSTALL</argument><argument>${project.artifactId}</argument>
+                                                                             <argument>--with-keep.source</argument>
+                                                                             <argument>--no-multiarch</argument></arguments>
             </configuration>
           </execution>
         </executions>

@@ -1,0 +1,19 @@
+Package: ${project.artifactId}
+Type: Package
+Title: ${project.name}
+Version: ${project.version}
+Date: ${date}
+Author: Marek Jagielski <marek.jagielski@gmail.com>
+Maintainer: Marek Jagielski <marek.jagielski@gmail.com>
+Description: ${project.description}
+License: file LICENSE
+URL: ${project.url}
+BugReports: ${project.issueManagement.url}
+Suggests: testthat
+Depends:
+    R6,
+    futile.logger
+RoxygenNote: 5.0.1
+Collate:
+    'lex.R'
+    'yacc.R'
