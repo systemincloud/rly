@@ -1,4 +1,3 @@
-#' lex.R
 
 #' Print debug message.
 #'

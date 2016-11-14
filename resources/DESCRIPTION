@@ -15,5 +15,6 @@ Depends:
     futile.logger
 RoxygenNote: 5.0.1
 Collate:
+    'logger.R'
     'lex.R'
     'yacc.R'

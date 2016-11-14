@@ -22,12 +22,10 @@ lineno           -  Current line number
 \keyword{Changes}
 \keyword{Lexer}
 \keyword{Push}
-\keyword{Read}
 \keyword{Restores}
 \keyword{Return}
 \keyword{Returns}
 \keyword{Skip}
-\keyword{Write}
 \keyword{a}
 \keyword{ahead}
 \keyword{and}
@@ -36,9 +34,7 @@ lineno           -  Current line number
 \keyword{current}
 \keyword{current_state()}
 \keyword{data}
-\keyword{file}
 \keyword{from}
-\keyword{information}
 \keyword{input()}
 \keyword{into}
 \keyword{lexer}
@@ -52,16 +48,11 @@ lineno           -  Current line number
 \keyword{pop_state()}
 \keyword{previous}
 \keyword{push_state()}
-\keyword{readtab()}
 \keyword{saves}
 \keyword{skip()}
 \keyword{stack}
 \keyword{state}
 \keyword{string}
-\keyword{tab}
-\keyword{table}
 \keyword{the}
-\keyword{to}
 \keyword{token}
-\keyword{writetab()}
 

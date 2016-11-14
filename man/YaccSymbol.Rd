@@ -3,8 +3,7 @@
 \docType{class}
 \name{YaccSymbol}
 \alias{YaccSymbol}
-\title{yacc.R
------------------------------------------------------------------------------
+\title{-----------------------------------------------------------------------------
                        ===  LR Parsing Engine ===}
 \format{An \code{\link{R6Class}} generator object}
 \usage{

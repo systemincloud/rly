@@ -4,8 +4,9 @@
 \alias{yacc}
 \title{Build a parser}
 \usage{
-yacc(module = NA, debug = FALSE, start = NA, check_recursion = TRUE,
-  write_tables = True, picklefile = NA)
+yacc(module = NA, args = list(), method = "LALR", debug = FALSE,
+  start = NA, check_recursion = TRUE, debugfile = "parser.out",
+  outputdir = NA, debuglog = NA, errorlog = NA)
 }
 \description{
 Build a parser

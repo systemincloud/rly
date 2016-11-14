@@ -3,15 +3,15 @@
 \docType{class}
 \name{LRParser}
 \alias{LRParser}
-\title{== LRParser ==
-The LR Parsing engine.}
+\title{-----------------------------------------------------------------------------
+                              == LRParser ==}
 \format{An \code{\link{R6Class}} generator object}
 \usage{
 LRParser
 }
 \description{
-== LRParser ==
 The LR Parsing engine.
+-----------------------------------------------------------------------------
 }
 \keyword{data}
 
