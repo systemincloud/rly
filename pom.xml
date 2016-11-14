@@ -6,9 +6,9 @@
   <artifactId>rly</artifactId>
   <version>1.0.0</version>
   <packaging>pom</packaging>
-  <name>RLY</name>
+  <name>RLY - lex and yacc</name>
   
-  <description>RLY is a 100% Python implementation of the common parsing tools lex and yacc.</description>
+  <description>RLY is a 100% R implementation of the common parsing tools lex and yacc.</description>
   <url>https://github.com/systemincloud/rly</url>
 
   <organization>
