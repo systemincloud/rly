@@ -3,3 +3,5 @@
 ^\.gitignore$
 ^target$
 ^examples$
+^.*\.Rproj$
+^\.Rproj\.user$
