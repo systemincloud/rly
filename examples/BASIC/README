@@ -1,0 +1,59 @@
+In this example, you'll find a rough implementation of 1964 Dartmouth BASIC
+as described in the manual at:
+
+   http://www.bitsavers.org/pdf/dartmouth/BASIC_Oct64.pdf
+
+See also:
+
+  http://en.wikipedia.org/wiki/Dartmouth_BASIC
+
+This dialect is downright primitive---there are no string variables
+and no facilities for interactive input. Moreover, subroutines and functions
+are brain-dead even more than they usually are for BASIC. Of course,
+the GOTO statement is provided.
+
+Nevertheless, there are a few interesting aspects of this example:
+
+  - It illustrates a fully working interpreter including lexing, parsing,
+    and interpretation of instructions.
+ 
+  - The parser shows how to catch and report various kinds of parsing
+    errors in a more graceful way.
+
+  - The example both parses files (supplied on command line) and
+    interactive input entered line by line.
+
+  - It shows how you might represent parsed information.  In this case,
+    each BASIC statement is encoded into a Python tuple containing the
+    statement type and parameters.  These tuples are then stored in
+    a dictionary indexed by program line numbers.
+
+  - Even though it's just BASIC, the parser contains more than 80
+    rules and 150 parsing states. Thus, it's a little more meaty than
+    the calculator example.
+
+To use the example, run it as follows:
+
+   % ./basic.R hello.bas
+   HELLO WORLD
+   %
+
+or use it interactively:
+
+   % ./basic.R
+   [BASIC] 10 PRINT "HELLO WORLD"
+   [BASIC] 20 END
+   [BASIC] RUN
+   HELLO WORLD
+   [BASIC]
+
+The following files are defined:
+
+   basic.R         - High level script that controls everything
+   basiclex.R      - BASIC tokenizer
+   basparse.R      - BASIC parser
+   basinterp.R     - BASIC interpreter that runs parsed programs.
+
+In addition, a number of sample BASIC programs (.bas suffix) are
+provided.  These were taken out of the Dartmouth manual.
+
