@@ -1,8 +1,3 @@
-#' Print debug message.
-#'
-#' @param msg message to display.
-#' @export
-wrn = function(msg) cat (c("WARN> ", msg, "\n"))
 err = function(msg) stop(c("ERROR> ", msg, "\n"))
 
 '%nin%' <- Negate('%in%')
@@ -2156,7 +2151,7 @@ yacc = function(module=NA,
   
   if(pinfo$validate_all()) stop('Unable to build parser')
   
-  if(is.null(pinfo$error_func)) wrn('no p_error() function is defined')
+  if(is.null(pinfo$error_func)) errorlog$warn('no p_error() function is defined')
 
   # Create a grammar object
   grammar <- Grammar$new(pinfo$tokens)
@@ -2189,8 +2184,14 @@ yacc = function(module=NA,
   }
   
   unused_terminals <- grammar$unused_terminals()
-  for(term in unused_terminals) {
-    wrn(sprintf('Token %s defined, but not used', term))
+  if(length(unused_terminals) > 0) {
+    debuglog$info('')
+    debuglog$info('Unused terminals:')
+    debuglog$info('')
+    for(term in unused_terminals) {
+      errorlog$warn(sprintf('Token %s defined, but not used', term))
+      debuglog$info(sprintf('    %s', term))
+    }
   }
 
   # Print out all productions to the debug log
@@ -2207,12 +2208,12 @@ yacc = function(module=NA,
 
   # Find unused non-terminals
   unused_rules <- grammar$unused_rules()
-  for(prod in unused_rules) wrn(sprintf("Rule %s defined, but not used", prod$name))
+  for(prod in unused_rules) errorlog$warn(sprintf("Rule %s defined, but not used", prod$name))
   
-  if(length(unused_terminals) == 1) wrn('There is 1 unused token')
-  if(length(unused_terminals) > 1)  wrn(sprintf('There are %d unused tokens', length(unused_terminals)))
-  if(length(unused_rules) == 1)     wrn('There is 1 unused rule')
-  if(length(unused_rules) > 1)      wrn(sprintf('There are %d unused rules', length(unused_rules)))
+  if(length(unused_terminals) == 1) errorlog$warn('There is 1 unused token')
+  if(length(unused_terminals) > 1)  errorlog$warn(sprintf('There are %d unused tokens', length(unused_terminals)))
+  if(length(unused_rules) == 1)     errorlog$warn('There is 1 unused rule')
+  if(length(unused_rules) > 1)      errorlog$warn(sprintf('There are %d unused rules', length(unused_rules)))
 
   if(debug) {
     debuglog$info('')
@@ -2235,7 +2236,7 @@ yacc = function(module=NA,
   
   if(check_recursion) {
     unreachable <- grammar$find_unreachable()
-    for(u in unreachable) wrn(sprintf('Symbol %s is unreachable', u))
+    for(u in unreachable) errorlog$warn(sprintf('Symbol %s is unreachable', u))
     
     infinite <- grammar$infinite_cycles()
     for(inf in infinite) err(sprintf('Infinite recursion detected for symbol %s', inf))
@@ -2256,12 +2257,12 @@ yacc = function(module=NA,
   if(debug) {
     num_sr <- length(lr$sr_conflicts)
     # Report shift/reduce and reduce/reduce conflicts
-    if     (num_sr == 1) wrn('1 shift/reduce conflict')
-    else if(num_sr > 1)  wrn(sprintf('%d shift/reduce conflicts', num_sr))
+    if     (num_sr == 1) errorlog$warn('1 shift/reduce conflict')
+    else if(num_sr > 1)  errorlog$warn(sprintf('%d shift/reduce conflicts', num_sr))
     
     num_rr <- length(lr$rr_conflicts)
-    if     (num_rr == 1) wrn('1 reduce/reduce conflict')
-    else if(num_rr > 1)  wrn(sprintf('%d reduce/reduce conflicts', num_rr))
+    if     (num_rr == 1) errorlog$warn('1 reduce/reduce conflict')
+    else if(num_rr > 1)  errorlog$warn(sprintf('%d reduce/reduce conflicts', num_rr))
   }
 
   # Write out conflicts to the output file
@@ -2287,8 +2288,8 @@ yacc = function(module=NA,
       
       debuglog$warn(sprintf('reduce/reduce conflict in state %d resolved using rule (%s)', state, rule$toString()))
       debuglog$warn(sprintf('rejected rule (%s) in state %d', rejected$toString(), state))
-      wrn(sprintf('reduce/reduce conflict in state %d resolved using rule (%s)', state, rule$toString()))
-      wrn(sprintf('rejected rule (%s) in state %d', rejected$toString(), state))
+      errorlog$warn(sprintf('reduce/reduce conflict in state %d resolved using rule (%s)', state, rule$toString()))
+      errorlog$warn(sprintf('rejected rule (%s) in state %d', rejected$toString(), state))
       already_reported[[length(already_reported)+1]] <- c(state, id(rule), id(rejected))
     }
     
@@ -2300,7 +2301,7 @@ yacc = function(module=NA,
       
       if(rejected$reduced == 0 && id(rejected) %nin% warned_never) {
         debuglog$warn(sprintf('Rule (%s) is never reduced', rejected$toString()))
-        wrn(sprintf('Rule (%s) is never reduced', rejected$toString()))
+        errorlog$warn(sprintf('Rule (%s) is never reduced', rejected$toString()))
         warned_never <- append(warned_never, id(rejected))
       }
     }
