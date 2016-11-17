@@ -2,7 +2,6 @@
 #'
 #' @param msg message to display.
 #' @export
-dbg = function(msg) cat (c("DEBUG> ", msg, "\n"))
 wrn = function(msg) cat (c("WARN> ", msg, "\n"))
 err = function(msg) stop(c("ERROR> ", msg, "\n"))
 
@@ -2187,7 +2186,7 @@ yacc = function(module=NA,
   }
   
   # Run the LRGeneratedTable on the grammar
-  if(debug) dbg(sprintf('Generating %s tables', method))
+  if(debug) cat(sprintf('Generating %s tables \n', method))
 
   lr <- LRGeneratedTable$new(grammar, method, debuglog)
 

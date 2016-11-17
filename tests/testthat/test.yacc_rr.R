@@ -52,7 +52,7 @@ Parser <- R6Class("Parser",
 
 test_that("reduce", {
   expect_output(rly::yacc(Parser, debug=TRUE), 
-"DEBUG>  Generating LALR tables 
+"Generating LALR tables 
 WARN>  1 reduce/reduce conflict 
 WARN>  reduce/reduce conflict in state 21 resolved using rule (statement -> NAME EQUALS NUMBER) 
 WARN>  rejected rule (expression -> NUMBER) in state 21 ", fixed=TRUE)

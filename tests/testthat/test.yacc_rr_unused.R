@@ -27,7 +27,7 @@ Parser <- R6Class("Parser",
 test_that("rr_unused", {
       expect_output(rly::yacc(Parser, debug=TRUE),
 "WARN>  no p_error() function is defined 
-DEBUG>  Generating LALR tables 
+Generating LALR tables 
 WARN>  3 reduce/reduce conflicts 
 WARN>  reduce/reduce conflict in state 2 resolved using rule (rule3 -> A) 
 WARN>  rejected rule (rule4 -> A) in state 2 
