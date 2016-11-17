@@ -2082,7 +2082,7 @@ ParserReflect <- R6Class("ParserReflect",
           return()
         }
         if(is.null(formals(f)[['doc']])) {
-          self$log$error(sprintf("No documentation string specified in function %s'", name))
+          self$log$error(sprintf("No documentation string specified in function '%s'", name))
           self$error <- TRUE
           return()
         }
