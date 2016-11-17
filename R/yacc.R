@@ -1961,7 +1961,7 @@ ParserReflect <- R6Class("ParserReflect",
     validate_error_func = function() {
       if(!is.null(self$error_func)) {
         if(typeof(self$error_func) != 'closure')  {
-          self$log$error("'p_error' defined, but is not a method")
+          self$log$error("'p_error' defined, but is not a function")
           self$error <- TRUE
           return()
         }
