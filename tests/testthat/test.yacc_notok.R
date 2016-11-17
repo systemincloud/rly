@@ -9,8 +9,8 @@ Parser <- R6Class("Parser",
   public = list(
     # Parsing rules
     precedence = list(c('left','PLUS','MINUS'),
-      c('left','TIMES','DIVIDE','MINUS'),
-      c('right','UMINUS')),
+                      c('left','TIMES','DIVIDE','MINUS'),
+                      c('right','UMINUS')),
     # dictionary of names
     names = new.env(hash=TRUE),
     p_statement_assign = function(doc='statement : NAME EQUALS expression', p) {
