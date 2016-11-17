@@ -30,6 +30,7 @@ RlyLogger <- R6Class("RlyLogger",
           if(is.na(name)) flog.appender(appender.console(), name=self$name)
           else            flog.appender(appender.file(name), name=self$name)
         },
+        error = function(msg) { flog.error(msg, name=self$name) },
         warn  = function(msg) { flog.warn(msg, name=self$name) },
         info  = function(msg) { flog.info(msg, name=self$name) },
         debug = function(msg) { flog.debug(msg, name=self$name) }
@@ -56,6 +57,7 @@ NullLogger <- R6Class("NullLogger",
     public = list(
         initialize = function(f) {
         },
+        error = function(msg) { },
         warn  = function(msg) { },
         info  = function(msg) { },
         debug = function(msg) { }
