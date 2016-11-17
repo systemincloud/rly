@@ -1,2 +1,0 @@
-[1] "Error: Test failed: 'reduce'\n* argument is of length zero\n1: rly::yacc(Parser, debug = TRUE)\n2: LRGeneratedTable$new(grammar, method, debuglog)\n3: public_bind_env$initialize(...)\n4: self$lr_parse_table()\n"
-No traceback available 
