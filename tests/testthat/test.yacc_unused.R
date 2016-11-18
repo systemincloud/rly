@@ -94,9 +94,9 @@ Parser2 <- R6Class("Parser2",
 )
 
 test_that("grammar", {
-  expect_error(rly::yacc(Parser1), "ERROR> Symbol COMMA used, but not defined as a token or a rule", fixed=TRUE)
+  expect_error(rly::yacc(Parser1), "ERROR .* Symbol COMMA used, but not defined as a token or a rule")
   expect_output(rly::yacc(Parser2), 
-"WARN>  Rule exprlist defined, but not used 
-WARN>  There is 1 unused rule 
-WARN>  Symbol exprlist is unreachable")
+"WARN .* Rule exprlist defined, but not used 
+WARN .* There is 1 unused rule 
+WARN .* Symbol exprlist is unreachable")
 })

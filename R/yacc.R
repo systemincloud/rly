@@ -2149,6 +2149,8 @@ yacc = function(module=NA,
 
   debuglog$info('Created by RLY (https://github.com/systemincloud/rly)')
   
+  errors <- FALSE
+  
   if(pinfo$validate_all()) stop('Unable to build parser')
   
   if(is.null(pinfo$error_func)) errorlog$warn('no p_error() function is defined')
@@ -2177,10 +2179,13 @@ yacc = function(module=NA,
     else                     grammar$set_start(pinfo$start)
   } else grammar$set_start(start)
   
+  if(errors) stop('Unable to build parser')
+  
   # Verify the grammar structure
   undefined_symbols <- grammar$undefined_symbols()
   for(sym_prod in undefined_symbols) {
-    err(sprintf('Symbol %s used, but not defined as a token or a rule', sym_prod[[1]]))
+    errorlog$error(sprintf('Symbol %s used, but not defined as a token or a rule', sym_prod[[1]]))
+    errors <- TRUE
   }
   
   unused_terminals <- grammar$unused_terminals()
@@ -2239,15 +2244,21 @@ yacc = function(module=NA,
     for(u in unreachable) errorlog$warn(sprintf('Symbol %s is unreachable', u))
     
     infinite <- grammar$infinite_cycles()
-    for(inf in infinite) err(sprintf('Infinite recursion detected for symbol %s', inf))
+    for(inf in infinite) {
+      errorlog.error(sprintf('Infinite recursion detected for symbol %s', inf))
+      errors <- TRUE
+    }
   }
   
   unused_prec <- grammar$unused_precedence()
   for(term_assoc in unused_prec) {
     term  <- term_assoc[[1]]
     assoc <- term_assoc[[2]]
-    err(sprintf('Precedence rule %s defined for unknown symbol %s', assoc, term))
+    errorlog.error(sprintf('Precedence rule %s defined for unknown symbol %s', assoc, term))
+    errors <- TRUE
   }
+  
+  if(errors) stop('Unable to build parser')
   
   # Run the LRGeneratedTable on the grammar
   if(debug) cat(sprintf('Generating %s tables \n', method))
