@@ -19,21 +19,21 @@ Parser <- R6Class("Parser",
 
                               rule4 : A
 
-                              rule5 : A', t) {
+                              rule5 : A', p) {
     }
   )
 )
 
 test_that("rr_unused", {
-      expect_output(rly::yacc(Parser, debug=TRUE),
-"WARN>  no p_error() function is defined 
+  expect_output(rly::yacc(Parser, debug=TRUE),
+"WARN .* no p_error\\(\\) function is defined
 Generating LALR tables 
-WARN>  3 reduce/reduce conflicts 
-WARN>  reduce/reduce conflict in state 2 resolved using rule (rule3 -> A) 
-WARN>  rejected rule (rule4 -> A) in state 2 
-WARN>  reduce/reduce conflict in state 2 resolved using rule (rule3 -> A) 
-WARN>  rejected rule (rule5 -> A) in state 2 
-WARN>  reduce/reduce conflict in state 2 resolved using rule (rule4 -> A) 
-WARN>  rejected rule (rule5 -> A) in state 2 
-WARN>  Rule (rule5 -> A) is never reduced ", fixed=TRUE)          
+WARN .* 3 reduce/reduce conflicts
+WARN .* reduce/reduce conflict in state 2 resolved using rule \\(rule3 -> A\\)
+WARN .* rejected rule \\(rule4 -> A\\) in state 2
+WARN .* reduce/reduce conflict in state 2 resolved using rule \\(rule3 -> A\\)
+WARN .* rejected rule \\(rule5 -> A\\) in state 2
+WARN .* reduce/reduce conflict in state 2 resolved using rule \\(rule4 -> A\\)
+WARN .* rejected rule \\(rule5 -> A\\) in state 2
+WARN .* Rule \\(rule5 -> A\\) is never reduced")          
 })
