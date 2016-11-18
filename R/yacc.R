@@ -575,7 +575,7 @@ Grammar <- R6Class("Grammar",
     #
     # -----------------------------------------------------------------------------
     set_precedence = function(term, assoc, level) {
-      if(length(self$Productions) > 1)                 err('Must call set_precedence() before add_production()')
+      if(length(self$Productions) > 1)                 stop('Must call set_precedence() before add_production()')
       if(term %in% names(self$recedence))              err(sprintf('Precedence already specified for terminal %s', term))
       if(!(assoc %in% c('left', 'right', 'nonassoc'))) err("Associativity must be one of 'left','right', or 'nonassoc'")
       self$Precedence[[term]] <- list(assoc, level) 
