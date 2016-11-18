@@ -2245,7 +2245,7 @@ yacc = function(module=NA,
     
     infinite <- grammar$infinite_cycles()
     for(inf in infinite) {
-      errorlog.error(sprintf('Infinite recursion detected for symbol %s', inf))
+      errorlog$error(sprintf('Infinite recursion detected for symbol %s', inf))
       errors <- TRUE
     }
   }
@@ -2254,7 +2254,7 @@ yacc = function(module=NA,
   for(term_assoc in unused_prec) {
     term  <- term_assoc[[1]]
     assoc <- term_assoc[[2]]
-    errorlog.error(sprintf('Precedence rule %s defined for unknown symbol %s', assoc, term))
+    errorlog$error(sprintf('Precedence rule %s defined for unknown symbol %s', assoc, term))
     errors <- TRUE
   }
   
