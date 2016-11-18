@@ -46,5 +46,5 @@ Parser <- R6Class("Parser",
 test_that("shift", {
   expect_output(rly::yacc(Parser, debug=TRUE), 
 "Generating LALR tables 
-WARN>  20 shift/reduce conflicts ", fixed=TRUE)
+WARN .* 20 shift/reduce conflicts")
 })
