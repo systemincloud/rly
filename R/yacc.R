@@ -1,4 +1,3 @@
-err = function(msg) stop(c("ERROR> ", msg, "\n"))
 
 '%nin%' <- Negate('%in%')
 
@@ -345,8 +344,20 @@ LRParser <- R6Class("LRParser",
             return(result)
           }
         } else {
-          # Error
+          
+          # We have some kind of parsing error here.  To handle
+          # this, we are going to push the current token onto
+          # the tokenstack and replace it with an 'error' token.
+          # If there are any synchronization rules, they may
+          # catch it.
+          #
+          # In addition to pushing the error token, we call call
+          # the user defined p_error() function if this is the
+          # first syntax error.  This function is only called if
         }
+        
+        # Call an error function here
+        stop('yacc: internal parser error!!!\n')
       }
     }
   )
@@ -576,8 +587,8 @@ Grammar <- R6Class("Grammar",
     # -----------------------------------------------------------------------------
     set_precedence = function(term, assoc, level) {
       if(length(self$Productions) > 1)                 stop('Must call set_precedence() before add_production()')
-      if(term %in% names(self$recedence))              err(sprintf('Precedence already specified for terminal %s', term))
-      if(!(assoc %in% c('left', 'right', 'nonassoc'))) err("Associativity must be one of 'left','right', or 'nonassoc'")
+      if(term %in% names(self$recedence))              stop(sprintf('Precedence already specified for terminal %s', term))
+      if(!(assoc %in% c('left', 'right', 'nonassoc'))) stop("Associativity must be one of 'left','right', or 'nonassoc'")
       self$Precedence[[term]] <- list(assoc, level) 
     },
     # -----------------------------------------------------------------------------
@@ -597,9 +608,9 @@ Grammar <- R6Class("Grammar",
     # are valid and that %prec is used correctly.
     # -----------------------------------------------------------------------------
     add_production = function(prodname, syms, func) {
-      if(prodname %in% names(self$Terminals))        err(sprintf('%s: Illegal rule name %s. Already defined as a token', func, prodname))
-      if(prodname == 'error')                        err(sprintf('%s: Illegal rule name %s. error is a reserved word', func, prodname))
-      if(!grepl(is_identifier, prodname, perl=TRUE)) err(sprintf('%s: Illegal rule name %s', func, prodname))
+      if(prodname %in% names(self$Terminals))        stop(sprintf('%s: Illegal rule name %s. Already defined as a token', func, prodname))
+      if(prodname == 'error')                        stop(sprintf('%s: Illegal rule name %s. error is a reserved word', func, prodname))
+      if(!grepl(is_identifier, prodname, perl=TRUE)) stop(sprintf('%s: Illegal rule name %s', func, prodname))
       
       # Look for literal tokens
       n <- 0
@@ -607,23 +618,23 @@ Grammar <- R6Class("Grammar",
         n <- n + 1
         if(substr(s, 1, 1) %in% c("'", "\"")) {
           c <- eval(parse(text=s))
-          if(nchar(c) > 1) err(sprintf('%s: Literal token %s in rule %s may only be a single character', func, s, prodname))
+          if(nchar(c) > 1) stop(sprintf('%s: Literal token %s in rule %s may only be a single character', func, s, prodname))
           if(!(c %in% names(self$Terminals))) self$Terminals[[c]] <- c()
           syms[n] <- c
           next
         }
-        if(!grepl(is_identifier, s, perl=TRUE) && s != '%prec') err(sprintf('%s: Illegal name %s in rule %s', func,s, prodname))
+        if(!grepl(is_identifier, s, perl=TRUE) && s != '%prec') stop(sprintf('%s: Illegal name %s in rule %s', func,s, prodname))
       }
             
       # Determine the precedence level
       if('%prec' %in% syms) {
-        if(syms[length(syms)]     == '%prec') err(sprintf('%s: Syntax error. Nothing follows %%prec', func))
-        if(syms[length(syms) - 1] != '%prec') err(sprintf('%s: Syntax error. %%prec can only appear at the end of a grammar rule', func))
+        if(syms[length(syms)]     == '%prec') stop(sprintf('%s: Syntax error. Nothing follows %%prec', func))
+        if(syms[length(syms) - 1] != '%prec') stop(sprintf('%s: Syntax error. %%prec can only appear at the end of a grammar rule', func))
        
         precname <- syms[length(syms)]
         prodprec <- self$Precedence[[precname]]
        
-        if(is.null(prodprec)) err(sprintf('%s: Nothing known about the precedence of %s', func, precname))
+        if(is.null(prodprec)) stop(sprintf('%s: Nothing known about the precedence of %s', func, precname))
         else self$UsedPrecedence[[length(self$UsedPrecedence)+1]] <- precname
         # Drop %prec from the rule
         syms <- head(syms,-2)
@@ -640,7 +651,7 @@ Grammar <- R6Class("Grammar",
       map <- sprintf('%s -> %s', prodname, toString(syms))
       if(map %in% names(self$Prodmap)) {
         m <- self$Prodmap[[map]]
-        err(sprintf('%s: Duplicate rule %s. ', func, m))
+        stop(sprintf('%s: Duplicate rule %s. ', func, m))
       }
         
       # From this point on, everything is valid.  Create a new Production instance
@@ -673,7 +684,7 @@ Grammar <- R6Class("Grammar",
     # -----------------------------------------------------------------------------
     set_start = function(start=NA) {
       if(is.na(start)) start <- self$Productions[[2]]$name
-      if(!(start %in% names(self$Nonterminals))) err(sprintf('start symbol %s undefined', start))
+      if(!(start %in% names(self$Nonterminals))) stop(sprintf('start symbol %s undefined', start))
       self$Productions[[1]] <- Production$new(0, "S'", c(start))
       self$Nonterminals[[start]][[length(self$Nonterminals[[start]])+1]] <- 0
       self$Start <- start
@@ -1064,7 +1075,7 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
     sr_conflicts   = NA,
     rr_conflicts   = NA,
     initialize = function(grammar, method='LALR', log=NULL) {
-      if(method %nin% c('SLR', 'LALR')) err(sprintf('Unsupported method %s', method))
+      if(method %nin% c('SLR', 'LALR')) stop(sprintf('Unsupported method %s', method))
       
       self$grammar   <- grammar
       self$lr_method <- method
@@ -1707,7 +1718,7 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
                     log$info(sprintf('  ! reduce/reduce conflict for %s resolved using rule %d (%s)',
                                      a, st_actionp[[a]]$number, st_actionp[[a]]$toString()))
                   } else {
-                    err(sprintf('Unknown conflict in state %d', st))
+                    stop(sprintf('Unknown conflict in state %d', st))
                   }
                 } else {
                   st_action[[a]] <- -p$number
@@ -1729,7 +1740,7 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
                 if(!is.null(r)) {
                   # Whoa have a shift/reduce or shift/shift conflict
                   if(r > 0) {
-                    if(r != j) err(sprintf('Shift/shift conflict in state %d', st))
+                    if(r != j) stop(sprintf('Shift/shift conflict in state %d', st))
                   } else if(r < 0) {
                     # Do a precedence check.
                     #   -  if precedence of reduce rule is higher, we reduce.
@@ -1767,7 +1778,7 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
                         self$sr_conflicts[[length(self$sr_conflicts)+1]] <- c(st, a, 'reduce')
                       }
                     }
-                  } else err(sprintf('Unknown conflict in state %d', st))
+                  } else stop(sprintf('Unknown conflict in state %d', st))
                 } else {
                   st_action[[a]] <- j
                   st_actionp[[a]] <- p
@@ -1870,7 +1881,7 @@ parse_grammar = function(name, doc) {
     tryCatch({
   	  if(p[1] == '|') {
         # This is a continuation of a previous rule
-  		  if(is.na(lastp)) err(sprintf("%s: Misplaced '|'", name))
+  		  if(is.na(lastp)) stop(sprintf("%s: Misplaced '|'", name))
   		  prodname <- lastp
   		  syms <- tail(p, -1)
   	  } else {
@@ -1878,11 +1889,11 @@ parse_grammar = function(name, doc) {
         lastp <- prodname
         syms <- tail(p, -2)
         assign <- p[2]
-        if(assign != ':' && assign != '::=') err(sprintf("%s: Syntax error. Expected ':'", name))
+        if(assign != ':' && assign != '::=') stop(sprintf("%s: Syntax error. Expected ':'", name))
       }
       grammar[[length(grammar)+1]] <- list(name, prodname, syms)
     }, error = function(e) { if(startsWith(e[[1]], "ERROR>")) stop(e[[1]]) 
-                             else err(sprintf("%s: Syntax error in rule %s", name, ps))})
+                             else stop(sprintf("%s: Syntax error in rule %s", name, ps))})
   
   }
   return(grammar)
@@ -2160,9 +2171,13 @@ yacc = function(module=NA,
 
   # Set precedence level for terminals
   for(term_assoc_level in pinfo$preclist) {
-    grammar$set_precedence(term_assoc_level[[1]], 
-                           term_assoc_level[[2]], 
-                           term_assoc_level[[3]])
+    tryCatch({
+      grammar$set_precedence(term_assoc_level[[1]], 
+                             term_assoc_level[[2]], 
+                             term_assoc_level[[3]])
+    }, error = function(e) {
+      errorlog$warn(e)
+    })
   }
   
   # Add productions to the grammar
@@ -2170,7 +2185,12 @@ yacc = function(module=NA,
     funcname <- gram[[1]]
     prodname <- gram[[2]]
     syms     <- gram[[3]]
-    grammar$add_production(prodname, syms, funcname)
+    tryCatch({
+      grammar$add_production(prodname, syms, funcname)
+    }, error = function(e) {
+      errorlog$error(e)
+      errors <- TRUE
+    })
   }
   
   # Set the grammar start symbols
