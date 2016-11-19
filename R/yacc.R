@@ -1892,7 +1892,7 @@ parse_grammar = function(name, doc) {
         if(assign != ':' && assign != '::=') stop(sprintf("%s: Syntax error. Expected ':'", name))
       }
       grammar[[length(grammar)+1]] <- list(name, prodname, syms)
-    }, error = function(e) { if(startsWith(e[[1]], "ERROR>")) stop(e[[1]]) 
+    }, error = function(e) { if(startsWith(e[[1]], name)) stop(e[[1]]) 
                              else stop(sprintf("%s: Syntax error in rule %s", name, ps))})
   
   }
@@ -2099,9 +2099,14 @@ ParserReflect <- R6Class("ParserReflect",
         }
 
         doc <- formals(f)[['doc']]
-        parsed_g <- parse_grammar(name, doc)
-        for(g in parsed_g)
-          grammar[[length(grammar)+1]] <- g
+        tryCatch({
+          parsed_g <- parse_grammar(name, doc)
+          for(g in parsed_g)
+            grammar[[length(grammar)+1]] <- g
+        }, error = function(e) {
+          self$log$error(e[[1]])
+          self$error <- TRUE
+        })
       }
       
       # Secondary validation step that looks for p_ definitions that are not functions
@@ -2176,7 +2181,7 @@ yacc = function(module=NA,
                              term_assoc_level[[2]], 
                              term_assoc_level[[3]])
     }, error = function(e) {
-      errorlog$warn(e)
+      errorlog$warn(e[[1]])
     })
   }
   
@@ -2188,7 +2193,7 @@ yacc = function(module=NA,
     tryCatch({
       grammar$add_production(prodname, syms, funcname)
     }, error = function(e) {
-      errorlog$error(e)
+      errorlog$error(e[[1]])
       stop('Unable to build parser')
     })
   }
