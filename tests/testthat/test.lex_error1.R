@@ -15,5 +15,5 @@ Lexer <- R6Class("Lexer",
 )
 
 test_that("no t_error()", {
-  expect_output(rly::lex(Lexer), "WARN> No t_error rule is defined")
+  expect_output(rly::lex(Lexer), "WARN .* No t_error rule is defined")
 })

@@ -1,9 +1,4 @@
 
-#' Print debug message.
-#'
-#' @param msg message to display.
-#' @export
-dbg = function(msg) cat (c("DEBUG> ", msg, "\n"), sep="")
 wrn = function(msg) cat (c("WARN> ", msg, "\n"), sep="")
 err = function(msg) stop(c("ERROR> ", msg))
 
@@ -335,7 +330,8 @@ LexerReflect <- R6Class("LexerReflect",
     literals  = NA,
     states    = NA,
     stateinfo = NA,
-
+    log       = NA,
+    
     toknames = NA,        # Mapping of symbols to token names
     funcsym  = NA,        # Symbols defined as functions
     strsym   = NA,        # Symbols defined as strings
@@ -343,7 +339,7 @@ LexerReflect <- R6Class("LexerReflect",
     errorf   = NA,        # Error functions by state
     eoff     = NA,        # EOF functions by state
 
-    initialize = function(module, instance) {
+    initialize = function(module, instance, log=NA) {
       self$module <- module
       self$instance <- instance
       self$tokens <- c()
@@ -351,6 +347,8 @@ LexerReflect <- R6Class("LexerReflect",
       self$states <- c()
       self$stateinfo <- new.env()
       self$stateinfo[['INITIAL']] <- 'inclusive'
+      if(is.na(log)) self$log <- RlyLogger$new()
+      else           self$log <- log
     },
     # Get all of the basic information
     get_all = function() {
@@ -509,23 +507,31 @@ LexerReflect <- R6Class("LexerReflect",
 #' @export
 lex = function(module=NA,
                args=list(),
-               debug=FALSE) {
+               debug=FALSE,
+               debuglog=NA,
+               errorlog=NA) {
   instance <- do.call("new", args, envir=module)
   lexobj <- Lexer$new(instance)
 
+  if(is.na(errorlog)) errorlog <- RlyLogger$new()
+  
+  if(debug) {
+    if(is.na(debuglog)) debuglog <- RlyLogger$new()
+  }
+  
   # Collect parser information
-  linfo = LexerReflect$new(module, instance)
+  linfo = LexerReflect$new(module, instance, log=errorlog)
   linfo$get_all()
   linfo$validate_all()
 
   # Dump some basic debugging information
   if(debug) {
-    if(length(linfo$tokens) > 0)    dbg(sprintf('lex: tokens   = %s', paste(linfo$tokens, collapse=" ")))
-    else                            dbg('lex: tokens empty')
-    if(length(linfo$literals) > 0)  dbg(sprintf('lex: literals = %s', paste(linfo$literals, collapse=" ")))
-    else                            dbg('lex: literals empty')
-    if(length(linfo$stateinfo) > 0) dbg(sprintf('lex: states   = %s', paste(names(linfo$stateinfo), collapse=" ")))
-    else                            dbg('lex: states empty')
+    if(length(linfo$tokens) > 0)    debuglog$info(sprintf('lex: tokens   = %s', paste(linfo$tokens, collapse=" ")))
+    else                            debuglog$info('lex: tokens empty')
+    if(length(linfo$literals) > 0)  debuglog$info(sprintf('lex: literals = %s', paste(linfo$literals, collapse=" ")))
+    else                            debuglog$info('lex: literals empty')
+    if(length(linfo$stateinfo) > 0) debuglog$info(sprintf('lex: states   = %s', paste(names(linfo$stateinfo), collapse=" ")))
+    else                            debuglog$info('lex: states empty')
   }
 
   # Build a dictionary of valid token names
@@ -535,7 +541,7 @@ lex = function(module=NA,
   if(is.vector(linfo$literals)) lexobj$lexliterals <- paste(linfo$literals, collapse = "")
   else                          lexobj$lexliterals <- linfo$literals
 
-  lexobj$lextokens_all <- c(lexobj$lextokens,  unique(lexobj$lexliterals))
+  lexobj$lextokens_all <- c(lexobj$lextokens, unique(lexobj$lexliterals))
 
   # Get the stateinfo dictionary
   stateinfo <- linfo$stateinfo
@@ -550,7 +556,7 @@ lex = function(module=NA,
       fname <- fnamef[[1]]
       f <- fnamef[[2]]
       regex_list[[length(regex_list)+1]] <- list(fname, get_regex(f), f, linfo$toknames[[fname]])
-      if(debug) dbg(sprintf("lex: Adding rule %s -> '%s' (state '%s')", fname, get_regex(f), state))
+      if(debug) debuglog$info(sprintf("lex: Adding rule %s -> '%s' (state '%s')", fname, get_regex(f), state))
     }
 
     # Now add all of the simple rules
@@ -559,7 +565,7 @@ lex = function(module=NA,
       r <- namer[[2]]
       toktype <- if(grepl("ignore_", name)) NULL else linfo$toknames[[name]]
       regex_list[[length(regex_list)+1]] <- list(name, r, NULL, toktype)
-      if(debug) dbg(sprintf("lex: Adding rule %s -> '%s' (state '%s')", name, r, state))
+      if(debug) debuglog$info(sprintf("lex: Adding rule %s -> '%s' (state '%s')", name, r, state))
     }
 
     regexs[[state]] <- regex_list
@@ -567,13 +573,13 @@ lex = function(module=NA,
 
   # Build the master regular expressions
 
-  if(debug) dbg('lex: ==== MASTER REGEXS FOLLOW ====')
+  if(debug) debuglog$info('lex: ==== MASTER REGEXS FOLLOW ====')
 
   for(state in names(regexs)) {
     lexobj$lexstatere[[state]] <- regexs[[state]]
     if(debug) {
       for(nr in regexs[[state]]) {
-        dbg(sprintf("lex: state '%s' : regex = '%s'", state, nr[2]))
+        debuglog$info(sprintf("lex: state '%s' : regex = '%s'", state, nr[2]))
       }
     }
   }
@@ -596,7 +602,7 @@ lex = function(module=NA,
   # Set up error functions
   lexobj$lexstateerrorf <- linfo$errorf
   lexobj$lexerrorf <- linfo$errorf[['INITIAL']]
-  if(is.null(lexobj$lexerrorf)) wrn('No t_error rule is defined')
+  if(is.null(lexobj$lexerrorf)) errorlog$warn('No t_error rule is defined')
 
   # Set up eof functions
   lexobj$lexstateeoff <- linfo$eoff
@@ -606,8 +612,8 @@ lex = function(module=NA,
   for(s in names(stateinfo)) {
     stype <- stateinfo[[s]]
     if(stype == 'exclusive') {
-      if(!(s %in% names(linfo$errorf)))                                      wrn(sprintf("No error rule is defined for exclusive state '%s'", s))
-      if(!(s %in% names(linfo$ignore)) && !(s %in% names(lexobj$lexignore))) wrn(sprintf("No ignore rule is defined for exclusive state '%s'", s))
+      if(!(s %in% names(linfo$errorf)))                                      errorlog$warn(sprintf("No error rule is defined for exclusive state '%s'", s))
+      if(!(s %in% names(linfo$ignore)) && !(s %in% names(lexobj$lexignore))) errorlog$warn(sprintf("No ignore rule is defined for exclusive state '%s'", s))
     } else if(stype == 'inclusive') {
       if(!(s %in% names(linfo$errorf))) {
         linfo$errorf[[s]] <- linfo$errorf[['INITIAL']]

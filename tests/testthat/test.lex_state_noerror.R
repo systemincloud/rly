@@ -23,7 +23,8 @@ Lexer <- R6Class("Lexer",
 )
 
 test_that("no error rule for state", {
-  expect_output(rly::lex(Lexer), paste("WARN> No error rule is defined for exclusive state 'comment'\n",
-                                       "WARN> No ignore rule is defined for exclusive state 'comment'", sep=""))
+  expect_output(rly::lex(Lexer), 
+"WARN .* No error rule is defined for exclusive state 'comment'
+WARN .* No ignore rule is defined for exclusive state 'comment'")
 })
 
