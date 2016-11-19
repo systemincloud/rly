@@ -26,6 +26,6 @@ Lexer <- R6Class("Lexer",
 )
 
 test_that("comment", {
-  expect_error(rly::lex(Lexer), "ERROR> State type for state must be 'inclusive' or 'exclusive'\n",
+  expect_error(rly::lex(Lexer), "ERROR> State type for state must be 'inclusive' or 'exclusive'",
                fixed=TRUE)
 })
