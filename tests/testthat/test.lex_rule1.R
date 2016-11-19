@@ -16,5 +16,5 @@ Lexer <- R6Class("Lexer",
 )
 
 test_that("rule incorrect", {
-  expect_error(rly::lex(Lexer), "ERROR> t_NUMBER not defined as a function or string\n")
+  expect_error(rly::lex(Lexer), "ERROR> t_NUMBER not defined as a function or string")
 })
