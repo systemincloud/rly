@@ -16,5 +16,6 @@ Lexer <- R6Class("Lexer",
 )
 
 test_that("wrong regex", {
-  expect_error(rly::lex(Lexer), "ERROR> Invalid regular expression for rule 't_NUMBER'")
+  expect_output(expect_error(rly::lex(Lexer), "Can't build lexer"),
+  "ERROR .* Invalid regular expression for rule 't_NUMBER'")
 })

@@ -16,6 +16,6 @@ Lexer <- R6Class("Lexer",
 )
 
 test_that("comment", {
-  expect_error(rly::lex(Lexer), "ERROR> No token list is defined",
-               fixed=TRUE)
+  expect_output(expect_error(rly::lex(Lexer), "Can't build lexer"),
+  "ERROR .* No token list is defined")
 })

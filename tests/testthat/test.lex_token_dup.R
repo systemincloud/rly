@@ -19,6 +19,5 @@ Lexer <- R6Class("Lexer",
 )
 
 test_that("comment", {
-  expect_output(rly::lex(Lexer), "WARN> Token 'NUMBER' multiply defined",
-                fixed=TRUE)
+  expect_output(rly::lex(Lexer), "WARN .* Token 'NUMBER' multiply defined")
 })

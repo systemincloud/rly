@@ -25,5 +25,5 @@ Lexer <- R6Class("Lexer",
 test_that("bad token type", {
   lexer <- rly::lex(Lexer)
   lexer$input("1234")
-  expect_error(lexer$token(), "ERROR> Rule 't_NUMBER' returned an unknown token type 'NUM'", fixed=TRUE)
+  expect_error(lexer$token(), "ERROR .* Rule 't_NUMBER' returned an unknown token type 'NUM'")
 })

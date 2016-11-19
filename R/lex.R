@@ -1,7 +1,4 @@
 
-wrn = function(msg) cat (c("WARN> ", msg, "\n"), sep="")
-err = function(msg) stop(c("ERROR> ", msg))
-
 '%nin%' <- Negate('%in%')
 
 #' This regular expression is used to match valid token names
@@ -101,7 +98,7 @@ Lexer <- R6Class("Lexer",
     #' input() - Push a new string into the lexer
     #' ------------------------------------------------------------
     input = function(s) {
-      if(!is.character(s)) err('Expected a string')
+      if(!is.character(s)) stop('Expected a string')
       self$lexdata <- s
       self$lexpos  <- 1
       self$lexlen  <- nchar(s)
@@ -110,7 +107,7 @@ Lexer <- R6Class("Lexer",
     #' begin() - Changes the lexing state
     #' ------------------------------------------------------------
     begin = function(state) {
-      if(!(state %in% names(self$lexstatere))) err('Undefined state')
+      if(!(state %in% names(self$lexstatere))) stop('Undefined state')
       self$lexre     <- self$lexstatere[[state]]
       self$lexretext <- self$lexstateretext[[state]]
       self$lexignore <- self$lexstateignore[[state]]
@@ -214,7 +211,7 @@ Lexer <- R6Class("Lexer",
           }
 
           # Verify type of the token.  If not in the token map, raise an error
-          if(!(newtok$type %in% self$lextokens_all)) err(sprintf("Rule '%s' returned an unknown token type '%s'", name, newtok$type))
+          if(!(newtok$type %in% self$lextokens_all)) stop(sprintf("Rule '%s' returned an unknown token type '%s'", name, newtok$type))
 
           return(newtok)
         }
@@ -245,7 +242,7 @@ Lexer <- R6Class("Lexer",
             newtok <- self$lexerrorf(tok)
             if(lexpos == self$lexpos) {
               # Error method didn't change text position at all. This is an error.
-              err(sprintf("Scanning error. Illegal character '%s'", substring(data, 1, 1)))
+              stop(sprintf("Scanning error. Illegal character '%s'", substring(data, 1, 1)))
             }
             lexpos <- self$lexpos
             if(is.null(newtok)) next
@@ -253,7 +250,7 @@ Lexer <- R6Class("Lexer",
           }
 
           self.lexpos <- lexpos
-          err(sprintf("Illegal character '%s' at index %d", substring(data, 1, 1), lexpos))
+          stop(sprintf("Illegal character '%s' at index %d", substring(data, 1, 1), lexpos))
         }
       }
       
@@ -330,6 +327,7 @@ LexerReflect <- R6Class("LexerReflect",
     literals  = NA,
     states    = NA,
     stateinfo = NA,
+    error     = FALSE,
     log       = NA,
     
     toknames = NA,        # Mapping of symbols to token names
@@ -367,17 +365,32 @@ LexerReflect <- R6Class("LexerReflect",
     # Get the tokens map
     get_tokens = function() {
       tokens <- self$instance$tokens
-      if(is.null(tokens))     err('No token list is defined')
-      if(!is.vector(tokens))  err('tokens must be a vector')
-      if(length(tokens) == 0) err('tokens is empty')
+      if(is.null(tokens)) {
+        self$log$error('No token list is defined')
+        self$error <- TRUE
+        return()
+      }
+      if(!is.vector(tokens)) {
+        self$log$error('tokens must be a vector')
+        self$error <- TRUE
+        return()
+      }
+      if(length(tokens) == 0) {
+        self$log$error('tokens is empty')
+        self$error <- TRUE
+        return()
+      }
       self$tokens <- tokens
     },
     # Validate the tokens
     validate_tokens = function() {
       terminals = c()
       for(t in self$tokens) {
-        if(!grepl(reg_is_identifier, t, perl=TRUE)) err(sprintf("Bad token name '%s'", t))
-        if(t %in% terminals)                        wrn(sprintf("Token '%s' multiply defined", t))
+        if(!grepl(reg_is_identifier, t, perl=TRUE)) {
+          self$log$error(sprintf("Bad token name '%s'", t))
+          self$error <- TRUE
+        }
+        if(t %in% terminals) self$log$warn(sprintf("Token '%s' multiply defined", t))
         terminals <- c(terminals, t)
       }
     },
@@ -390,23 +403,44 @@ LexerReflect <- R6Class("LexerReflect",
     # Validate literals
     validate_literals = function() {
       for(l in self$literals) {
-        if(!is.character(l) || nchar(l) > 1) err('Invalid literal. Must be a single character')
+        if(!is.character(l) || nchar(l) > 1) {
+          self$log$error('Invalid literal. Must be a single character')
+          self$error <- TRUE
+        }
       }
     },
     get_states = function() {
       self$states = self$instance$states
       # Build statemap
       if(!is.null(self$states)) {
-        if(!is.vector(self$states)) err('states must be defined as a vector')
-        else {
+        if(!is.vector(self$states)) {
+          self$log$error('states must be defined as a vector')
+          self$error <- TRUE
+        } else {
           for(s in self$states) {
-            if(!is.vector(s) || length(s) != 2) err("Invalid state specifier. Must be a tuple (statename,'exclusive|inclusive')")
+            if(!is.vector(s) || length(s) != 2) {
+              self$log$error("Invalid state specifier. Must be a tuple (statename,'exclusive|inclusive')")
+              self$error <- TRUE
+              next
+            }
             name      <- s[1]
             statetype <- s[2]
 
-            if(!is.character(name))                                     err('State name must be a string')
-            if(!(statetype == 'inclusive' || statetype == 'exclusive')) err("State type for state must be 'inclusive' or 'exclusive'")
-            if(name %in% names(self$stateinfo))                         err(sprintf("State '%s' already defined", name))
+            if(!is.character(name)) {
+              self$log$error('State name must be a string')
+              self$error <- TRUE
+              next
+            }
+            if(!(statetype == 'inclusive' || statetype == 'exclusive')) {
+              self$log$error("State type for state must be 'inclusive' or 'exclusive'")
+              self$error <- TRUE
+              next
+            }
+            if(name %in% names(self$stateinfo)) {
+              self$log$error(sprintf("State '%s' already defined", name))
+              self$error <- TRUE
+              next
+            }
             
             self$stateinfo[[name]] <- statetype
           }
@@ -432,7 +466,11 @@ LexerReflect <- R6Class("LexerReflect",
         self$strsym[[s]] <- list()
       }
 
-      if(length(tsymbols) == 0) err('No rules of the form t_rulename are defined')
+      if(length(tsymbols) == 0) {
+        self$log$error('No rules of the form t_rulename are defined')
+        self$error <- TRUE
+        return()
+      }
 
       for(f in tsymbols) {
         t <- self$instance[[f]]
@@ -444,15 +482,22 @@ LexerReflect <- R6Class("LexerReflect",
         if(typeof(t) == 'closure') {
           if(tokname == 'error')       for(s in states) self$errorf[[s]] <- t
           else if(tokname == 'eof')    for(s in states) self$eoff[[s]]   <- t
-          else if(tokname == 'ignore') err(sprintf("Rule '%s' must be defined as a string", f))
-          else                         for(s in states) self$funcsym[[s]][[length(self$funcsym[[s]])+1]] <- list(f, t)
+          else if(tokname == 'ignore') {
+            self$log$error(sprintf("Rule '%s' must be defined as a string", f))
+            self$error <- TRUE
+          } else                         for(s in states) self$funcsym[[s]][[length(self$funcsym[[s]])+1]] <- list(f, t)
         } else if(typeof(t) == 'character') {
           if(tokname == 'ignore') {
             for(s in states) self$ignore[[s]] <- t
-            if('\\' %in% t) wrn("%s contains a literal backslash '\\'", f)
-          } else if(tokname == 'error') err(sprintf("Rule '%s' must be defined as a function", f))
-          else                          for(s in states) self$strsym[[s]][[length(self$strsym[[s]])+1]] <- list(f, t)
-        } else                          err(sprintf('%s not defined as a function or string', f))
+            if('\\' %in% t) self$log$warn("%s contains a literal backslash '\\'", f)
+          } else if(tokname == 'error') {
+            self$log$error(sprintf("Rule '%s' must be defined as a function", f))
+            self$error <- TRUE
+          } else for(s in states) self$strsym[[s]][[length(self$strsym[[s]])+1]] <- list(f, t)
+        } else {
+          self$log$error(sprintf('%s not defined as a function or string', f))
+          self$error <- TRUE
+        }
       }
     },
     # Validate all of the t_rules collected
@@ -466,12 +511,30 @@ LexerReflect <- R6Class("LexerReflect",
           tokname <- self$toknames[[fname]]
           reqargs <- 2
           nargs <- length(formals(f))
-          if(nargs > reqargs)       err(sprintf("Rule '%s' has too many arguments", fname))
-          if(nargs < reqargs)       err(sprintf("Rule '%s' requires an argument", fname))
-          if(is.null(get_regex(f))) err(sprintf("No regular expression defined for rule '%s'", fname))
+          if(nargs > reqargs) {
+            self$log$error(sprintf("Rule '%s' has too many arguments", fname))
+            self$error <- TRUE
+            next
+          }
+          if(nargs < reqargs) {
+            self$log$error(sprintf("Rule '%s' requires an argument", fname))
+            self$error <- TRUE
+            next
+          }
+          if(is.null(get_regex(f))) {
+            self$log$error(sprintf("No regular expression defined for rule '%s'", fname))
+            self$error <- TRUE
+            next
+          }
           tryCatch({
-          	if(grepl(get_regex(f), '', perl=TRUE)) err(sprintf("Regular expression for rule '%s' matches empty string", fname))
-          }, error = function(e) { if(startsWith(e[[1]], "ERROR>")) stop(e[[1]]) else err(sprintf("Invalid regular expression for rule '%s'", name))})
+          	if(grepl(get_regex(f), '', perl=TRUE)) {
+              self$log$error(sprintf("Regular expression for rule '%s' matches empty string", fname))
+              self$error <- TRUE
+            }
+          }, error = function(e) { 
+            self$log$error(sprintf("Invalid regular expression for rule '%s'", name))
+            self$error <- TRUE
+          })
         }
 
         # Validate all rules defined by strings
@@ -479,14 +542,31 @@ LexerReflect <- R6Class("LexerReflect",
           name <- nr[[1]]
           r <- nr[[2]]
           tokname <- self$toknames[[name]]
-          if(tokname == 'error')                                        err(sprintf("Rule '%s' must be defined as a function", name))
-          if(!(tokname %in% self$tokens) && !grepl(tokname, 'ignore_')) err(sprintf("Rule '%s' defined for an unspecified token %s", name, tokname))
+          if(tokname == 'error') {
+            self$log$error(sprintf("Rule '%s' must be defined as a function", name))
+            self$error <- TRUE
+            next
+          }
+          if(!(tokname %in% self$tokens) && !grepl(tokname, 'ignore_')) {
+            self$log$error(sprintf("Rule '%s' defined for an unspecified token %s", name, tokname))
+            self$error <- TRUE
+            next
+          }
           tryCatch({
-          	if(grepl(r, '', perl=TRUE)) err(sprintf("Regular expression for rule '%s' matches empty string", name))
-          }, error = function(e) { if(startsWith(e[[1]], "ERROR>")) stop(e[[1]]) else err(sprintf("Invalid regular expression for rule '%s'", name))})
+          	if(grepl(r, '', perl=TRUE)) {
+              self$log$error(sprintf("Regular expression for rule '%s' matches empty string", name))
+              self$error <- TRUE
+            }
+          }, error = function(e) { 
+            self$log$error(sprintf("Invalid regular expression for rule '%s'", name))
+            self$error <- TRUE
+          })
         }
 
-        if(length(self$funcsym[[state]]) == 0 && length(self$strsym[[state]]) == 0) err(sprintf("No rules defined for state '%s'", state))
+        if(length(self$funcsym[[state]]) == 0 && length(self$strsym[[state]]) == 0) {
+          self$log$error(sprintf("No rules defined for state '%s'", state))
+          self$error <- TRUE
+        }
 
         # Validate the error function
         efunc <- self$errorf[[state]]
@@ -494,8 +574,14 @@ LexerReflect <- R6Class("LexerReflect",
           f <- efunc
           reqargs <- 1
           nargs <- length(formals(f))
-          if(nargs > reqargs) err("Rule error has too many arguments")
-          if(nargs < reqargs) err("Rule error requires an argument")
+          if(nargs > reqargs) {
+            self$log$error("Rule error has too many arguments")
+            self$error <- TRUE
+          }
+          if(nargs < reqargs) {
+            self$log$error("Rule error requires an argument")
+            self$error <- TRUE
+          }
         }
       }
     }
@@ -522,7 +608,7 @@ lex = function(module=NA,
   # Collect parser information
   linfo = LexerReflect$new(module, instance, log=errorlog)
   linfo$get_all()
-  linfo$validate_all()
+  if(linfo$validate_all()) stop("Can't build lexer")
 
   # Dump some basic debugging information
   if(debug) {

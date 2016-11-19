@@ -27,5 +27,6 @@ Lexer <- R6Class("Lexer",
 )
 
 test_that("comment", {
-  expect_error(rly::lex(Lexer), "ERROR> State name must be a string")
+  expect_output(expect_error(rly::lex(Lexer), "Can't build lexer"),
+  "ERROR .* State name must be a string")
 })

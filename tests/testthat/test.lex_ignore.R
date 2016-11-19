@@ -17,5 +17,6 @@ Lexer <- R6Class("Lexer",
 )
 
 test_that("t_ignore improper", {
-  expect_error(rly::lex(Lexer), "ERROR> Rule 't_ignore' must be defined as a string")
+  expect_output(expect_error(rly::lex(Lexer), "Can't build lexer"),
+  "ERROR .* Rule 't_ignore' must be defined as a string")
 })
