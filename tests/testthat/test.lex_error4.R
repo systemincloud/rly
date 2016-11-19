@@ -16,5 +16,5 @@ Lexer <- R6Class("Lexer",
 )
 
 test_that("t_error too many arg", {
-  expect_error(rly::lex(Lexer), "ERROR> Rule error has too many arguments\n")
+  expect_error(rly::lex(Lexer), "ERROR> Rule error has too many arguments")
 })
