@@ -2189,7 +2189,7 @@ yacc = function(module=NA,
       grammar$add_production(prodname, syms, funcname)
     }, error = function(e) {
       errorlog$error(e)
-      errors <- TRUE
+      stop('Unable to build parser')
     })
   }
   
