@@ -12,5 +12,5 @@ Lexer <- R6Class("Lexer",
 )
 
 test_that("missing rules", {
-  expect_error(rly::lex(Lexer), "ERROR> No rules of the form t_rulename are defined\n")
+  expect_error(rly::lex(Lexer), "ERROR> No rules of the form t_rulename are defined")
 })
