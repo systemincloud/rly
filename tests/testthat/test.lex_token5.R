@@ -16,7 +16,6 @@ Lexer <- R6Class("Lexer",
     },
     t_ignore = " \t",
     t_error = function(t) {
-      cat("XXXX")
       return(t)
     }
   )
