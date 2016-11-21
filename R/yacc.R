@@ -66,6 +66,8 @@
 #' 
 #' @param x  environment
 #' @return The address of the object
+#' 
+#' @importFrom utils capture.output
 id = function(x) substring(capture.output(.Internal(inspect(x, 1)))[1],2,8)
 
 #' Generate random string.
