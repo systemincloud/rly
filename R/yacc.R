@@ -56,10 +56,30 @@
 
 '%nin%' <- Negate('%in%')
 
+#' Unique identificator of environment object.
+#' 
+#' This function is retrieving an phisical address for an 
+#' environment object using R internal inspect function
+#' 
+#' @usage
+#' id(x)
+#' 
+#' @param x  environment
+#' @return The address of the object
 id = function(x) substring(capture.output(.Internal(inspect(x, 1)))[1],2,8)
 
-randomString <- function(lenght=12) {
-  return(paste(sample(c(0:9, letters, LETTERS), lenght, replace=TRUE), collapse=""))
+#' Generate random string.
+#' 
+#' This function generates a random string 
+#' of a given length only from letters
+#' 
+#' @usage
+#' randomString(lenght=12)
+#' 
+#' @param length  expected number of characters
+#' @return Random string
+randomString <- function(length=12) {
+  return(paste(sample(c(0:9, letters, LETTERS), length, replace=TRUE), collapse=""))
 }
 
 format_result = function(r) {
@@ -73,13 +93,13 @@ format_stack_entry = function(r) {
   return(toString(r$value))
 }
 
-#'-----------------------------------------------------------------------------
-#'                        ===  LR Parsing Engine ===
-#'
-#' The following classes are used for the LR parser itself.  These are not
-#' used during table construction and are independent of the actual LR
-#' table generation algorithm
-#'-----------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
+#                        ===  LR Parsing Engine ===
+#
+# The following classes are used for the LR parser itself.  These are not
+# used during table construction and are independent of the actual LR
+# table generation algorithm
+#-----------------------------------------------------------------------------
 
 
 #' This class is used to hold non-terminal grammar symbols during parsing.

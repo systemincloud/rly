@@ -63,14 +63,15 @@
 #' it into RLY.
 #' 
 #' @usage
-#' debuglog <- RlyLogger$new()
-#' debuglog <- RlyLogger$new(dir=NA, name=NA)
+#' RlyLogger$new(dir=NA, name=NA)
 #' 
 #' @param dir  A Directory where the debug file will be written
 #' @param name The name of the log file
 #' 
 #' @docType class
-#' @importFrom R6 R6Class futile.logger
+#' @importFrom R6 R6Class
+#' @importFrom futile.logger flog.error flog.warn flog.info flog.debug
+#' @importFrom futile.logger flog.appender 
 #' @format A \code{\link{R6Class}} object
 #' 
 #' @export
@@ -98,7 +99,7 @@ RlyLogger <- R6Class("RlyLogger",
 #' Does nothing.
 #' 
 #' @usage
-#' debuglog <- NullLogger$new()
+#' NullLogger$new()
 #' 
 #' @docType class
 #' @importFrom R6 R6Class

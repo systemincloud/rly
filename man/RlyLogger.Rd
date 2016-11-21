@@ -6,8 +6,7 @@
 \title{Print log message to file or console.}
 \format{A \code{\link{R6Class}} object}
 \usage{
-debuglog <- RlyLogger$new()
-debuglog <- RlyLogger$new(dir=NA, name=NA)
+RlyLogger$new(dir=NA, name=NA)
 }
 \arguments{
 \item{dir}{A Directory where the debug file will be written}

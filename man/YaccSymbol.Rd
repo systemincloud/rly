@@ -3,17 +3,19 @@
 \docType{class}
 \name{YaccSymbol}
 \alias{YaccSymbol}
-\title{-----------------------------------------------------------------------------
-                       ===  LR Parsing Engine ===}
+\title{This class is used to hold non-terminal grammar symbols during parsing.
+It normally has the following attributes set:
+       .type       = Grammar symbol type
+       .value      = Symbol value
+       .lineno     = Starting line number
+       .endlineno  = Ending line number (optional, set automatically)
+       .lexpos     = Starting lex position
+       .endlexpos  = Ending lex position (optional, set automatically)}
 \format{An \code{\link{R6Class}} generator object}
 \usage{
 YaccSymbol
 }
 \description{
-The following classes are used for the LR parser itself.  These are not
-used during table construction and are independent of the actual LR
-table generation algorithm
------------------------------------------------------------------------------
 This class is used to hold non-terminal grammar symbols during parsing.
 It normally has the following attributes set:
        .type       = Grammar symbol type
