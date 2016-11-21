@@ -6,7 +6,7 @@
 \title{Null logger is used when no output should be generated.}
 \format{A \code{\link{R6Class}} object}
 \usage{
-NullLogger$new()
+NullLogger
 }
 \description{
 Does nothing.

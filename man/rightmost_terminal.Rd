@@ -2,13 +2,19 @@
 % Please edit documentation in R/yacc.R
 \name{rightmost_terminal}
 \alias{rightmost_terminal}
-\title{-----------------------------------------------------------------------------
-rightmost_terminal()}
+\title{Rightmost terminal}
 \usage{
 rightmost_terminal(symbols, terminals)
 }
+\arguments{
+\item{symbols}{list of symbols}
+
+\item{terminals}{list of terminals}
+}
+\value{
+rightmost terminal
+}
 \description{
 Return the rightmost terminal from a list of symbols.  Used in add_production()
------------------------------------------------------------------------------
 }
 

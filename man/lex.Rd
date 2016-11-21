@@ -2,10 +2,24 @@
 % Please edit documentation in R/lex.R
 \name{lex}
 \alias{lex}
-\title{Build all of the regular expression rules from definitions in the supplied module}
+\title{Build a lexer}
 \usage{
 lex(module = NA, args = list(), debug = FALSE, debuglog = NA,
   errorlog = NA)
+}
+\arguments{
+\item{module}{R6 class containing lex rules}
+
+\item{args}{list of arguments that should be passed to constructor}
+
+\item{debug}{on and off debug mode}
+
+\item{debuglog}{custom logger for debug messages}
+
+\item{errorlog}{custom logger for error messages}
+}
+\value{
+Lexer ready to use
 }
 \description{
 Build all of the regular expression rules from definitions in the supplied module

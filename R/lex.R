@@ -649,7 +649,18 @@ LexerReflect <- R6Class("LexerReflect",
 )
 
 
+#' Build a lexer
+#' 
 #' Build all of the regular expression rules from definitions in the supplied module
+#' 
+#' @param module R6 class containing lex rules
+#' @param args list of arguments that should be passed to constructor
+#' @param debug on and off debug mode
+#' @param debuglog custom logger for debug messages
+#' @param errorlog custom logger for error messages
+#' 
+#' @return Lexer ready to use
+#' 
 #' @export
 lex = function(module=NA,
                args=list(),

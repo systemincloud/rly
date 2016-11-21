@@ -595,11 +595,14 @@ LRItem <- R6Class("LRItem",
   )
 )
 
-#' -----------------------------------------------------------------------------
-#' rightmost_terminal()
+#' Rightmost terminal
 #'
 #' Return the rightmost terminal from a list of symbols.  Used in add_production()
-#' -----------------------------------------------------------------------------
+#' 
+#' @param symbols list of symbols
+#' @param terminals list of terminals
+#' 
+#' @return rightmost terminal
 rightmost_terminal = function(symbols, terminals) {
   i <- length(symbols) - 1
   while(i >= 1) {
