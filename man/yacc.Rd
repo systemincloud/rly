@@ -8,7 +8,31 @@ yacc(module = NA, args = list(), method = "LALR", debug = FALSE,
   start = NA, check_recursion = TRUE, debugfile = "parser.out",
   outputdir = NA, debuglog = NA, errorlog = NA)
 }
+\arguments{
+\item{module}{R6 class containing rules}
+
+\item{args}{list of arguments that should be passed to constructor}
+
+\item{method}{type of algorithm}
+
+\item{debug}{on and off debug mode}
+
+\item{start}{provide custom start method}
+
+\item{check_recursion}{should yacc look for recursions in rules}
+
+\item{debugfile}{the name of the custom debug output logs}
+
+\item{outputdir}{the dierectory of custom debug logs}
+
+\item{debuglog}{custom logger for debug messages}
+
+\item{errorlog}{custom logger for error messages}
+}
+\value{
+Parser ready to use
+}
 \description{
-Build a parser
+This function is entry point to the library
 }
 

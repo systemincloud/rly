@@ -6,7 +6,7 @@
 \title{Non-terminal grammar symbol}
 \format{An \code{\link{R6Class}} generator object}
 \usage{
-YaccSymbol$new()
+YaccSymbol
 }
 \description{
 This class is used to hold non-terminal grammar symbols during parsing.

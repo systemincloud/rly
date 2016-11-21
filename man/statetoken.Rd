@@ -2,9 +2,17 @@
 % Please edit documentation in R/lex.R
 \name{statetoken}
 \alias{statetoken}
-\title{def _statetoken(s,names)}
+\title{State-Token tuple}
 \usage{
 statetoken(s, names)
+}
+\arguments{
+\item{s}{rule name}
+
+\item{names}{state names}
+}
+\value{
+(states,tokenname) tuple
 }
 \description{
 Given a declaration name s of the form "t_" and a dictionary whose keys are

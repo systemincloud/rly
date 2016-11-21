@@ -98,9 +98,6 @@ RlyLogger <- R6Class("RlyLogger",
 #'
 #' Does nothing.
 #' 
-#' @usage
-#' NullLogger$new()
-#' 
 #' @docType class
 #' @importFrom R6 R6Class
 #' @format A \code{\link{R6Class}} object

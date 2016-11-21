@@ -117,9 +117,6 @@ format_stack_entry = function(r) {
 #'  \item endlexpos - Ending lex position (optional, set automatically)
 #' }
 #'
-#' @usage
-#' YaccSymbol$new()
-#' 
 #' @docType class
 #' @importFrom R6 R6Class
 #' @format An \code{\link{R6Class}} generator object
@@ -2225,6 +2222,22 @@ ParserReflect <- R6Class("ParserReflect",
 
 
 #' Build a parser
+#' 
+#' This function is entry point to the library
+#' 
+#' @param module R6 class containing rules
+#' @param args list of arguments that should be passed to constructor
+#' @param method type of algorithm
+#' @param debug on and off debug mode
+#' @param start provide custom start method
+#' @param check_recursion should yacc look for recursions in rules
+#' @param debugfile the name of the custom debug output logs
+#' @param outputdir the dierectory of custom debug logs
+#' @param debuglog custom logger for debug messages
+#' @param errorlog custom logger for error messages
+#' 
+#' @return Parser ready to use
+#' 
 #' @export
 yacc = function(module=NA,
                 args=list(),
