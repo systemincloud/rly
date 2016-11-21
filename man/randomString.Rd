@@ -4,7 +4,7 @@
 \alias{randomString}
 \title{Generate random string.}
 \usage{
-randomString(lenght=12)
+randomString(length=12)
 }
 \arguments{
 \item{length}{expected number of characters}

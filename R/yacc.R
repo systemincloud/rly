@@ -74,7 +74,7 @@ id = function(x) substring(capture.output(.Internal(inspect(x, 1)))[1],2,8)
 #' of a given length only from letters
 #' 
 #' @usage
-#' randomString(lenght=12)
+#' randomString(length=12)
 #' 
 #' @param length  expected number of characters
 #' @return Random string
@@ -1761,7 +1761,7 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
                       st_actionp[[a]] <- p
                       if(!is.null(slevel) && !is.null(rlevel)) {
                         log$info(sprintf('  ! shift/reduce conflict for %s resolved as reduce', a))
-                        self$sr_conflicts[[lenght(self$sr_conflicts)+1]] <- c(st, a, 'reduce')
+                        self$sr_conflicts[[length(self$sr_conflicts)+1]] <- c(st, a, 'reduce')
                       }
                       Productions[[p$number]]$reduced <- Productions[[p$number]]$reduced + 1
                     } else if((slevel == rlevel) && (rprec == 'nonassoc')) {
