@@ -6,7 +6,7 @@
 \title{Object sent to grammar rule}
 \format{An \code{\link{R6Class}} generator object}
 \usage{
-YaccProduction$new(s, stack=NA)
+YaccProduction
 }
 \description{
 This class is a wrapper around the objects actually passed to each

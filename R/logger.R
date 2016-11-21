@@ -61,13 +61,7 @@
 #' such as the parser.out file. If a user wants more detailed
 #' information, they can create their own logging object and pass
 #' it into RLY.
-#' 
-#' @usage
-#' RlyLogger$new(dir=NA, name=NA)
-#' 
-#' @param dir  A Directory where the debug file will be written
-#' @param name The name of the log file
-#' 
+#' ' 
 #' @docType class
 #' @importFrom R6 R6Class
 #' @importFrom futile.logger flog.error flog.warn flog.info flog.debug

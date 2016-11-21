@@ -56,30 +56,30 @@
 
 '%nin%' <- Negate('%in%')
 
-#' Unique identificator of environment object.
-#' 
-#' This function is retrieving an phisical address for an 
-#' environment object using R internal inspect function
-#' 
-#' @usage
-#' id(x)
-#' 
-#' @param x  environment
-#' @return The address of the object
-#' 
+# Unique identificator of environment object
+# 
+# This function is retrieving an phisical address for an 
+# environment object using R internal inspect function
+# 
+# @usage
+# id(x)
+# 
+# @param x  environment
+# @return The address of the object
+# 
 #' @importFrom utils capture.output
 id = function(x) substring(capture.output(.Internal(inspect(x, 1)))[1],2,8)
 
-#' Generate random string.
-#' 
-#' This function generates a random string 
-#' of a given length only from letters
-#' 
-#' @usage
-#' randomString(length=12)
-#' 
-#' @param length  expected number of characters
-#' @return Random string
+# Generate random string
+# 
+# This function generates a random string 
+# of a given length only from letters
+# 
+# @usage
+# randomString(length=12)
+# 
+# @param length  expected number of characters
+# @return Random string
 randomString <- function(length=12) {
   return(paste(sample(c(0:9, letters, LETTERS), length, replace=TRUE), collapse=""))
 }
@@ -104,22 +104,22 @@ format_stack_entry = function(r) {
 #-----------------------------------------------------------------------------
 
 
-#' Non-terminal grammar symbol
-#' 
-#' This class is used to hold non-terminal grammar symbols during parsing.
-#' It normally has the following attributes set:
-#' \itemize{
-#'  \item type      - Grammar symbol type
-#'  \item value     - Symbol value
-#'  \item lineno    - Starting line number
-#'  \item endlineno - Ending line number (optional, set automatically)
-#'  \item lexpos    - Starting lex position
-#'  \item endlexpos - Ending lex position (optional, set automatically)
-#' }
-#'
-#' @docType class
-#' @importFrom R6 R6Class
-#' @format An \code{\link{R6Class}} generator object
+# Non-terminal grammar symbol
+# 
+# This class is used to hold non-terminal grammar symbols during parsing.
+# It normally has the following attributes set:
+# \itemize{
+#  \item type      - Grammar symbol type
+#  \item value     - Symbol value
+#  \item lineno    - Starting line number
+#  \item endlineno - Ending line number (optional, set automatically)
+#  \item lexpos    - Starting lex position
+#  \item endlexpos - Ending lex position (optional, set automatically)
+# }
+#
+# @docType class
+# @importFrom R6 R6Class
+# @format An \code{\link{R6Class}} generator object
 YaccSymbol <- R6Class("YaccSymbol",
   public = list(
     type = NA,
@@ -141,9 +141,6 @@ YaccSymbol <- R6Class("YaccSymbol",
 #' a tuple of (startline,endline) representing the range of lines
 #' for a symbol.  The lexspan() method returns a tuple (lexpos,endlexpos)
 #' representing the range of positional information for a symbol.
-#'
-#' @usage
-#' YaccProduction$new(s, stack=NA)
 #' 
 #' @docType class
 #' @importFrom R6 R6Class
@@ -175,11 +172,8 @@ YaccProduction <- R6Class("YaccProduction",
 )
 
 
-#' -----------------------------------------------------------------------------
-#'                               == LRParser ==
-#'
-#' The LR Parsing engine.
-#' -----------------------------------------------------------------------------
+#' The LR Parsing engine
+#' 
 #' @docType class
 #' @importFrom R6 R6Class
 #' @format An \code{\link{R6Class}} generator object
@@ -448,43 +442,42 @@ LRParser <- R6Class("LRParser",
 )
 
 
-#' -----------------------------------------------------------------------------
-#'                          === Grammar Representation ===
-#'
-#' The following functions, classes, and variables are used to represent and
-#' manipulate the rules that make up a grammar.
-#' -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+#                          === Grammar Representation ===
+#
+# The following functions, classes, and variables are used to represent and
+# manipulate the rules that make up a grammar.
+# -----------------------------------------------------------------------------
 
-#' regex matching identifiers
+# regex matching identifiers
 is_identifier <- '^[a-zA-Z0-9_-]+$'
 
 
-#' -----------------------------------------------------------------------------
-#' class Production:
-#'
-#' This class stores the raw information about a single production or grammar rule.
-#' A grammar rule refers to a specification such as this:
-#'
-#'       expr : expr PLUS term
-#'
-#' Here are the basic attributes defined on all productions
-#'
-#'       name     - Name of the production.  For example 'expr'
-#'       prod     - A list of symbols on the right side ['expr','PLUS','term']
-#'       prec     - Production precedence level
-#'       number   - Production number.
-#'       func     - Function that executes on reduce
-#'
-#' The following attributes are defined or optional.
-#'
-#'       len       - Length of the production (number of symbols on right hand side)
-#'       usyms     - Set of unique symbols found in the production
-#' -----------------------------------------------------------------------------
-#'
-#' @docType class
-#' @importFrom R6 R6Class
-#' @format An \code{\link{R6Class}} generator object
-#' @keywords data
+# Production
+#
+# This class stores the raw information about a single production or grammar rule.
+# A grammar rule refers to a specification such as this:
+#
+#       expr : expr PLUS term
+#
+# Here are the basic attributes defined on all productions
+#
+#       name     - Name of the production.  For example 'expr'
+#       prod     - A list of symbols on the right side ['expr','PLUS','term']
+#       prec     - Production precedence level
+#       number   - Production number.
+#       func     - Function that executes on reduce
+#
+# The following attributes are defined or optional.
+#
+#       len       - Length of the production (number of symbols on right hand side)
+#       usyms     - Set of unique symbols found in the production
+# -----------------------------------------------------------------------------
+#
+# @docType class
+# @importFrom R6 R6Class
+# @format An \code{\link{R6Class}} generator object
+# @keywords data
 Production <- R6Class("Production",
   public = list(
     reduced   = 0,
@@ -534,34 +527,33 @@ Production <- R6Class("Production",
 )
 
 
-#' -----------------------------------------------------------------------------
-#' class LRItem
-#'
-#' This class represents a specific stage of parsing a production rule.  For
-#' example:
-#'
-#'       expr : expr . PLUS term
-#'
-#' In the above, the "." represents the current location of the parse.  Here
-#' basic attributes:
-#'
-#'       name       - Name of the production.  For example 'expr'
-#'       prod       - A list of symbols on the right side ['expr','.', 'PLUS','term']
-#'       number     - Production number.
-#'
-#'       lr_next      Next LR item. Example, if we are ' expr -> expr . PLUS term'
-#'                    then lr_next refers to 'expr -> expr PLUS . term'
-#'       lr_index   - LR item index (location of the ".") in the prod list.
-#'       lookaheads - LALR lookahead symbols for this item
-#'       len        - Length of the production (number of symbols on right hand side)
-#'       lr_after    - List of all productions that immediately follow
-#'       lr_before   - Grammar symbol immediately before
-#' -----------------------------------------------------------------------------
-#'
-#' @docType class
-#' @importFrom R6 R6Class
-#' @format An \code{\link{R6Class}} generator object
-#' @keywords data
+# LRItem
+#
+# This class represents a specific stage of parsing a production rule.  For
+# example:
+#
+#       expr : expr . PLUS term
+#
+# In the above, the "." represents the current location of the parse.  Here
+# basic attributes:
+#
+#       name       - Name of the production.  For example 'expr'
+#       prod       - A list of symbols on the right side ['expr','.', 'PLUS','term']
+#       number     - Production number.
+#
+#       lr_next      Next LR item. Example, if we are ' expr -> expr . PLUS term'
+#                    then lr_next refers to 'expr -> expr PLUS . term'
+#       lr_index   - LR item index (location of the ".") in the prod list.
+#       lookaheads - LALR lookahead symbols for this item
+#       len        - Length of the production (number of symbols on right hand side)
+#       lr_after    - List of all productions that immediately follow
+#       lr_before   - Grammar symbol immediately before
+# -----------------------------------------------------------------------------
+#
+# @docType class
+# @importFrom R6 R6Class
+# @format An \code{\link{R6Class}} generator object
+# @keywords data
 LRItem <- R6Class("LRItem",
   public = list(
     name       = NA,
@@ -595,14 +587,14 @@ LRItem <- R6Class("LRItem",
   )
 )
 
-#' Rightmost terminal
-#'
-#' Return the rightmost terminal from a list of symbols.  Used in add_production()
-#' 
-#' @param symbols list of symbols
-#' @param terminals list of terminals
-#' 
-#' @return rightmost terminal
+# Rightmost terminal
+#
+# Return the rightmost terminal from a list of symbols.  Used in add_production()
+# 
+# @param symbols list of symbols
+# @param terminals list of terminals
+# 
+# @return rightmost terminal
 rightmost_terminal = function(symbols, terminals) {
   i <- length(symbols) - 1
   while(i >= 1) {
@@ -613,18 +605,15 @@ rightmost_terminal = function(symbols, terminals) {
 }
 
 
-#' -----------------------------------------------------------------------------
-#'                           === GRAMMAR CLASS ===
-#'
-#' The following class represents the contents of the specified grammar along
-#' with various computed properties such as first sets, follow sets, LR items, etc.
-#' This data is used for critical parts of the table generation process later.
-#' -----------------------------------------------------------------------------
-#'
-#' @docType class
-#' @importFrom R6 R6Class
-#' @format An \code{\link{R6Class}} generator object
-#' @keywords data
+# Grammar
+#
+# The following class represents the contents of the specified grammar along
+# with various computed properties such as first sets, follow sets, LR items, etc.
+# This data is used for critical parts of the table generation process later.
+#
+# @docType class
+# @importFrom R6 R6Class
+# @format An \code{\link{R6Class}} generator object
 Grammar <- R6Class("Grammar",
   public = list(
     Productions    = NA,
@@ -1108,23 +1097,6 @@ Grammar <- R6Class("Grammar",
   )
 )
 
-#' -----------------------------------------------------------------------------
-#'                            == Class LRTable ==
-#'
-#' This basic class represents a basic table of LR parsing information.
-#' Methods for generating the tables are not defined here.  They are defined
-#' in the derived class LRGeneratedTable.
-#' -----------------------------------------------------------------------------
-#'
-#' @docType class
-#' @importFrom R6 R6Class
-#' @format An \code{\link{R6Class}} generator object
-#' @keywords data
-LRTable <- R6Class("LRTable",
-  public = list(
-  )
-)
-
 
 # -----------------------------------------------------------------------------
 #                           === LR Generator ===
@@ -1134,18 +1106,17 @@ LRTable <- R6Class("LRTable",
 # -----------------------------------------------------------------------------
 
 
-#'  LRGeneratedTable
-#'
-#' This class implements the LR table generation algorithm.  There are no
-#' public methods
-#' -----------------------------------------------------------------------------
-#'
-#' @docType class
-#' @importFrom R6 R6Class
-#' @format An \code{\link{R6Class}} generator object
-#' @keywords data
+#  LRGeneratedTable
+#
+# This class implements the LR table generation algorithm.  There are no
+# public methods
+# -----------------------------------------------------------------------------
+#
+# @docType class
+# @importFrom R6 R6Class
+# @format An \code{\link{R6Class}} generator object
+# @keywords data
 LRGeneratedTable <- R6Class("LRGeneratedTable",
-  inherit = LRTable,
   public = list(
     grammar        = NA,
     lr_method      = NA,
@@ -1948,17 +1919,17 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
 # introspection features followed by the yacc() function itself.
 # -----------------------------------------------------------------------------
 
-#' Parse user's grammar
-#'
-#' This takes a raw grammar rule string and parses it into production data
-#' 
-#' @usage
-#' parse_grammar(name, doc)
-#' 
-#' @param name Name of the grammar method
-#' @param doc Rule description
-#' @return grammar
-#' 
+# Parse user's grammar
+#
+# This takes a raw grammar rule string and parses it into production data
+# 
+# @usage
+# parse_grammar(name, doc)
+# 
+# @param name Name of the grammar method
+# @param doc Rule description
+# @return grammar
+# 
 #' @importFrom utils tail
 parse_grammar = function(name, doc) {
   grammar <- list()
@@ -1993,16 +1964,15 @@ parse_grammar = function(name, doc) {
 }
 
 
-#' ParserReflect()
-#'
-#' This class represents information extracted for building a parser including
-#' start symbol, error function, tokens, precedence list, action functions,
-#' etc.
-#' -----------------------------------------------------------------------------
-#'
-#' @docType class
-#' @importFrom R6 R6Class
-#' @format An \code{\link{R6Class}} generator object
+# Parser Reflect
+#
+# This class represents information extracted for building a parser including
+# start symbol, error function, tokens, precedence list, action functions,
+# etc.
+#
+# @docType class
+# @importFrom R6 R6Class
+# @format An \code{\link{R6Class}} generator object
 ParserReflect <- R6Class("ParserReflect",
   public = list(
     module     = NA,

@@ -19,5 +19,5 @@ a few public methods and attributes:
 lineno           -  Current line number
   lexpos           -  Current position in the input string
 }
-\keyword{data}
+\keyword{datasets}
 

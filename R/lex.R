@@ -56,11 +56,18 @@
 
 '%nin%' <- Negate('%in%')
 
-#' This regular expression is used to match valid token names
+# This regular expression is used to match valid token names
 reg_is_identifier = '^[a-zA-Z0-9_]+$'
 
 
-#' Token class.  This class is used to represent the tokens produced.
+#' Lex Token
+#' 
+#' Token class.  This class is used to represent the tokens produced
+#' 
+#' @docType class
+#' @importFrom R6 R6Class
+#' @format An \code{\link{R6Class}} generator object
+#' 
 #' @export
 LexToken <- R6Class("LexToken",
   public = list(
@@ -94,7 +101,6 @@ LexToken <- R6Class("LexToken",
 #' @docType class
 #' @importFrom R6 R6Class
 #' @format An \code{\link{R6Class}} generator object
-#' @keywords data
 Lexer <- R6Class("Lexer",
   public = list(
     instance        = NA,
@@ -329,30 +335,30 @@ Lexer <- R6Class("Lexer",
 )
 
 
-#' Get regex from function
-#'
-#' Returns the regular expression assigned to a function.
-#' 
-#' @param func lexer function
-#' 
-#' @return regex
+# Get regex from function
+#
+# Returns the regular expression assigned to a function.
+# 
+# @param func lexer function
+# 
+# @return regex
 get_regex = function(func) {
   return(formals(func)[['re']])
 }
 
 
-#' State-Token tuple
-#'
-#' Given a declaration name s of the form "t_" and a dictionary whose keys are
-#' state names, this function returns a tuple (states,tokenname) where states
-#' is a tuple of state names and tokenname is the name of the token.  For example,
-#' calling this with s = "t_foo_bar_SPAM" might return (('foo','bar'),'SPAM')
-#' 
-#' @param s rule name
-#' @param names state names
-#' 
-#' @return (states,tokenname) tuple
-#' 
+# State-Token tuple
+#
+# Given a declaration name s of the form "t_" and a dictionary whose keys are
+# state names, this function returns a tuple (states,tokenname) where states
+# is a tuple of state names and tokenname is the name of the token.  For example,
+# calling this with s = "t_foo_bar_SPAM" might return (('foo','bar'),'SPAM')
+# 
+# @param s rule name
+# @param names state names
+# 
+# @return (states,tokenname) tuple
+# 
 #' @importFrom utils head
 statetoken = function(s, names) {
   nonstate <- 1
@@ -374,14 +380,14 @@ statetoken = function(s, names) {
 }
 
 
-#' Lexer Reflect
-#'
-#' This class represents information needed to build a lexer as extracted from a
-#' user's input file.
-#'
-#' @docType class
-#' @importFrom R6 R6Class
-#' @format An \code{\link{R6Class}} generator object
+# Lexer Reflect
+#
+# This class represents information needed to build a lexer as extracted from a
+# user's input file.
+#
+# @docType class
+# @importFrom R6 R6Class
+# @format An \code{\link{R6Class}} generator object
 LexerReflect <- R6Class("LexerReflect",
   public = list(
     module    = NA,

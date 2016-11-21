@@ -6,12 +6,7 @@
 \title{Print log message to file or console.}
 \format{A \code{\link{R6Class}} object}
 \usage{
-RlyLogger$new(dir=NA, name=NA)
-}
-\arguments{
-\item{dir}{A Directory where the debug file will be written}
-
-\item{name}{The name of the log file}
+RlyLogger
 }
 \description{
 This object is a stand-in for a logging object created by the
@@ -19,6 +14,7 @@ logging module. RLY will use this by default to create things
 such as the parser.out file. If a user wants more detailed
 information, they can create their own logging object and pass
 it into RLY.
+'
 }
 \examples{
 debuglog <- RlyLogger$new(".", "file.out")
