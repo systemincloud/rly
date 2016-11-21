@@ -3,27 +3,22 @@
 \docType{class}
 \name{YaccSymbol}
 \alias{YaccSymbol}
-\title{This class is used to hold non-terminal grammar symbols during parsing.
-It normally has the following attributes set:
-       .type       = Grammar symbol type
-       .value      = Symbol value
-       .lineno     = Starting line number
-       .endlineno  = Ending line number (optional, set automatically)
-       .lexpos     = Starting lex position
-       .endlexpos  = Ending lex position (optional, set automatically)}
+\title{Non-terminal grammar symbol}
 \format{An \code{\link{R6Class}} generator object}
 \usage{
-YaccSymbol
+YaccSymbol$new()
 }
 \description{
 This class is used to hold non-terminal grammar symbols during parsing.
 It normally has the following attributes set:
-       .type       = Grammar symbol type
-       .value      = Symbol value
-       .lineno     = Starting line number
-       .endlineno  = Ending line number (optional, set automatically)
-       .lexpos     = Starting lex position
-       .endlexpos  = Ending lex position (optional, set automatically)
+\itemize{
+ \item type      - Grammar symbol type
+ \item value     - Symbol value
+ \item lineno    - Starting line number
+ \item endlineno - Ending line number (optional, set automatically)
+ \item lexpos    - Starting lex position
+ \item endlexpos - Ending lex position (optional, set automatically)
 }
-\keyword{data}
+}
+\keyword{datasets}
 

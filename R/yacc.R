@@ -104,19 +104,25 @@ format_stack_entry = function(r) {
 #-----------------------------------------------------------------------------
 
 
+#' Non-terminal grammar symbol
+#' 
 #' This class is used to hold non-terminal grammar symbols during parsing.
 #' It normally has the following attributes set:
-#'        .type       = Grammar symbol type
-#'        .value      = Symbol value
-#'        .lineno     = Starting line number
-#'        .endlineno  = Ending line number (optional, set automatically)
-#'        .lexpos     = Starting lex position
-#'        .endlexpos  = Ending lex position (optional, set automatically)
+#' \itemize{
+#'  \item type      - Grammar symbol type
+#'  \item value     - Symbol value
+#'  \item lineno    - Starting line number
+#'  \item endlineno - Ending line number (optional, set automatically)
+#'  \item lexpos    - Starting lex position
+#'  \item endlexpos - Ending lex position (optional, set automatically)
+#' }
 #'
+#' @usage
+#' YaccSymbol$new()
+#' 
 #' @docType class
 #' @importFrom R6 R6Class
 #' @format An \code{\link{R6Class}} generator object
-#' @keywords data
 YaccSymbol <- R6Class("YaccSymbol",
   public = list(
     type = NA,
@@ -128,6 +134,8 @@ YaccSymbol <- R6Class("YaccSymbol",
 )
 
 
+#' Object sent to grammar rule
+#' 
 #' This class is a wrapper around the objects actually passed to each
 #' grammar rule. Index lookup and assignment actually assign the
 #' .value attribute of the underlying YaccSymbol object.
@@ -137,10 +145,12 @@ YaccSymbol <- R6Class("YaccSymbol",
 #' for a symbol.  The lexspan() method returns a tuple (lexpos,endlexpos)
 #' representing the range of positional information for a symbol.
 #'
+#' @usage
+#' YaccProduction$new(s, stack=NA)
+#' 
 #' @docType class
 #' @importFrom R6 R6Class
 #' @format An \code{\link{R6Class}} generator object
-#' @keywords data
 YaccProduction <- R6Class("YaccProduction",
   public = list(
     slice = NA,

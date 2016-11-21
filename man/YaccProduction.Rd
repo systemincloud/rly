@@ -3,17 +3,10 @@
 \docType{class}
 \name{YaccProduction}
 \alias{YaccProduction}
-\title{This class is a wrapper around the objects actually passed to each
-grammar rule. Index lookup and assignment actually assign the
-.value attribute of the underlying YaccSymbol object.
-The lineno() method returns the line number of a given
-item (or 0 if not defined).   The linespan() method returns
-a tuple of (startline,endline) representing the range of lines
-for a symbol.  The lexspan() method returns a tuple (lexpos,endlexpos)
-representing the range of positional information for a symbol.}
+\title{Object sent to grammar rule}
 \format{An \code{\link{R6Class}} generator object}
 \usage{
-YaccProduction
+YaccProduction$new(s, stack=NA)
 }
 \description{
 This class is a wrapper around the objects actually passed to each
@@ -25,5 +18,5 @@ a tuple of (startline,endline) representing the range of lines
 for a symbol.  The lexspan() method returns a tuple (lexpos,endlexpos)
 representing the range of positional information for a symbol.
 }
-\keyword{data}
+\keyword{datasets}
 
