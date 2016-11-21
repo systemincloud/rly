@@ -80,7 +80,8 @@ LexToken <- R6Class("LexToken",
 )
 
 
-#' === Lexing Engine ===
+#' Lexing Engine
+#' 
 #' The following Lexer class implements the lexer runtime. There are only
 #' a few public methods and attributes:
 #'   input()          -  Store a new string in the lexer
@@ -149,18 +150,18 @@ Lexer <- R6Class("Lexer",
       self$lineno          <- 1
       self$lexoptimize     <- FALSE
     },
-    #' ------------------------------------------------------------
-    #' input() - Push a new string into the lexer
-    #' ------------------------------------------------------------
+    # ------------------------------------------------------------
+    # input() - Push a new string into the lexer
+    # ------------------------------------------------------------
     input = function(s) {
       if(!is.character(s)) stop('Expected a string')
       self$lexdata <- s
       self$lexpos  <- 1
       self$lexlen  <- nchar(s)
     },
-    #' ------------------------------------------------------------
-    #' begin() - Changes the lexing state
-    #' ------------------------------------------------------------
+    # ------------------------------------------------------------
+    # begin() - Changes the lexing state
+    # ------------------------------------------------------------
     begin = function(state) {
       if(!(state %in% names(self$lexstatere))) stop('Undefined state')
       self$lexre     <- self$lexstatere[[state]]
@@ -170,36 +171,36 @@ Lexer <- R6Class("Lexer",
       self$lexeoff   <- self$lexstateeoff[[state]]
       self$lexstate  <- state
     },
-    #' ------------------------------------------------------------
-    #' push_state() - Changes the lexing state and saves old on stack
-    #' ------------------------------------------------------------
+    # ------------------------------------------------------------
+    # push_state() - Changes the lexing state and saves old on stack
+    # ------------------------------------------------------------
     push_state = function(state) {
       self$lexstatestack <- append(self$lexstatestack, self$lexstate)
       self$begin(state)
     },
-    #' ------------------------------------------------------------
-    #' pop_state() - Restores the previous state
-    #' ------------------------------------------------------------
+    # ------------------------------------------------------------
+    # pop_state() - Restores the previous state
+    # ------------------------------------------------------------
     pop_state = function() {
       state <- tail(self$lexstatestack, 1)
       self$lexstatestack <- head(self$lexstatestack, -1)
       self$begin(state)
     },
-    #' ------------------------------------------------------------
-    #' current_state() - Returns the current lexing state
-    #' ------------------------------------------------------------
+    # ------------------------------------------------------------
+    # current_state() - Returns the current lexing state
+    # ------------------------------------------------------------
     current_state = function() {
       return(self$lexstate)
     },
-    #' ------------------------------------------------------------
-    #' skip() - Skip ahead n characters
-    #' ------------------------------------------------------------
+    # ------------------------------------------------------------
+    # skip() - Skip ahead n characters
+    # ------------------------------------------------------------
     skip = function(n) {
       self$lexpos <- self$lexpos + n
     },
-    #' ------------------------------------------------------------
-    #' opttoken() - Return the next token from the Lexer
-    #' ------------------------------------------------------------
+    # ------------------------------------------------------------
+    # opttoken() - Return the next token from the Lexer
+    # ------------------------------------------------------------
     token = function() {
       # Make local copies of frequently referenced attributes
       lexpos    <- self$lexpos
@@ -373,14 +374,14 @@ statetoken = function(s, names) {
 }
 
 
-#' LexerReflect
+#' Lexer Reflect
+#'
 #' This class represents information needed to build a lexer as extracted from a
 #' user's input file.
 #'
 #' @docType class
 #' @importFrom R6 R6Class
 #' @format An \code{\link{R6Class}} generator object
-#' @keywords data
 LexerReflect <- R6Class("LexerReflect",
   public = list(
     module    = NA,

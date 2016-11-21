@@ -3,17 +3,14 @@
 \docType{class}
 \name{LexerReflect}
 \alias{LexerReflect}
-\title{LexerReflect
-This class represents information needed to build a lexer as extracted from a
-user's input file.}
+\title{Lexer Reflect}
 \format{An \code{\link{R6Class}} generator object}
 \usage{
 LexerReflect
 }
 \description{
-LexerReflect
 This class represents information needed to build a lexer as extracted from a
 user's input file.
 }
-\keyword{data}
+\keyword{datasets}
 

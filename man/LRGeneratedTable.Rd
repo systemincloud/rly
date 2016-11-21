@@ -3,22 +3,14 @@
 \docType{class}
 \name{LRGeneratedTable}
 \alias{LRGeneratedTable}
-\title{-----------------------------------------------------------------------------
-                          === LR Generator ===}
+\title{LRGeneratedTable}
 \format{An \code{\link{R6Class}} generator object}
 \usage{
 LRGeneratedTable
 }
 \description{
-The following classes and functions are used to generate LR parsing tables on
-a grammar.
------------------------------------------------------------------------------
------------------------------------------------------------------------------
-                            == LRGeneratedTable ==
-}
-\details{
 This class implements the LR table generation algorithm.  There are no
-public methods except for write()
+public methods
 -----------------------------------------------------------------------------
 }
 \keyword{data}

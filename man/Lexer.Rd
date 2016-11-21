@@ -3,56 +3,21 @@
 \docType{class}
 \name{Lexer}
 \alias{Lexer}
-\title{=== Lexing Engine ===
-The following Lexer class implements the lexer runtime. There are only
-a few public methods and attributes:
-  input()          -  Store a new string in the lexer
-  token()          -  Get the next token
-  clone()          -  Clone the lexer}
+\title{Lexing Engine}
 \format{An \code{\link{R6Class}} generator object}
 \usage{
 Lexer
 }
 \description{
+The following Lexer class implements the lexer runtime. There are only
+a few public methods and attributes:
+  input()          -  Store a new string in the lexer
+  token()          -  Get the next token
+  clone()          -  Clone the lexer
+}
+\details{
 lineno           -  Current line number
   lexpos           -  Current position in the input string
 }
-\keyword{-}
-\keyword{------------------------------------------------------------}
-\keyword{Changes}
-\keyword{Lexer}
-\keyword{Push}
-\keyword{Restores}
-\keyword{Return}
-\keyword{Returns}
-\keyword{Skip}
-\keyword{a}
-\keyword{ahead}
-\keyword{and}
-\keyword{begin()}
-\keyword{characters}
-\keyword{current}
-\keyword{current_state()}
 \keyword{data}
-\keyword{from}
-\keyword{input()}
-\keyword{into}
-\keyword{lexer}
-\keyword{lexing}
-\keyword{n}
-\keyword{new}
-\keyword{next}
-\keyword{old}
-\keyword{on}
-\keyword{opttoken()}
-\keyword{pop_state()}
-\keyword{previous}
-\keyword{push_state()}
-\keyword{saves}
-\keyword{skip()}
-\keyword{stack}
-\keyword{state}
-\keyword{string}
-\keyword{the}
-\keyword{token}
 
