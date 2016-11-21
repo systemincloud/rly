@@ -328,11 +328,13 @@ Lexer <- R6Class("Lexer",
 )
 
 
-#' -----------------------------------------------------------------------------
-#' get_regex(func)
+#' Get regex from function
 #'
 #' Returns the regular expression assigned to a function.
-#' -----------------------------------------------------------------------------
+#' 
+#' @param func lexer function
+#' 
+#' @return regex
 get_regex = function(func) {
   return(formals(func)[['re']])
 }

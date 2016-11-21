@@ -2,13 +2,17 @@
 % Please edit documentation in R/lex.R
 \name{get_regex}
 \alias{get_regex}
-\title{-----------------------------------------------------------------------------
-get_regex(func)}
+\title{Get regex from function}
 \usage{
 get_regex(func)
 }
+\arguments{
+\item{func}{lexer function}
+}
+\value{
+regex
+}
 \description{
 Returns the regular expression assigned to a function.
------------------------------------------------------------------------------
 }
 
