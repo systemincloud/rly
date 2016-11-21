@@ -338,14 +338,14 @@ get_regex = function(func) {
 }
 
 
-#' -----------------------------------------------------------------------------
 #' def _statetoken(s,names)
 #'
 #' Given a declaration name s of the form "t_" and a dictionary whose keys are
 #' state names, this function returns a tuple (states,tokenname) where states
 #' is a tuple of state names and tokenname is the name of the token.  For example,
 #' calling this with s = "t_foo_bar_SPAM" might return (('foo','bar'),'SPAM')
-#' -----------------------------------------------------------------------------
+#' 
+#' @importFrom utils head
 statetoken = function(s, names) {
   nonstate <- 1
   parts <- unlist(strsplit(s, "_", fixed=TRUE))

@@ -2,8 +2,7 @@
 % Please edit documentation in R/lex.R
 \name{statetoken}
 \alias{statetoken}
-\title{-----------------------------------------------------------------------------
-def _statetoken(s,names)}
+\title{def _statetoken(s,names)}
 \usage{
 statetoken(s, names)
 }
@@ -12,6 +11,5 @@ Given a declaration name s of the form "t_" and a dictionary whose keys are
 state names, this function returns a tuple (states,tokenname) where states
 is a tuple of state names and tokenname is the name of the token.  For example,
 calling this with s = "t_foo_bar_SPAM" might return (('foo','bar'),'SPAM')
------------------------------------------------------------------------------
 }
 

@@ -2,20 +2,19 @@
 % Please edit documentation in R/yacc.R
 \name{parse_grammar}
 \alias{parse_grammar}
-\title{-----------------------------------------------------------------------------
-                           === INTROSPECTION ===}
+\title{Parse user's grammar}
 \usage{
 parse_grammar(name, doc)
 }
-\description{
-The following functions and classes are used to implement the PLY
-introspection features followed by the yacc() function itself.
------------------------------------------------------------------------------
------------------------------------------------------------------------------
-parse_grammar()
+\arguments{
+\item{name}{Name of the grammar method}
+
+\item{doc}{Rule description}
 }
-\details{
+\value{
+grammar
+}
+\description{
 This takes a raw grammar rule string and parses it into production data
------------------------------------------------------------------------------
 }
 

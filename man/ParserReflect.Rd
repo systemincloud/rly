@@ -3,8 +3,7 @@
 \docType{class}
 \name{ParserReflect}
 \alias{ParserReflect}
-\title{-----------------------------------------------------------------------------
-ParserReflect()}
+\title{ParserReflect()}
 \format{An \code{\link{R6Class}} generator object}
 \usage{
 ParserReflect
@@ -15,5 +14,5 @@ start symbol, error function, tokens, precedence list, action functions,
 etc.
 -----------------------------------------------------------------------------
 }
-\keyword{data}
+\keyword{datasets}
 

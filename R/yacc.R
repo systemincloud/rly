@@ -1942,18 +1942,25 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
   )
 )
 
-#' -----------------------------------------------------------------------------
-#'                            === INTROSPECTION ===
-#'
-#' The following functions and classes are used to implement the PLY
-#' introspection features followed by the yacc() function itself.
-#' -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+#                            === INTROSPECTION ===
+#
+# The following functions and classes are used to implement the PLY
+# introspection features followed by the yacc() function itself.
+# -----------------------------------------------------------------------------
 
-#' -----------------------------------------------------------------------------
-#' parse_grammar()
+#' Parse user's grammar
 #'
 #' This takes a raw grammar rule string and parses it into production data
-#' -----------------------------------------------------------------------------
+#' 
+#' @usage
+#' parse_grammar(name, doc)
+#' 
+#' @param name Name of the grammar method
+#' @param doc Rule description
+#' @return grammar
+#' 
+#' @importFrom utils tail
 parse_grammar = function(name, doc) {
   grammar <- list()
   # Split the doc string into lines
@@ -1987,7 +1994,6 @@ parse_grammar = function(name, doc) {
 }
 
 
-#' -----------------------------------------------------------------------------
 #' ParserReflect()
 #'
 #' This class represents information extracted for building a parser including
@@ -1998,7 +2004,6 @@ parse_grammar = function(name, doc) {
 #' @docType class
 #' @importFrom R6 R6Class
 #' @format An \code{\link{R6Class}} generator object
-#' @keywords data
 ParserReflect <- R6Class("ParserReflect",
   public = list(
     module     = NA,
