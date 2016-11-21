@@ -1126,19 +1126,18 @@ LRTable <- R6Class("LRTable",
 )
 
 
-#' -----------------------------------------------------------------------------
-#'                           === LR Generator ===
-#'
-#' The following classes and functions are used to generate LR parsing tables on
-#' a grammar.
-#' -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+#                           === LR Generator ===
+#
+# The following classes and functions are used to generate LR parsing tables on
+# a grammar.
+# -----------------------------------------------------------------------------
 
 
-#' -----------------------------------------------------------------------------
-#'                             == LRGeneratedTable ==
+#'  LRGeneratedTable
 #'
 #' This class implements the LR table generation algorithm.  There are no
-#' public methods except for write()
+#' public methods
 #' -----------------------------------------------------------------------------
 #'
 #' @docType class
