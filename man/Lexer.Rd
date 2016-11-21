@@ -9,15 +9,19 @@
 Lexer
 }
 \description{
+{
 The following Lexer class implements the lexer runtime. There are only
 a few public methods and attributes:
-  input()          -  Store a new string in the lexer
-  token()          -  Get the next token
-  clone()          -  Clone the lexer
+
+\itemize{
+ \item input() - Store a new string in the lexer
+ \item token() - Get the next token
+ \item clone() - Clone the lexer
+
+ \item lineno  - Current line number
+ \item lexpos  - Current position in the input string
 }
-\details{
-lineno           -  Current line number
-  lexpos           -  Current position in the input string
+}
 }
 \keyword{datasets}
 

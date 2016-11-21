@@ -89,15 +89,20 @@ LexToken <- R6Class("LexToken",
 
 #' Lexing Engine
 #' 
+#' @description {
 #' The following Lexer class implements the lexer runtime. There are only
 #' a few public methods and attributes:
-#'   input()          -  Store a new string in the lexer
-#'   token()          -  Get the next token
-#'   clone()          -  Clone the lexer
+#' 
+#' \itemize{
+#'  \item input() - Store a new string in the lexer
+#'  \item token() - Get the next token
+#'  \item clone() - Clone the lexer
 #'
-#'   lineno           -  Current line number
-#'   lexpos           -  Current position in the input string
-#'
+#'  \item lineno  - Current line number
+#'  \item lexpos  - Current position in the input string
+#' }
+#' }
+#' 
 #' @docType class
 #' @importFrom R6 R6Class
 #' @format An \code{\link{R6Class}} generator object
@@ -671,6 +676,34 @@ LexerReflect <- R6Class("LexerReflect",
 #' @return Lexer ready to use
 #' 
 #' @export
+#' 
+#' @examples
+#' TOKENS = c('NAME', 'NUMBER')
+#' LITERALS = c('=','+','-','*','/', '(',')')
+#' 
+#' Lexer <- R6Class("Lexer",
+#'   public = list(
+#'     tokens = TOKENS,
+#'     literals = LITERALS,
+#'     t_NAME = '[a-zA-Z_][a-zA-Z0-9_]*',
+#'     t_NUMBER = function(re='\\d+', t) {
+#'       t$value <- strtoi(t$value)
+#'       return(t)
+#'     },
+#'     t_ignore = " \t",
+#'     t_newline = function(re='\\n+', t) {
+#'        t$lexer$lineno <- t$lexer$lineno + nchar(t$value)
+#'        return(NULL)
+#'     },
+#'     t_error = function(t) {
+#'       cat(sprintf("Illegal character '%s'", t$value[1]))
+#'       t$lexer$skip(1)
+#'       return(t)
+#'     }
+#'   )
+#' )
+#' 
+#' lexer  <- rly::lex(Lexer)
 lex = function(module=NA,
                args=list(),
                debug=FALSE,
