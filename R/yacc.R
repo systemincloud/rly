@@ -1986,12 +1986,12 @@ ParserReflect <- R6Class("ParserReflect",
     grammar    = NA,
     error      = FALSE,
     log        = NA,
-    initialize = function(module, instance, log=NA) {
+    initialize = function(module, instance, log=NULL) {
       self$module <- module
       self$instance <- instance
       
-      if(is.na(log)) self$log <- RlyLogger$new()
-      else           self$log <- log
+      if(is.null(log)) self$log <- RlyLogger$new()
+      else             self$log <- log
     },
     # Get all of the basic information
     get_all = function() {

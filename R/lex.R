@@ -411,7 +411,7 @@ LexerReflect <- R6Class("LexerReflect",
     errorf   = NA,        # Error functions by state
     eoff     = NA,        # EOF functions by state
 
-    initialize = function(module, instance, log=NA) {
+    initialize = function(module, instance, log=NULL) {
       self$module <- module
       self$instance <- instance
       self$tokens <- c()
@@ -419,8 +419,8 @@ LexerReflect <- R6Class("LexerReflect",
       self$states <- c()
       self$stateinfo <- new.env()
       self$stateinfo[['INITIAL']] <- 'inclusive'
-      if(is.na(log)) self$log <- RlyLogger$new()
-      else           self$log <- log
+      if(is.null(log)) self$log <- RlyLogger$new()
+      else             self$log <- log
     },
     # Get all of the basic information
     get_all = function() {
