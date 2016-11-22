@@ -8,7 +8,7 @@
   <packaging>pom</packaging>
   <name>Lex and Yacc</name>
   
-  <description>RLY is a 100% R implementation of the common parsing tools lex and yacc.</description>
+  <description>R implementation of the common parsing tools lex and yacc.</description>
   <url>https://github.com/systemincloud/rly</url>
 
   <organization>
