@@ -1,7 +1,8 @@
 ^\.project$
-^\.pom.xml$
 ^\.settings$
 ^\.gitignore$
+^pom.xml$
+^resources
 ^target$
 ^examples$
 ^.*\.Rproj$
