@@ -84,14 +84,14 @@ randomString <- function(length=12) {
   return(paste(sample(c(0:9, letters, LETTERS), length, replace=TRUE), collapse=""))
 }
 
-format_result = function(r) {
+format_result <- function(r) {
   result <- NULL
   if(typeof(r) == "environment") result <- sprintf('<%s> (%s)', typeof(r$toString()[[1]]), r$toString())
   else                           result <- sprintf('<%s> (%s)', typeof(r), toString(r))
   return(result)
 }
 
-format_stack_entry = function(r) {
+format_stack_entry <- function(r) {
   return(toString(r$value))
 }
 
@@ -1726,7 +1726,7 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
               
                     # Shift precedence comes from the token
                     sprec_slevel <- Precedence[[a]]
-                    if(rprec_rlevel == NULL) sprec_slevel <- c('right', 0)
+                    if(is.null(rprec_rlevel)) sprec_slevel <- c('right', 0)
                     
                     sprec  <- sprec_slevel[[1]]
                     slevel <- sprec_slevel[[2]]
