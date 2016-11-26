@@ -67,11 +67,8 @@
 # @param x  environment
 # @return The address of the object
 # 
-#' @importFrom utils capture.output
-id = function(x) {
-  txt <- capture.output(.Internal(inspect(x, 1)))[[1]]
-  return(regmatches(txt,regexpr("@[^ ]+",txt)))
-}
+#' @useDynLib rly
+id = function(x) .Call("id", x)
 
 # Generate random string
 # 

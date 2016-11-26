@@ -10,6 +10,8 @@
 
 #### NOTES
 
+  1. Replace .Internal(inspect) function with C code.
+
 ### Changes in v1.0.1
 
 #### POTENTIALLY BREAKING CHANGES
