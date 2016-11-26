@@ -18,6 +18,6 @@
 
 #### BUG FIXES
 
-  1.
+  1. Library not working on 64-bit R.
 
 #### NOTES
