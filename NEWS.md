@@ -1,8 +1,14 @@
+### Changes in v1.0.3
+
+#### NOTES
+
+  1. Use CRAN template of MIT license.
+
+  2. Add author of PLY python library as one of the authors of this extension.
+  
+  3. Add BSD license of PLY to file inst/COPYRIGHTS.
+
 ### Changes in v1.0.2
-
-#### POTENTIALLY BREAKING CHANGES
-
-#### NEW FEATURES
 
 #### BUG FIXES
 
@@ -14,12 +20,6 @@
 
 ### Changes in v1.0.1
 
-#### POTENTIALLY BREAKING CHANGES
-
-#### NEW FEATURES
-
 #### BUG FIXES
 
   1. Library not working on 64-bit R.
-
-#### NOTES
