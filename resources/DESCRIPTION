@@ -6,7 +6,7 @@ Date: ${date}
 Author: Marek Jagielski <marek.jagielski@gmail.com>
 Maintainer: Marek Jagielski <marek.jagielski@gmail.com>
 Description: ${project.description}
-License: file LICENSE
+License: MIT + file LICENSE
 URL: ${project.url}
 BugReports: ${project.issueManagement.url}
 Suggests: testthat
