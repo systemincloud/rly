@@ -233,15 +233,52 @@ Parser <- R6Class("Parser",
     },
     p_command_dim_bad = function(doc='command : DIM error', p) {
       p$set(1, "MALFORMED VARIABLE LIST IN DIM")
-    }
+    },
     # List of variables supplied to DIM statement
-
+    p_dimlist = function(doc='dimlist : dimlist COMMA dimitem
+                                      | dimitem', p) {
+      if(p$length() == 4) {
+        p$set(1, p$get(2))
+        p$set(1, append(p$get(1), p$get(4)))
+      } else p$set(1, list(p$get(2)))
+    },
     # DIM items
-
+    p_dimitem_single = function(doc='dimitem : ID LPAREN INTEGER RPAREN', p) {
+      p$set(1, list(p$get(2), eval(p$get(4)), 0))
+    },
+    p_dimitem_double = function(doc='dimitem : ID LPAREN INTEGER COMMA INTEGER RPAREN', p) {
+      p$set(1, list(p$get(2), eval(p$get(4)), eval(p$get(6))))
+    },
     # Arithmetic expressions
-
+    p_expr_binary = function(doc='expr : expr PLUS expr
+                                       | expr MINUS expr
+                                       | expr TIMES expr
+                                       | expr DIVIDE expr
+                                       | expr POWER expr', p) {
+      p$set(1, list('BINOP', p$get(3), p$get(2), p$get(4)))
+    },
+    p_expr_number = function(doc='expr : INTEGER
+                                       | FLOAT', p) {
+      p$set(1, list('NUM', eval(p$get(2))))
+    },
+    p_expr_variable = function(doc='expr : variable', p) {
+      p$set(1, list('VAR', p$get(2)))
+    },
+    p_expr_group = function(doc='expr : LPAREN expr RPAREN', p) {
+      p$set(1, list('GROUP', p$get(3)))
+    },
+    p_expr_unary = function(doc='expr : MINUS expr %prec UMINUS', p) {
+      p$set(1, list('UNARY', '-', p$get(3)))
+    },
     # Relational expressions
-
+    p_relexpr = function(doc='relexpr : expr LT expr
+                                      | expr LE expr
+                                      | expr GT expr
+                                      | expr GE expr
+                                      | expr EQUALS expr
+                                      | expr NE expr', p) {
+      p$set(1, list('RELOP', p$get(3), p$get(2), p$get(4)))
+    }
     # Variables
 
     # Builds a list of variable targets as a R list
