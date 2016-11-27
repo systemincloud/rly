@@ -157,9 +157,17 @@ Parser <- R6Class("Parser",
     },
     p_command_goto_bad = function(doc='command : GOTO error', p) {
       p$set(1, "INVALID LINE NUMBER IN GOTO")
-    }
+    },
     # IF-THEN statement
-
+    p_command_if = function(doc='command : IF relexpr THEN INTEGER', p) {
+      p$set(1, list('IF', p$get(3), strtoi(p$get(5))))
+    },
+    p_command_if_bad = function(doc='command : IF error THEN INTEGER', p) {
+      p$set(1, "BAD RELATIONAL EXPRESSION")
+    },
+    p_command_if_bad2 = function(doc='command : IF relexpr THEN error', p) {
+      p$set(1, "INVALID LINE NUMBER IN THEN")
+    }
     # FOR statement
 
     # Optional STEP qualifier on FOR statement
