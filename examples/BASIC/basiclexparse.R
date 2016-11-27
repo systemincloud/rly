@@ -167,13 +167,33 @@ Parser <- R6Class("Parser",
     },
     p_command_if_bad2 = function(doc='command : IF relexpr THEN error', p) {
       p$set(1, "INVALID LINE NUMBER IN THEN")
-    }
+    },
     # FOR statement
-
+    p_command_for = function(doc='command : FOR ID EQUALS expr TO expr optstep', p) {
+      p$set(1, list('FOR', p$get(3), p$get(5), p$get(7), p$get(8)))
+    },
+    p_command_for_bad_initial = function(doc='command : FOR ID EQUALS error TO expr optstep', p) {
+      p$set(1, "BAD INITIAL VALUE IN FOR STATEMENT")
+    },
+    p_command_for_bad_final = function(doc='command : FOR ID EQUALS expr TO error optstep', p) {
+      p$set(1, "BAD FINAL VALUE IN FOR STATEMENT")
+    },
+    p_command_for_bad_step = function(doc='command : FOR ID EQUALS expr TO expr STEP error', p) {
+      p$set(1, "MALFORMED STEP IN FOR STATEMENT")
+    },
     # Optional STEP qualifier on FOR statement
-
+    p_optstep = function(doc='optstep : STEP expr
+                                  | empty', p) {
+      if(p$length() == 3) p$set(1, p$get(3))
+      else                p$set(1, NULL)
+    },
     # NEXT statement
-
+    p_command_next = function(doc='command : NEXT ID', p) {
+      p$set(1, list('NEXT', p$get(3)))
+    },
+    p_command_next_bad = function(doc='command : NEXT error', p) {
+      p$set(1, "MALFORMED NEXT")
+    }
     # END statement
 
     # REM statement
