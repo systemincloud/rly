@@ -107,7 +107,12 @@ Parser <- R6Class("Parser",
       cat(sprintf("MALFORMED STATEMENT AT LINE %s", p$get(2)))
       p$set(1, NULL)
       p$parser$error <- 1
-    }
+    },
     # Blank line
+    p_statement_newline = function(doc='statement : NEWLINE', p) {
+      p$set(1, NULL)
+    }
+    # LET statement
+
   )
 )
