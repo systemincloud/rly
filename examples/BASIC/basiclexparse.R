@@ -278,9 +278,15 @@ Parser <- R6Class("Parser",
                                       | expr EQUALS expr
                                       | expr NE expr', p) {
       p$set(1, list('RELOP', p$get(3), p$get(2), p$get(4)))
-    }
+    },
     # Variables
-
+    p_variable = function(doc='variable : ID
+                                        | ID LPAREN expr RPAREN
+                                        | ID LPAREN expr COMMA expr RPAREN', p) {
+           if(p$length() == 2) p$set(1, list(p$get(2), NULL, NULL))
+      else if(p$length() == 5) p$set(1, list(p$get(2), p$get(4), NULL))
+      else                     p$set(1, list(p$get(2), p$get(4), p$get(6)))
+    }
     # Builds a list of variable targets as a R list
 
     # Builds a list of numbers as a R list
