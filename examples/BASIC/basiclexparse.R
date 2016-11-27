@@ -137,10 +137,72 @@ Parser <- R6Class("Parser",
     p_command_print = function(doc='command : PRINT plist optend', p) {
       p$set(1, list('PRINT', p$get(3), p$get(4)))
     },
-    p_command_print_bad = function(doc='ccommand : PRINT error', p) {
+    p_command_print_bad = function(doc='command : PRINT error', p) {
       p$set(1, "MALFORMED PRINT STATEMENT")
-    }
+    },
     # Optional ending on PRINT. Either a comma (,) or semicolon (;)
+    p_optend = function(doc='optend : COMMA 
+                                    | SEMI
+                                    |', p) {
+      if(p$lenght() == 2) p$set(1, p$get(2))
+      else                p$set(1, NULL)
+    },
+    # PRINT statement with no arguments
+    p_command_print_empty = function(doc='command : PRINT', p) {
+      p$set(1, list("PRINT", list(), NULL))
+    },
+    # GOTO statement
+    p_command_goto = function(doc='command : GOTO INTEGER', p) {
+      p$set(1, list('GOTO', strtoi(p$get(3))))
+    },
+    p_command_goto_bad = function(doc='command : GOTO error', p) {
+      p$set(1, "INVALID LINE NUMBER IN GOTO")
+    }
+    # IF-THEN statement
 
+    # FOR statement
+
+    # Optional STEP qualifier on FOR statement
+
+    # NEXT statement
+
+    # END statement
+
+    # REM statement
+
+    # STOP statement
+
+    # DEF statement
+
+    # GOSUB statement
+
+    # RETURN statement
+
+    # DIM statement
+
+    # List of variables supplied to DIM statement
+
+    # DIM items
+
+    # Arithmetic expressions
+
+    # Relational expressions
+
+    # Variables
+
+    # Builds a list of variable targets as a R list
+
+    # Builds a list of numbers as a R list
+
+    # A number. May be an integer or a float
+
+    # A signed number.
+
+    # List of targets for a print statement
+    # Returns a list of tuples (label,expr)
+
+    # Empty
+
+    # Catastrophic error handler
   )
 )
