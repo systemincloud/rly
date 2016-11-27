@@ -125,8 +125,22 @@ Parser <- R6Class("Parser",
     },
     p_command_read_bad = function(doc='command : READ error', p) {
       p$set(1, "MALFORMED VARIABLE LIST IN READ")
-    }
+    },
     # DATA statement
+    p_command_data = function(doc='command : DATA numlist', p) {
+      p$set(1, list('DATA', p$get(3)))
+    },
+    p_command_data_bad = function(doc='command : DATA error', p) {
+      p$set(1, "MALFORMED NUMBER LIST IN DATA")
+    },
+    # PRINT statement
+    p_command_print = function(doc='command : PRINT plist optend', p) {
+      p$set(1, list('PRINT', p$get(3), p$get(4)))
+    },
+    p_command_print_bad = function(doc='ccommand : PRINT error', p) {
+      p$set(1, "MALFORMED PRINT STATEMENT")
+    }
+    # Optional ending on PRINT. Either a comma (,) or semicolon (;)
 
   )
 )
