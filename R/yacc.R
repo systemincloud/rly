@@ -167,6 +167,9 @@ YaccProduction <- R6Class("YaccProduction",
     set = function(n, value) {
       if(n > 0) self$slice[[n]]$value <- value
       else      tail(self$stack, -n)[[1]]$value <- value
+    },
+    length = function() {
+      return(length(self$slice))
     }
   )
 )
