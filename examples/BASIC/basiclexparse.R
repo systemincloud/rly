@@ -111,8 +111,22 @@ Parser <- R6Class("Parser",
     # Blank line
     p_statement_newline = function(doc='statement : NEWLINE', p) {
       p$set(1, NULL)
-    }
+    },
     # LET statement
+    p_command_let = function(doc='command : LET variable EQUALS expr', p) {
+      p$set(1, list('LET', p$get(3), p$get(5)))
+    },
+    p_command_let_bad = function(doc='command : LET variable EQUALS error', p) {
+      p$set(1, "BAD EXPRESSION IN LET")
+    },
+    # READ statement
+    p_command_read = function(doc='command : READ varlist', p) {
+      p$set(1, list('READ', p$get(3)))
+    },
+    p_command_read_bad = function(doc='command : READ error', p) {
+      p$set(1, "MALFORMED VARIABLE LIST IN READ")
+    }
+    # DATA statement
 
   )
 )
