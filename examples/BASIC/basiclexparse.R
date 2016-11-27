@@ -19,24 +19,24 @@ Lexer <- R6Class("Lexer",
       return(t)
     }
   ),
-  t_EQUALS = '=',
-  t_PLUS = '\\+',
-  t_MINUS = '-',
-  t_TIMES = '\\*',
-  t_POWER = '\\^',
-  t_DIVIDE = '/',
-  t_LPAREN = '\\(',
-  t_RPAREN = '\\)',
-  t_LT = '<',
-  t_LE = '<=',
-  t_GT = '>',
-  t_GE = '>=',
-  t_NE = '<>',
-  t_COMMA = '\\,',
-  t_SEMI = ';',
+  t_EQUALS  = '=',
+  t_PLUS    = '\\+',
+  t_MINUS   = '-',
+  t_TIMES   = '\\*',
+  t_POWER   = '\\^',
+  t_DIVIDE  = '/',
+  t_LPAREN  = '\\(',
+  t_RPAREN  = '\\)',
+  t_LT      = '<',
+  t_LE      = '<=',
+  t_GT      = '>',
+  t_GE      = '>=',
+  t_NE      = '<>',
+  t_COMMA   = '\\,',
+  t_SEMI    = ';',
   t_INTEGER = '\\d+',
-  t_FLOAT = '((\\d*\\.\\d+)(E[\\+-]?\\d+)?|([1-9]\\d*E[\\+-]?\\d+))',
-  t_STRING = '\\".*?\\"',
+  t_FLOAT   = '((\\d*\\.\\d+)(E[\\+-]?\\d+)?|([1-9]\\d*E[\\+-]?\\d+))',
+  t_STRING  = '\\".*?\\"',
   t_newline = function(re='\\n+', t) {
     t$lexer$lineno <- t$lexer$lineno + nchar(t$value)
     return(NULL)
@@ -46,4 +46,55 @@ Lexer <- R6Class("Lexer",
     t$lexer$skip(1)
     return(NULL)
   }
+)
+
+Parser <- R6Class("Parser",
+  public = list(
+    tokens = TOKENS,
+    # Parsing rules
+    precedence = list(c('left', 'PLUS', 'MINUS'),
+                      c('left', 'TIMES', 'DIVIDE'),
+                      c('left', 'POWER'),
+                      c('right', 'UMINUS')),
+    # A BASIC program is a series of statements.  We represent the program as a
+    # dictionary of tuples indexed by line number.
+    p_program = function(doc='program : program statement
+                                      | statement', p) {
+      if(p$length() == 2 && p$get(2)) {
+        p$set(1, new.env(hash=TRUE))
+        line <- p$get(2)[[1]]
+        stat <- p$get(2)[[2]]
+        p$get(1)[[line]] <- stat
+      } else if(p$length() == 3) {
+        p$set(1, p$get(2))
+        if(!p$get(1))  p$set(1, new.env(hash=TRUE))
+        if(p$get(3)) {
+          line <- p$get(2)[[1]]
+          stat <- p$get(2)[[2]]
+          p$get(1)[[line]] <- stat
+        }
+      }
+    },
+    # This catch-all rule is used for any catastrophic errors.  In this case,
+    # we simply return nothing
+    p_program_error = function(doc='program : error', p) {
+      p$set(1, NULL)
+      p$parser$error <- 1
+    },
+    # Format of all BASIC statements.
+    p_statement = function(doc='statement : INTEGER command NEWLINE', p) {
+      if(typeof(p$get(3)) == "character") {
+        cat(sprintf("%s %s %s", p$get(3), "AT LINE", p$get(2)))
+        p$set(1, NULL)
+        p$parser$error <- 1
+      } else {
+        lineno <- strtoi(p$get(2))
+        p$set(1, c(lineno, p$get(3)))
+      }
+    }
+    # Interactive statements.
+
+
+
+  )
 )
