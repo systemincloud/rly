@@ -286,20 +286,57 @@ Parser <- R6Class("Parser",
            if(p$length() == 2) p$set(1, list(p$get(2), NULL, NULL))
       else if(p$length() == 5) p$set(1, list(p$get(2), p$get(4), NULL))
       else                     p$set(1, list(p$get(2), p$get(4), p$get(6)))
-    }
+    },
     # Builds a list of variable targets as a R list
-
+    p_varlist = function(doc='varlist : varlist COMMA variable
+                                      | variable', p) {
+      if(p$length() > 2) {
+        p$set(1, p$get(2))
+        p$get(1) <- append(p$get(1), p$get(4))
+      } else p$set(1, list(p$get(2)))
+    },
     # Builds a list of numbers as a R list
-
+    p_numlist = function(doc='numlist : numlist COMMA number
+                                      | number', p) {
+      if(p$length() > 2) {
+        p$set(1, p$get(2))
+        p$get(1) <- append(p$get(1), p$get(4))
+      } else p$set(1, list(p$get(2)))
+    },
     # A number. May be an integer or a float
-
+    p_number = function(doc='number : INTEGER
+                                    | FLOAT', p) {
+      p$set(1, eval(p$get(2)))
+    },
     # A signed number.
-
+    p_number_signed = function(doc='number : MINUS INTEGER
+                                           | MINUS FLOAT', p) {
+      p$set(1, eval(paste("-", p$get(3), collapse="")))
+    },
     # List of targets for a print statement
     # Returns a list of tuples (label,expr)
-
+    p_plist = function(doc='plist : plist COMMA pitem
+                                  | pitem', p) {
+      if(p$length() > 3) {
+        p$set(1, p$get(2))
+        p$get(1) <- append(p$get(1), p$get(4))
+      } else p$set(1, list(p$get(2)))
+    },
+    p_item_string = function(doc='pitem : STRING', p) {
+      p$set(1, list(tail(head(p$get(2), -1), -1), NULL))
+    },
+    p_item_string_expr = function(doc='pitem : STRING expr', p) {
+      p$set(1, list(tail(head(p$get(2), -1), -1), p$get(3)))
+    },
+    p_item_expr = function(doc='pitem : expr', p) {
+      p$set(1, list("", p$get(2)))
+    },
     # Empty
-
+    p_empty = function(doc='empty : ', p) {
+    },
     # Catastrophic error handler
+    p_error = function(p) {
+      if(!p) cat("SYNTAX ERROR AT EOF\n")
+    }
   )
 )
