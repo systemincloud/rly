@@ -193,21 +193,47 @@ Parser <- R6Class("Parser",
     },
     p_command_next_bad = function(doc='command : NEXT error', p) {
       p$set(1, "MALFORMED NEXT")
-    }
+    },
     # END statement
-
+    p_command_end = function(doc='command : END', p) {
+      p$set(1, list('END'))
+    },
     # REM statement
-
+    p_command_rem = function(doc='command : REM', p) {
+      p$set(1, list('REM', p$get(2)))
+    },
     # STOP statement
-
+    p_command_stop = function(doc='command : STOP', p) {
+      p$set(1, list('STOP'))
+    },
     # DEF statement
-
+    p_command_def = function(doc='command : DEF ID LPAREN ID RPAREN EQUALS expr', p) {
+      p$set(1, list('FUNC', p$get(3), p$get(5), p$get(8)))
+    },
+    p_command_def_bad_rhs = function(doc='command : DEF ID LPAREN ID RPAREN EQUALS error', p) {
+      p$set(1, "BAD EXPRESSION IN DEF STATEMENT")
+    },
+    p_command_def_bad_arg = function(doc='command : DEF ID LPAREN error RPAREN EQUALS expr', p) {
+      p$set(1, "BAD ARGUMENT IN DEF STATEMENT")
+    },
     # GOSUB statement
-
+    p_command_gosub = function(doc='command : GOSUB INTEGER', p) {
+      p$set(1, list('GOSUB', strtoi(p$get(3))))
+    },
+    p_command_gosub_bad = function(doc='command : GOSUB error', p) {
+      p$set(1, "INVALID LINE NUMBER IN GOSUB")
+    },
     # RETURN statement
-
+    p_command_return = function(doc='command : RETURN', p) {
+      p$set(1, list('RETURN'))
+    },
     # DIM statement
-
+    p_command_dim = function(doc='command : DIM dimlist', p) {
+      p$set(1, list('DIM', p$get(3)))
+    },
+    p_command_dim_bad = function(doc='command : DIM error', p) {
+      p$set(1, "MALFORMED VARIABLE LIST IN DIM")
+    }
     # List of variables supplied to DIM statement
 
     # DIM items
