@@ -729,7 +729,10 @@ lex = function(module=NA,
     else                            debuglog$info('lex: tokens empty')
     if(length(linfo$literals) > 0)  debuglog$info(sprintf('lex: literals = %s', paste(linfo$literals, collapse=" ")))
     else                            debuglog$info('lex: literals empty')
-    if(length(linfo$stateinfo) > 0) debuglog$info(sprintf('lex: states   = %s', paste(names(linfo$stateinfo), collapse=" ")))
+    if(length(linfo$stateinfo) > 0) debuglog$info(sprintf('lex: states   = %s', 
+                                                  paste('{', 
+                                                        sapply(names(linfo$stateinfo), function(x) paste("'", x, "'", " : ", "'", linfo$stateinfo[[x]], "', ", collapse='', sep='')), 
+                                                        '}', collapse=" ")))
     else                            debuglog$info('lex: states empty')
   }
 
