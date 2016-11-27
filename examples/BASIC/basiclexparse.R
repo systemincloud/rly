@@ -89,12 +89,25 @@ Parser <- R6Class("Parser",
         p$parser$error <- 1
       } else {
         lineno <- strtoi(p$get(2))
-        p$set(1, c(lineno, p$get(3)))
+        p$set(1, list(lineno, p$get(3)))
       }
-    }
+    },
     # Interactive statements.
-
-
-
+    p_statement_interactive = function(doc='statement : RUN NEWLINE
+                                                      | LIST NEWLINE
+                                                      | NEW NEWLINE', p) {
+      p$set(1, list(0, list(p$get(2), 0)))
+    },
+    # Blank line number
+    p_statement_blank = function(doc='statement : INTEGER NEWLINE', p) {
+      p$set(1, list(0, list('BLANK', strtoi(p$get(2)))))
+    },
+    # Error handling for malformed statements
+    p_statement_bad = function(doc='statement : INTEGER error NEWLINE', p) {
+      cat(sprintf("MALFORMED STATEMENT AT LINE %s", p$get(2)))
+      p$set(1, NULL)
+      p$parser$error <- 1
+    }
+    # Blank line
   )
 )
