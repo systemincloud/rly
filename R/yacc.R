@@ -445,7 +445,43 @@ LRParser <- R6Class("LRParser",
             errorcount <- error_count
             self$errorok <- FALSE
             errtoken <- lookahead
-          }
+            if(errtoken$type == '$end') errtoken <- NULL
+            if(!is.null(self$errorfunc)) {
+              if(!is.null(errtoken))
+                if(is.null(errtoken$lexer)) errtoken$lexer <- lexer
+              
+              self$state <- state
+              tok <- self$errorfunc(errtoken)
+              if(self$errorok) {
+                # User must have done some kind of panic
+                # mode recovery on their own.  The
+                # returned token is the next lookahead
+                lookahead <- tok
+                errtoken <- NULL
+                next
+              }
+            } else {
+#              if errtoken:
+#                    if hasattr(errtoken, 'lineno'):
+#                          lineno = lookahead.lineno
+#                    else:
+#                          lineno = 0
+#              if lineno:
+#                    sys.stderr.write('yacc: Syntax error at line %d, token=%s\n' % (lineno, errtoken.type))
+#                            else:
+#                                  sys.stderr.write('yacc: Syntax error, token=%s' % errtoken.type)
+#                                          else:
+#                                                sys.stderr.write('yacc: Parse error in input. EOF\n')
+#              return
+            }
+          } else errorcount <- error_count
+          
+          # case 1:  the statestack only has 1 entry on it.  If we're in this state, the
+          # entire parse has been rolled back and we're completely hosed.   The token is
+          # discarded and we just keep going.
+
+          # case 2: the statestack has a couple of entries on it, but we're
+          # at the end of the file. nuke the top entry and generate an error token
         }
         
         # Call an error function here
