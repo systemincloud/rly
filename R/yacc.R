@@ -56,6 +56,8 @@
 
 '%nin%' <- Negate('%in%')
 
+error_count <- 3    # Number of symbols that must be shifted to leave recovery mode
+
 # Unique identificator of environment object
 # 
 # This function is retrieving an phisical address for an 
@@ -345,7 +347,7 @@ LRParser <- R6Class("LRParser",
               
               pslice$slice <- targ
               
-#              tryCatch({
+              tryCatch({
                 # Call the grammar rule with our special slice object
                 self$symstack <- head(self$symstack, -plen)
                 self$state <- state
@@ -357,18 +359,18 @@ LRParser <- R6Class("LRParser",
                 self$symstack <- append(self$symstack, sym)
                 state <- self$goto[[as.character(tail(self$statestack, 1)[[1]])]][[pname]]
                 self$statestack <- append(self$statestack, state)
-#              }, error = function(e) {
+              }, error = function(e) {
                 # If an error was set. Enter error recovery state
-#                lookaheadstack.append(lookahead)    # Save the current lookahead token
-#                symstack.extend(targ[1:-1])         # Put the production slice back on the stack
-#                statestack.pop()                    # Pop back one state (before the reduce)
+                lookaheadstack <- append(lookaheadstack, lookahead)    # Save the current lookahead token
+#                symstack.extend(targ[1:-1])                           # Put the production slice back on the stack
+#                statestack.pop()                                      # Pop back one state (before the reduce)
 #                state = statestack[-1]
 #                sym.type = 'error'
 #                sym.value = 'error'
 #                lookahead = sym
 #                errorcount = error_count
 #                self.errorok = False
-#              })
+              })
             
               next
               
@@ -388,19 +390,19 @@ LRParser <- R6Class("LRParser",
   
               pslice$slice <- targ
               
-#              tryCatch({
-              # Call the grammar rule with our special slice object
-              self$state <- state
-              p$callable(p=pslice)
-              
-              debuglog$info(sprintf('Result : %s', format_result(pslice)))
-              
-              self$symstack <- append(self$symstack, sym)
-              state <- self$goto[[as.character(tail(self$statestack, 1)[[1]]+1)]][[pname]]
-              self$statestack <- append(self$statestack, state)
-#              }, error = function(e) {
-              # If an error was set. Enter error recovery state
-#                lookaheadstack.append(lookahead)    # Save the current lookahead token
+              tryCatch({
+                # Call the grammar rule with our special slice object
+                self$state <- state
+                p$callable(p=pslice)
+                
+                debuglog$info(sprintf('Result : %s', format_result(pslice)))
+                
+                self$symstack <- append(self$symstack, sym)
+                state <- self$goto[[as.character(tail(self$statestack, 1)[[1]]+1)]][[pname]]
+                self$statestack <- append(self$statestack, state)
+              }, error = function(e) {
+                # If an error was set. Enter error recovery state
+                lookaheadstack <- append(lookaheadstack, lookahead)    # Save the current lookahead token
 #                symstack.extend(targ[1:-1])         # Put the production slice back on the stack
 #                statestack.pop()                    # Pop back one state (before the reduce)
 #                state = statestack[-1]
@@ -409,7 +411,7 @@ LRParser <- R6Class("LRParser",
 #                lookahead = sym
 #                errorcount = error_count
 #                self.errorok = False
-#              })
+              })
   
               next
               # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -426,6 +428,10 @@ LRParser <- R6Class("LRParser",
           }
         } else {
           
+          stack <- sprintf('%s . %s', paste(tail(sapply(self$symstack, function(x) x$type), -1), collapse=' '),
+              lookahead$toString())
+          debuglog$error(sprintf('Error : %s', stack))
+          
           # We have some kind of parsing error here.  To handle
           # this, we are going to push the current token onto
           # the tokenstack and replace it with an 'error' token.
@@ -435,6 +441,11 @@ LRParser <- R6Class("LRParser",
           # In addition to pushing the error token, we call call
           # the user defined p_error() function if this is the
           # first syntax error.  This function is only called if
+          if(errorcount == 0 || self$errorok) {
+            errorcount <- error_count
+            self$errorok <- FALSE
+            errtoken <- lookahead
+          }
         }
         
         # Call an error function here
