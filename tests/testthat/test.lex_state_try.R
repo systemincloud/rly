@@ -36,7 +36,7 @@ test_that("comment", {
   expect_equal(lexer$token()$value, "+")
   expect_equal(lexer$token()$value, "4")
   t <- NA
-  expect_output(t <- lexer$token(), "comment\ncomment body * This is a comment */", fixed=TRUE)
+  expect_output(t <- lexer$token(), "comment\ncomment body This is a comment */", fixed=TRUE)
   expect_equal(t$value, "+")
   expect_equal(lexer$token()$value, "10")
 })

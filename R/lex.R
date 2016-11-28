@@ -233,10 +233,10 @@ Lexer <- R6Class("Lexer",
         tok <- NA
         idx <- 0
         for(lexre in self$lexre) {
-          name <- lexre[1]
-          regx <- lexre[2]
+          name <- lexre[[1]]
+          regx <- lexre[[2]]
           func <- lexre[[3]]
-          type <- lexre[4]
+          type <- lexre[[4]]
           m <- regexpr(regx, data, perl=TRUE)
           if(m != 1) next
 
@@ -261,7 +261,7 @@ Lexer <- R6Class("Lexer",
             }
           }
 
-          lexpos <- self$lexpos + nchar(matched)
+          lexpos <- lexpos + nchar(toString(matched))
 
           # If token is processed by a function, call it
 
