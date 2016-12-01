@@ -124,8 +124,12 @@ format_stack_entry <- function(r) {
 # @format An \code{\link{R6Class}} generator object
 YaccSymbol <- R6Class("YaccSymbol",
   public = list(
-    type = NA,
-    value = NA,
+    type      = NA,
+    value     = NA,
+    lineno    = NA,
+    endlineno = NA,
+    lexpos    = NA,
+    endlexpos = NA,
     toString = function() {
       return(self$type)
     }
@@ -282,13 +286,13 @@ LRParser <- R6Class("LRParser",
           ltype <- lookahead$type[[1]]
           t <- self$action[[as.character(state)]][[ltype]]
         } else {
-          t <- defaulted_states[[state]]
+          t <- self$defaulted_states[[as.character(state)]]
           debuglog$info(sprintf('Defaulted state %s: Reduce using %d', state, -t))
         }
         
         if(debug) {
           stack <- sprintf('%s . %s', paste(tail(sapply(self$symstack, function(x) x$type), -1), collapse=' '),
-                                      lookahead$toString())
+                                 if(is.null(lookahead)) "NULL" else lookahead$toString())
           debuglog$info(sprintf('Stack  : %s', stack))
         }
         
@@ -429,7 +433,7 @@ LRParser <- R6Class("LRParser",
         } else {
           
           stack <- sprintf('%s . %s', paste(tail(sapply(self$symstack, function(x) x$type), -1), collapse=' '),
-              lookahead$toString())
+                                 if(is.null(lookahead)) "NULL" else lookahead$toString())
           debuglog$error(sprintf('Error : %s', stack))
           
           # We have some kind of parsing error here.  To handle
@@ -480,8 +484,66 @@ LRParser <- R6Class("LRParser",
           # entire parse has been rolled back and we're completely hosed.   The token is
           # discarded and we just keep going.
 
+          if(length(self$statestack) <= 1 && lookahead$type != '$end') {
+            lookahead <- NULL
+            errtoken <- NULL
+            state <- 1
+            # Nuke the pushback stack
+            lookaheadstack <- list()
+            next
+          }
+
           # case 2: the statestack has a couple of entries on it, but we're
           # at the end of the file. nuke the top entry and generate an error token
+
+          # Start nuking entries on the stack
+          if(lookahead$type == '$end') {
+            # Whoa. We're really hosed here. Bail out
+            return()
+          }
+          
+          if(lookahead$type != 'error') {
+            sym <- tail(self$symstack, 1)[[1]]
+            if(sym$type == 'error') {
+              # Hmmm. Error is on top of stack, we'll just nuke input
+              # symbol and continue
+              #--! TRACKING
+#                  if tracking:
+#                        sym.endlineno = getattr(lookahead, 'lineno', sym.lineno)
+#            sym.endlexpos = getattr(lookahead, 'lexpos', sym.lexpos)
+               #--! TRACKING
+               lookahead <- NULL
+               next
+             }
+             
+             # Create the error symbol for the first time and make it the new lookahead symbol
+             t <- YaccSymbol$new()
+             t$type <- 'error'
+             
+             if(!is.null(lookahead$lineno)) {
+               t$lineno    <- lookahead$lineno
+               t$endlineno <- lookahead$lineno
+             }
+             if(!is.null(lookahead$lexpos)) {
+               t$lexpos    <- lookahead$lexpos
+               t$endlexpos <- lookahead$lexpos
+             }  
+             t.value <- lookahead
+             lookaheadstack <- append(lookaheadstack, lookahead)
+             lookahead <- t
+          } else {
+            sym <- tail(self$symstack, 1)[[1]]
+            self$symstack <- head(self$symstack, -1)
+#            #--! TRACKING
+#            if tracking:
+#                  lookahead.lineno = sym.lineno
+#            lookahead.lexpos = sym.lexpos
+#            #--! TRACKING
+            self$statestack <- head(self$statestack, -1)
+            state <- tail(self$statestack, 1)[[1]]
+          }
+          
+          next
         }
         
         # Call an error function here
