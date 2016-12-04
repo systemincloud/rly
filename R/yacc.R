@@ -398,8 +398,8 @@ LRParser <- R6Class("LRParser",
 #                sym.type = 'error'
 #                sym.value = 'error'
 #                lookahead = sym
-#                errorcount = error_count
-#                self.errorok = False
+                errorcount <- error_count
+                self$errorok <- FALSE
               })
             
               next
@@ -439,8 +439,8 @@ LRParser <- R6Class("LRParser",
 #                sym.type = 'error'
 #                sym.value = 'error'
 #                lookahead = sym
-#                errorcount = error_count
-#                self.errorok = False
+                errorcount <- error_count
+                self$errorok <- FALSE
               })
   
               next
