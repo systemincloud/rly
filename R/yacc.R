@@ -477,8 +477,10 @@ LRParser <- R6Class("LRParser",
             errtoken <- lookahead
             if(errtoken$type == '$end') errtoken <- NULL
             if(!is.null(self$errorfunc)) {
-              if(!is.null(errtoken))
-                if(is.null(errtoken$lexer)) errtoken$lexer <- lexer
+              if(!is.null(errtoken)) {
+                if(is.na(errtoken$lexer))  errtoken$lexer  <- lexer
+                if(is.na(errtoken$parser)) errtoken$parser <- self
+              }
               
               self$state <- state
               tok <- self$errorfunc(errtoken)

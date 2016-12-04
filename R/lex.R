@@ -76,6 +76,7 @@ LexToken <- R6Class("LexToken",
     lineno = NA,
     lexpos = NA,
     lexer  = NA,
+    parser = NA,
     toString = function() {
       return(sprintf("LexToken(%s,%s,%d,%d)", self$type, toString(self$value), self$lineno, self$lexpos))
     },
