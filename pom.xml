@@ -4,7 +4,7 @@
 
   <groupId>rly</groupId>
   <artifactId>rly</artifactId>
-  <version>1.1.0</version>
+  <version>1.2.0</version>
   <packaging>pom</packaging>
   <name>Lex and Yacc</name>
   
