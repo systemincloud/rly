@@ -223,6 +223,17 @@ LRParser <- R6Class("LRParser",
       self$set_defaulted_states()
       self$errorok     <- TRUE
     },
+    errok = function() {
+      self$errorok <- TRUE
+    },
+    restart = function() {
+      self$statestack <- list()
+      self$symstack   <- list()
+      sym <- YaccSymbol$new()
+      sym$type <- '$end'
+      self$symstack <- append(self$symstack, sym)
+      self$statestack <- append(self$statestack, 1)
+    },
     # Defaulted state support.
     # This method identifies parser states where there is only one possible reduction action.
     # For such states, the parser can make a choose to make a rule reduction without consuming
@@ -379,8 +390,6 @@ LRParser <- R6Class("LRParser",
                 state <- self$goto[[as.character(tail(self$statestack, 1)[[1]])]][[pname]]
                 self$statestack <- append(self$statestack, state)
               }, error = function(e) {
-                cat(toString(e))
-                cat('\n')
                 # If an error was set. Enter error recovery state
                 lookaheadstack <- append(lookaheadstack, lookahead)    # Save the current lookahead token
 #                symstack.extend(targ[1:-1])                           # Put the production slice back on the stack
@@ -422,7 +431,6 @@ LRParser <- R6Class("LRParser",
                 state <- self$goto[[as.character(tail(self$statestack, 1)[[1]]+1)]][[pname]]
                 self$statestack <- append(self$statestack, state)
               }, error = function(e) {
-                cat('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n')
                 # If an error was set. Enter error recovery state
                 lookaheadstack <- append(lookaheadstack, lookahead)    # Save the current lookahead token
 #                symstack.extend(targ[1:-1])         # Put the production slice back on the stack
