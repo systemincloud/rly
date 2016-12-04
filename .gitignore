@@ -6,3 +6,4 @@ DESCRIPTION
 src/*.o
 src/*.so
 src/*.dll
+**/parser.out
