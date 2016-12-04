@@ -337,7 +337,6 @@ LRParser <- R6Class("LRParser",
             sym$type <- pname       # Production name
             sym$value <- NULL
             
-            cat('\n')
             if(plen > 0) {
               debuglog$info(sprintf('Action : Reduce rule [%s] with [%s] and goto state %d', 
                                      p$toString(), 
