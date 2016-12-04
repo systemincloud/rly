@@ -169,7 +169,7 @@ YaccProduction <- R6Class("YaccProduction",
     },
     get = function(n) {
       if(n > 0) return(self$slice[[n]]$value)
-      else      return(tail(self$stack, -n)[[1]]$value)
+      else      return(tail(self$stack, -n+1)[[1]]$value)
     },
     set = function(n, value) {
       if(n > 0) self$slice[[n]]$value <- value
@@ -285,6 +285,7 @@ LRParser <- R6Class("LRParser",
       sym <- YaccSymbol$new()
       sym$type <- '$end'
       self$symstack <- append(self$symstack, sym)
+      pslice$stack  <- append(pslice$stack, sym)
       state <- 1
       while(TRUE) {
         # Get the next symbol on the input.  If a lookahead symbol
@@ -331,6 +332,7 @@ LRParser <- R6Class("LRParser",
             debuglog$info(sprintf('Action : Shift and goto state %s', t))
             
             self$symstack <- append(self$symstack, lookahead)
+            pslice$stack  <- append(pslice$stack, lookahead)
             lookahead <- NULL
             
             # Decrease error count on successful shift
