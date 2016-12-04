@@ -88,7 +88,7 @@ randomString <- function(length=12) {
 
 format_result <- function(r) {
   result <- NULL
-  if(typeof(r) == "environment") result <- sprintf('<%s> (%s)', typeof(r$toString()[[1]]), r$toString())
+  if(typeof(r) == "environment") result <- sprintf('<%s> (%s)', typeof(r$toString()), toString(r$toString()))
   else                           result <- sprintf('<%s> (%s)', typeof(r), toString(r))
   return(result)
 }
@@ -248,10 +248,10 @@ LRParser <- R6Class("LRParser",
       if(debug) debuglog <- RlyLogger$new()
       else      debuglog <- NullLogger$new()
       
-      lookahead      <- NULL                   # Current lookahead symbol
-      lookaheadstack <- list()                 # Stack of lookahead symbols
-      pslice         <- YaccProduction$new(NA) # Production object passed to grammar rules
-      errorcount     <- 0                      # Used during error recovery
+      lookahead      <- NULL                     # Current lookahead symbol
+      lookaheadstack <- list()                   # Stack of lookahead symbols
+      pslice         <- YaccProduction$new(NULL) # Production object passed to grammar rules
+      errorcount     <- 0                        # Used during error recovery
       
       debuglog$info('RLY: PARSE DEBUG START')
       
