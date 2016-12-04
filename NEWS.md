@@ -1,3 +1,15 @@
+### Changes in v1.2.0
+
+#### NEW FEATURES
+
+  1. LRParser : add function restart.
+
+#### BUG FIXES
+
+  1. Error when no literals defined at all.
+
+  2. YaccProduction : Function get don't accept negative arguments.
+
 ### Changes in v1.1.0
 
 #### NEW FEATURES
