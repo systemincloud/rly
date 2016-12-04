@@ -180,16 +180,16 @@ YaccProduction <- R6Class("YaccProduction",
     },
     linespan = function(n) {
       startline <- self$slice[[n]]$lineno
-      if(is.na(startline)) startline <- 0
+      if(is.null(startline)) startline <- 0
       endline   <- self$slice[[n]]$endlineno
-      if(is.na(endline)) endline <- startline
+      if(is.null(endline)) endline <- startline
       return(c(startline, endline))
     },
     lexspan = function(n) {
       startpos <- self$slice[[n]]$lexpos
-      if(is.na(startpos)) startpos <- 0
+      if(is.null(startpos)) startpos <- 0
       endpos   <- self$slice[[n]]$endlexpos
-      if(is.na(endpos)) endpos <- startpos
+      if(is.null(endpos)) endpos <- startpos
       return(c(startpos, endpos))
     }
   )
@@ -379,7 +379,8 @@ LRParser <- R6Class("LRParser",
                 state <- self$goto[[as.character(tail(self$statestack, 1)[[1]])]][[pname]]
                 self$statestack <- append(self$statestack, state)
               }, error = function(e) {
-                cat('YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY\n')
+                cat(toString(e))
+                cat('\n')
                 # If an error was set. Enter error recovery state
                 lookaheadstack <- append(lookaheadstack, lookahead)    # Save the current lookahead token
 #                symstack.extend(targ[1:-1])                           # Put the production slice back on the stack
