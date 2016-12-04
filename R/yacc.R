@@ -94,7 +94,8 @@ format_result <- function(r) {
 }
 
 format_stack_entry <- function(r) {
-  return(toString(r$value))
+  if(typeof(r) != 'environment') return(toString(r))
+  else                           return(sprintf('<%s @ %s>', typeof(r), id(r)))
 }
 
 #-----------------------------------------------------------------------------
@@ -176,6 +177,20 @@ YaccProduction <- R6Class("YaccProduction",
     },
     length = function() {
       return(length(self$slice))
+    },
+    linespan = function(n) {
+      startline <- self$slice[[n]]$lineno
+      if(is.na(startline)) startline <- 0
+      endline   <- self$slice[[n]]$endlineno
+      if(is.na(endline)) endline <- startline
+      return(c(startline, endline))
+    },
+    lexspan = function(n) {
+      startpos <- self$slice[[n]]$lexpos
+      if(is.na(startpos)) startpos <- 0
+      endpos   <- self$slice[[n]]$endlexpos
+      if(is.na(endpos)) endpos <- startpos
+      return(c(startpos, endpos))
     }
   )
 )
@@ -322,17 +337,16 @@ LRParser <- R6Class("LRParser",
             sym$type <- pname       # Production name
             sym$value <- NULL
             
+            cat('\n')
             if(plen > 0) {
-              debuglog$info(sprintf('Action : Reduce rule [%s] with %s and goto state %d', 
-                                     p$toString(),
-                                     paste('[', 
-                                           paste(sapply(tail(self$symstack, plen), format_stack_entry), sep=','),
-                                           ']', collapse='', sep=''),
+              debuglog$info(sprintf('Action : Reduce rule [%s] with [%s] and goto state %d', 
+                                     p$toString(), 
+                                     toString(lapply(lapply(tail(self$symstack, plen), function(x) x$value), format_stack_entry)),
                                      self$goto[[as.character(tail(self$statestack, plen+1)[[1]])]][[pname]]))
             } else {
-              debuglog$info(sprintf('Action : Reduce rule [%s] with %s and goto state %d', 
+              debuglog$info(sprintf('Action : Reduce rule [%s] with [%s] and goto state %d', 
                                      p$toString(), 
-                                     '[]',
+                                     ' ',
                                      self$goto[[as.character(tail(self$statestack, 1)+1)]][[pname]]))
             }
             
@@ -341,12 +355,14 @@ LRParser <- R6Class("LRParser",
               targ[[1]] <- sym
               
               if(tracking) {
-#                t1 = targ[1]
-#                sym.lineno = t1.lineno
-#                sym.lexpos = t1.lexpos
-#                t1 = targ[-1]
-#                sym.endlineno = getattr(t1, 'endlineno', t1.lineno)
-#                sym.endlexpos = getattr(t1, 'endlexpos', t1.lexpos)
+                t1 <- targ[[2]]
+                sym$lineno <- t1$lineno
+                sym$lexpos <- t1$lexpos
+                t1 <- tail(targ, 1)[[1]]
+                sym$endlineno <- t1$endlineno
+                if(is.null(sym$endlineno)) sym$endlineno <- t1$lineno
+                sym$endlexpos <- t1$endlexpos
+                if(is.null(sym$endlexpos)) sym$endlexpos <- t1$lexpos
               }
               
               pslice$slice <- targ
@@ -364,6 +380,7 @@ LRParser <- R6Class("LRParser",
                 state <- self$goto[[as.character(tail(self$statestack, 1)[[1]])]][[pname]]
                 self$statestack <- append(self$statestack, state)
               }, error = function(e) {
+                cat('YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY\n')
                 # If an error was set. Enter error recovery state
                 lookaheadstack <- append(lookaheadstack, lookahead)    # Save the current lookahead token
 #                symstack.extend(targ[1:-1])                           # Put the production slice back on the stack
@@ -381,8 +398,8 @@ LRParser <- R6Class("LRParser",
             } else {
               
               if(tracking) {
-#                sym.lineno = lexer.lineno
-#                sym.lexpos = lexer.lexpos
+                sym$lineno <- lexer$lineno
+                sym$lexpos <- lexer$lexpos
               }
               
               targ <- c(sym)
@@ -405,6 +422,7 @@ LRParser <- R6Class("LRParser",
                 state <- self$goto[[as.character(tail(self$statestack, 1)[[1]]+1)]][[pname]]
                 self$statestack <- append(self$statestack, state)
               }, error = function(e) {
+                cat('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n')
                 # If an error was set. Enter error recovery state
                 lookaheadstack <- append(lookaheadstack, lookahead)    # Save the current lookahead token
 #                symstack.extend(targ[1:-1])         # Put the production slice back on the stack
@@ -465,7 +483,7 @@ LRParser <- R6Class("LRParser",
                 next
               }
             } else {
-#              if errtoken:
+              if(errtoken) {
 #                    if hasattr(errtoken, 'lineno'):
 #                          lineno = lookahead.lineno
 #                    else:
@@ -477,6 +495,7 @@ LRParser <- R6Class("LRParser",
 #                                          else:
 #                                                sys.stderr.write('yacc: Parse error in input. EOF\n')
 #              return
+              }
             }
           } else errorcount <- error_count
           
@@ -508,9 +527,12 @@ LRParser <- R6Class("LRParser",
               # Hmmm. Error is on top of stack, we'll just nuke input
               # symbol and continue
               #--! TRACKING
-#                  if tracking:
-#                        sym.endlineno = getattr(lookahead, 'lineno', sym.lineno)
-#            sym.endlexpos = getattr(lookahead, 'lexpos', sym.lexpos)
+              if(tracking) {
+                sym$endlineno <- lookahead$lineno
+                if(is.na(sym$endlineno)) sym$endlineno <- sym$lineno
+                sym$endlexpos <- lookahead$lexpos
+                if(is.na(sym$endlexpos)) sym$endlexpos <- sym$lexpos
+              }
                #--! TRACKING
                lookahead <- NULL
                next
@@ -528,17 +550,18 @@ LRParser <- R6Class("LRParser",
                t$lexpos    <- lookahead$lexpos
                t$endlexpos <- lookahead$lexpos
              }  
-             t.value <- lookahead
+             t$value <- lookahead
              lookaheadstack <- append(lookaheadstack, lookahead)
              lookahead <- t
           } else {
             sym <- tail(self$symstack, 1)[[1]]
             self$symstack <- head(self$symstack, -1)
-#            #--! TRACKING
-#            if tracking:
-#                  lookahead.lineno = sym.lineno
-#            lookahead.lexpos = sym.lexpos
-#            #--! TRACKING
+            #--! TRACKING
+            if(tracking) {
+              lookahead$lineno <- sym$lineno
+              lookahead$lexpos <- sym$lexpos             
+            }
+            #--! TRACKING
             self$statestack <- head(self$statestack, -1)
             state <- tail(self$statestack, 1)[[1]]
           }
