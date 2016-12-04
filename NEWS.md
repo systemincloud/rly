@@ -1,3 +1,18 @@
+### Changes in v1.1.0
+
+#### NEW FEATURES
+
+  1. YaccProduction : add length function to the class (ex. p$length() ).
+  
+  2. Implement tracking. YaccProduction new methods: p$linespan(n) and p$lexspan(n).
+
+  3. Implement error recovery.
+
+#### BUG FIXES
+
+  1. Lex is duplicating numeric tokens.
+  
+  
 ### Changes in v1.0.3
 
 #### NOTES
