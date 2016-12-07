@@ -634,6 +634,7 @@ Production <- R6Class("Production",
     func      = NA,
     callable  = NA,
     prec      = NA,
+    str       = NA,
     len       = NA,
     usyms     = NA,
     lr_items  = NA,
@@ -660,12 +661,16 @@ Production <- R6Class("Production",
       # List of all LR items for the production
       self$lr_items <- list()
       self$lr_next  <- NA
+      
+      # Create a string representation
+      if(!is.null(self$prod)) self$str <- sprintf('%s -> %s',      self$name, paste(self$prod, collapse=' '))
+      else                    self$str <- sprintf('%s -> <empty>', self$name)
     },
     # Return the nth lr_item from the production (or None if at the end)
     lr_item = function(n) {
     },
     toString = function() {
-      return(sprintf('%s -> %s', self$name, paste(self$prod, collapse = ' ')))
+      return(self$str)
     },
     bind = function(instance) {
       if(!is.na(self$func)) self$callable <- instance[[self$func]]
@@ -1088,7 +1093,12 @@ Grammar <- R6Class("Grammar",
         }
       }
       
-      if(!broke) result <- append(result, '<empty>')
+      if(!broke) {
+        # There was no 'break' from the loop,
+        # so x_produces_empty was true for all x in beta,
+        # so beta produces empty as well.
+        result <- append(result, '<empty>')
+      }
       
       return(result)
     },
