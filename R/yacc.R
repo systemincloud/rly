@@ -663,8 +663,8 @@ Production <- R6Class("Production",
       self$lr_next  <- NA
       
       # Create a string representation
-      if(!is.null(self$prod)) self$str <- sprintf('%s -> %s',      self$name, paste(self$prod, collapse=' '))
-      else                    self$str <- sprintf('%s -> <empty>', self$name)
+      if(length(self$prod) > 0) self$str <- sprintf('%s -> %s',      self$name, paste(self$prod, collapse=' '))
+      else                      self$str <- sprintf('%s -> <empty>', self$name)
     },
     # Return the nth lr_item from the production (or None if at the end)
     lr_item = function(n) {
@@ -732,8 +732,8 @@ LRItem <- R6Class("LRItem",
     },
     toString = function() {
       s <- ''
-      if(!is.null(self$prod)) s <- sprintf('%s -> %s', self$name, paste(self$prod, collapse=' '))
-      else                    s <- sprintf('%s -> <empty>',  self$name)
+      if(length(self$prod) > 0) s <- sprintf('%s -> %s', self$name, paste(self$prod, collapse=' '))
+      else                      s <- sprintf('%s -> <empty>',  self$name)
       return(s)
     }
   )
