@@ -165,7 +165,11 @@ YaccProduction <- R6Class("YaccProduction",
       self$parser <- NA
     },
     toString = function() {
-      return(self$slice[[1]]$value)
+      ret <- NULL
+      v <- self$slice[[1]]$value
+      if(typeof(v) == "environment") ret <- names(v)
+      else                           ret <- v
+      return(ret)
     },
     get = function(n) {
       if(n > 0) return(self$slice[[n]]$value)
