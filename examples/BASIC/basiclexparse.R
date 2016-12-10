@@ -15,7 +15,7 @@ Lexer <- R6Class("Lexer",
       return(t)
     },
     t_ID = function(re='[A-Z][A-Z0-9]*', t) {
-      if(t$value %in% keywords) t$type <- t$value
+      if(t$value %in% KEYWORDS) t$type <- t$value
       return(t)
     },
     t_EQUALS  = '=',
@@ -36,9 +36,9 @@ Lexer <- R6Class("Lexer",
     t_INTEGER = '\\d+',
     t_FLOAT   = '((\\d*\\.\\d+)(E[\\+-]?\\d+)?|([1-9]\\d*E[\\+-]?\\d+))',
     t_STRING  = '\\".*?\\"',
-      t_newline = function(re='\\n+', t) {
-      t$lexer$lineno <- t$lexer$lineno + nchar(t$value)
-      return(NULL)
+    t_NEWLINE = function(re='\\n', t) {
+      t$lexer$lineno <- t$lexer$lineno + 1
+      return(t)
     },
     t_error = function(t) {
       cat(sprintf("Illegal character '%s'", t$value[[1]]))
@@ -60,18 +60,19 @@ Parser <- R6Class("Parser",
     # dictionary of tuples indexed by line number.
     p_program = function(doc='program : program statement
                                       | statement', p) {
-      if(p$length() == 2 && p$get(2)) {
-        p$set(1, new.env(hash=TRUE))
+      if(p$length() == 2 && !is.null(p$get(2))) {
+        p1 <- new.env(hash=TRUE)
         line <- p$get(2)[[1]]
         stat <- p$get(2)[[2]]
-        p$get(1)[[line]] <- stat
+        p1[[as.character(line)]] <- stat
+        p$set(1, p1)
       } else if(p$length() == 3) {
         p$set(1, p$get(2))
-        if(!p$get(1))  p$set(1, new.env(hash=TRUE))
+        if(is.null(p$get(1)))  p$set(1, new.env(hash=TRUE))
         if(p$get(3)) {
           line <- p$get(2)[[1]]
           stat <- p$get(2)[[2]]
-          p$get(1)[[line]] <- stat
+          p$get(1)[[as.character(line)]] <- stat
         }
       }
     },
@@ -336,7 +337,7 @@ Parser <- R6Class("Parser",
     },
     # Catastrophic error handler
     p_error = function(p) {
-      if(!p) cat("SYNTAX ERROR AT EOF\n")
+      if(!is.null(p)) cat("SYNTAX ERROR AT EOF\n")
     }
   )
 )
