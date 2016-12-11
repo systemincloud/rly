@@ -69,10 +69,12 @@ Parser <- R6Class("Parser",
       } else if(p$length() == 3) {
         p$set(1, p$get(2))
         if(is.null(p$get(1)))  p$set(1, new.env(hash=TRUE))
-        if(p$get(3)) {
-          line <- p$get(2)[[1]]
-          stat <- p$get(2)[[2]]
-          p$get(1)[[as.character(line)]] <- stat
+        if(!is.null(p$get(3))) {
+          line <- p$get(3)[[1]]
+          stat <- p$get(3)[[2]]
+          p1 <- p$get(1)
+          p1[[as.character(line)]] <- stat
+          p$set(1, p1)
         }
       }
     },
