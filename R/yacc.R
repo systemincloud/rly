@@ -363,7 +363,7 @@ LRParser <- R6Class("LRParser",
               debuglog$info(sprintf('Action : Reduce rule [%s] with [%s] and goto state %d', 
                                      p$toString(), 
                                      ' ',
-                                     self$goto[[as.character(tail(self$statestack, 1)+1)]][[pname]]))
+                                     self$goto[[as.character(tail(self$statestack, 1)[[1]])]][[pname]]))
             }
             
             if(plen > 0) {
@@ -434,7 +434,7 @@ LRParser <- R6Class("LRParser",
                 debuglog$info(sprintf('Result : %s', format_result(pslice)))
                 
                 self$symstack <- append(self$symstack, sym)
-                state <- self$goto[[as.character(tail(self$statestack, 1)[[1]]+1)]][[pname]]
+                state <- self$goto[[as.character(tail(self$statestack, 1)[[1]])]][[pname]]
                 self$statestack <- append(self$statestack, state)
               }, error = function(e) {
                 # If an error was set. Enter error recovery state
