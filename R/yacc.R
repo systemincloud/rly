@@ -88,8 +88,10 @@ randomString <- function(length=12) {
 
 format_result <- function(r) {
   result <- NULL
-  if(typeof(r) == "environment") result <- sprintf('<%s> (%s)', typeof(r$toString()), toString(r$toString()))
-  else                           result <- sprintf('<%s> (%s)', typeof(r), toString(r))
+  if(typeof(r) == "environment") {
+    if("toString" %in% names(r)) result <- sprintf('<%s> (%s)', typeof(r$toString()), toString(r$toString()))
+    else                         result <- sprintf('<envirnment @%s>', id(r))
+  } else                         result <- sprintf('<%s> (%s)', typeof(r), toString(r))
   return(result)
 }
 
@@ -396,6 +398,7 @@ LRParser <- R6Class("LRParser",
                 state <- self$goto[[as.character(tail(self$statestack, 1)[[1]])]][[pname]]
                 self$statestack <- append(self$statestack, state)
               }, error = function(e) {
+                print(e)
                 # If an error was set. Enter error recovery state
                 lookaheadstack <- append(lookaheadstack, lookahead)    # Save the current lookahead token
 #                symstack.extend(targ[1:-1])                           # Put the production slice back on the stack
@@ -437,6 +440,7 @@ LRParser <- R6Class("LRParser",
                 state <- self$goto[[as.character(tail(self$statestack, 1)[[1]])]][[pname]]
                 self$statestack <- append(self$statestack, state)
               }, error = function(e) {
+                print(e)
                 # If an error was set. Enter error recovery state
                 lookaheadstack <- append(lookaheadstack, lookahead)    # Save the current lookahead token
 #                symstack.extend(targ[1:-1])         # Put the production slice back on the stack
