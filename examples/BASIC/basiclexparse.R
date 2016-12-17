@@ -147,7 +147,7 @@ Parser <- R6Class("Parser",
     p_optend = function(doc='optend : COMMA 
                                     | SEMI
                                     |', p) {
-      if(p$lenght() == 2) p$set(1, p$get(2))
+      if(p$length() == 2) p$set(1, p$get(2))
       else                p$set(1, NULL)
     },
     # PRINT statement with no arguments
