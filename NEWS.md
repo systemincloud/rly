@@ -1,3 +1,9 @@
+### Changes in v1.2.1
+
+#### NOTES
+
+  1. Single quote the software names 'lex' and 'yacc' both in Title and Description.
+
 ### Changes in v1.2.0
 
 #### NEW FEATURES

@@ -4,11 +4,11 @@
 
   <groupId>rly</groupId>
   <artifactId>rly</artifactId>
-  <version>1.2.0</version>
+  <version>1.2.1</version>
   <packaging>pom</packaging>
-  <name>Lex and Yacc</name>
+  <name>'Lex' and 'Yacc'</name>
   
-  <description>R implementation of the common parsing tools lex and yacc.</description>
+  <description>R implementation of the common parsing tools 'lex' and 'yacc'.</description>
   <url>https://github.com/systemincloud/rly</url>
 
   <organization>
