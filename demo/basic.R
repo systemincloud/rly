@@ -4,8 +4,8 @@
 #
 library(rly)
 
-source('basiclexparse.R')
-source('basinterp.R')
+source('BASIC/basiclexparse.R')
+source('BASIC/basinterp.R')
 
 lexer  <- rly::lex(Lexer)
 parser <- rly::yacc(Parser)
