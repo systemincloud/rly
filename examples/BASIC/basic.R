@@ -18,9 +18,11 @@ b <- NA
 if (length(args) == 1) {
   fileName <- args[[1]]
   data <- readChar(fileName, file.info(fileName)$size)
-  prog <- parser$parse(data, lexer, debug=TRUE)
+  prog <- parser$parse(data, lexer)
   b <- BasicInterpreter$new(prog)
   b$run()
+  cat("\n")
+  quit()
 } else b <- BasicInterpreter$new()
 
 # Interactive mode.  This incrementally adds/deletes statements
@@ -31,7 +33,7 @@ if (length(args) == 1) {
 while(TRUE) {
   cat('[BASIC] ')
   line <- readLines(file("stdin"), n=1)
-  prog <-parser$parse(line, lexer)
+  prog <- parser$parse(line, lexer)
   if(is.null(prog)) next
   
   b$add_statements(prog)

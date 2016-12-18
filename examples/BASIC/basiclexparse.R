@@ -322,11 +322,11 @@ Parser <- R6Class("Parser",
                                   | pitem', p) {
       if(p$length() > 3) {
         p$set(1, p$get(2))
-        p$get(1) <- append(p$get(1), p$get(4))
+        p$set(1, append(p$get(1), p$get(4)))
       } else p$set(1, list(p$get(2)))
     },
     p_item_string = function(doc='pitem : STRING', p) {
-      p$set(1, list(tail(head(p$get(2), -1), -1), NULL))
+      p$set(1, list(substr(p$get(2), 2, nchar(p$get(2))-1), NULL))
     },
     p_item_string_expr = function(doc='pitem : STRING expr', p) {
       p$set(1, list(tail(head(p$get(2), -1), -1), p$get(3)))
