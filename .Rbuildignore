@@ -4,6 +4,5 @@
 ^pom.xml$
 ^resources
 ^target$
-^examples$
 ^.*\.Rproj$
 ^\.Rproj\.user$
