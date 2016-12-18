@@ -1,3 +1,9 @@
+### Changes in v1.3.0
+
+#### NOTES
+
+  1. Refactor demos.
+  
 ### Changes in v1.2.1
 
 #### NOTES
