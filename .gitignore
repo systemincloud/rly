@@ -6,4 +6,5 @@ DESCRIPTION
 src/*.o
 src/*.so
 src/*.dll
+tests/testthat/demo
 **/parser.out
