@@ -264,7 +264,7 @@ Parser <- R6Class("Parser",
     },
     p_expr_number = function(doc='expr : INTEGER
                                        | FLOAT', p) {
-      p$set(1, list('NUM', eval(p$get(2))))
+      p$set(1, list('NUM', as.numeric(p$get(2))))
     },
     p_expr_variable = function(doc='expr : variable', p) {
       p$set(1, list('VAR', p$get(2)))
@@ -373,15 +373,15 @@ BasicInterpreter <- R6Class("BasicInterpreter",
       self$prog <- prog
       
       self$functions <- new.env(hash=TRUE) # Built-in function table
-      self$functions[['SIN']] <- function(z) sin(eval(z))
-      self$functions[['COS']] <- function(z) cos(eval(z))
-      self$functions[['TAN']] <- function(z) tan(eval(z))
-      self$functions[['ATN']] <- function(z) atan(eval(z))
-      self$functions[['EXP']] <- function(z) exp(eval(z))
-      self$functions[['ABS']] <- function(z) abs(eval(z))
-      self$functions[['LOG']] <- function(z) log(eval(z))
-      self$functions[['SQR']] <- function(z) sqrt(eval(z))
-      self$functions[['INT']] <- function(z) strtoi(eval(z))
+      self$functions[['SIN']] <- function(z) sin(self$eval(z))
+      self$functions[['COS']] <- function(z) cos(self$eval(z))
+      self$functions[['TAN']] <- function(z) tan(self$val(z))
+      self$functions[['ATN']] <- function(z) atan(self$eval(z))
+      self$functions[['EXP']] <- function(z) exp(self$eval(z))
+      self$functions[['ABS']] <- function(z) abs(self$eval(z))
+      self$functions[['LOG']] <- function(z) log(self$eval(z))
+      self$functions[['SQR']] <- function(z) sqrt(self$eval(z))
+      self$functions[['INT']] <- function(z) as.integer(self$eval(z))
       self$functions[['RND']] <- function(z) runif(1)
     },
     # Collect all data statements
@@ -439,18 +439,60 @@ BasicInterpreter <- R6Class("BasicInterpreter",
     # Evaluate an expression
     eval = function(expr) {
       etype <- expr[[1]]
-      if(etype == 'NUM') return(expr[[2]])
+           if(etype == 'NUM')   return(expr[[2]])
       else if(etype == 'GROUP') return(self$eval(expr[[2]]))
       else if(etype == 'UNARY') {
         if(expr[[2]] == '-') return(-self$eval(expr[[3]]))
       } else if(etype == 'BINOP') {
              if(expr[[2]] == '+') return(self$eval(expr[[3]]) + self$eval(expr[[4]]))
-        else if(expr[[2]] == '-') return(self$eval(expr[[3]]) - self.eval(expr[[4]]))
-        else if(expr[[2]] == '*') return(self$eval(expr[[3]]) * self.eval(expr[[4]]))
-        else if(expr[[2]] == '/') return(float(self$eval(expr[[3]])) / self$eval(expr[[4]]))
+        else if(expr[[2]] == '-') return(self$eval(expr[[3]]) - self$eval(expr[[4]]))
+        else if(expr[[2]] == '*') return(self$eval(expr[[3]]) * self$eval(expr[[4]]))
+        else if(expr[[2]] == '/') return(self$eval(expr[[3]]) / self$eval(expr[[4]]))
         else if(expr[[2]] == '^') return(abs(self$eval(expr[[3]])) ^ self$eval(expr[[4]]))
       } else if(etype == 'VAR') {
-        
+        var_dim1_dim2 <- expr[[2]]
+        var  <- var_dim1_dim2[[1]]
+        dim1 <- var_dim1_dim2[[2]]
+        dim2 <- var_dim1_dim2[[3]]
+        if(is.null(dim1) && is.null(dim2)) {
+          if(var %in% names(self$vars)) return(self$vars[[var]])
+          else {
+            print(sprintf("UNDEFINED VARIABLE %s AT LINE %s", var, as.character(self$stat[[self$pc]])))
+            stop()
+          }
+        }
+        # May be a list lookup or a function evaluation
+        if(!is.null(dim1) && is.null(dim2)) {
+          if(var %in% names(self$functions)) {
+            # A function
+            return(self$functions[[var]](dim1))
+          } else {
+            # A list evaluation
+            if(var %in% names(self$lists)) {
+              dim1val <- self$eval(dim1)
+              if(dim1val < 1 || dim1val > length(self$lists[[var]])) {
+                print(sprintf("LIST INDEX OUT OF BOUNDS AT LINE %s", self$stat[[self$pc]]))
+                stop()
+              }
+              return(self$lists[[var]][[dim1val - 1]])
+            }
+          }
+        }
+        if(!is.null(dim1) && !is.null(dim2)) {
+          if(var %in% names(self$tables)) {
+            dim1val <- self$eval(dim1)
+            dim2val <- self$eval(dim2)
+            if(dim1val < 1 || dim1val > length(self$tables[[var]]) || dim2val < 1 || dim2val > length(self$tables[[var]][[1]])) {
+              print(sprintf("TABLE INDEX OUT OUT BOUNDS AT LINE %s",
+                             self$stat[[self.pc]]))
+              stop()
+            }
+            return(self$tables[[var]][[dim1val - 1]][[dim2val - 1]])
+          }
+        }
+      
+        print(sprintf("UNDEFINED VARIABLE %s AT LINE %s", var, as.character(self$stat[[self$pc]])))
+        stop()
       }
     },
     # Evaluate a relational expression
@@ -492,7 +534,7 @@ BasicInterpreter <- R6Class("BasicInterpreter",
           print(sprintf("DIMENSION TOO LARGE AT LINE %s", self$stat[[self$pc]]))
           stop()
         }
-        self$lists[var][dim1val - 1] = self.eval(value)
+        self$lists[var][dim1val - 1] = self$eval(value)
       } else if(!is.na(dim1) && !is.na(dim2)) {
         dim1val <- self$eval(dim1)
         dim2val <- self$eval(dim2)
@@ -537,7 +579,7 @@ BasicInterpreter <- R6Class("BasicInterpreter",
       if(self$error) stop()
       
       while(TRUE) {
-        line <- self$stat[[self$pc]]
+        line  <- self$stat[[self$pc]]
         instr <- self$prog[[as.character(line)]]
         
         op <- instr[[1]]
@@ -559,21 +601,19 @@ BasicInterpreter <- R6Class("BasicInterpreter",
           for(label_val in plist) {
             label <- label_val[[1]]
             val   <- label_val[[2]]
-            if(nchar(out) > 0) out <- paste(out, sprintf('%-15s'))
-            out <- paste(out, label, sep='')
+#            if(nchar(out) > 0) out <- paste(out, sprintf('%5s'))
+            out <- paste(out, label, sep='', collapse='')
             if(!is.null(val)) {
-              if(!is.null(label)) out <- paste(out, " ", sep='')
-              eval = self.eval(val)
-              out <- paste(out, toString(eval))
+              if(label != "") out <- paste(out, " ", sep='')
+              eval <- self$eval(val)
+              out <- paste(out, toString(eval), sep='')
             }
           }
           cat(out)
-          end <- instr[[3]]
-          if(!is.null(end)) {
-            if(!(end == ',' || end == ';')) cat("\n")
-            if(end == ',') cat(" ")
-            if(end == ';') cat(" ")
-          }
+          end <- toString(instr[[3]])
+          if(!(end == ',' || end == ';')) cat("\n")
+          if(end == ',') cat(" ")
+          if(end == ';') cat(" ")
         }
         
         # ...
@@ -584,19 +624,20 @@ BasicInterpreter <- R6Class("BasicInterpreter",
           finval  <- instr[[4]]
           stepval <- instr[[5]]
           
+          
           # Check to see if this is a new loop
           if(length(self$loops) == 0 || tail(self$loops, 1)[[1]][[1]] != self$pc) {
             # Looks like a new loop. Make the initial assignment
             newvalue <- initval
             self$assign(list(loopvar, NA, NA), initval)
-            if(is.null(stepval)) stepval <- c('NUM', 1)
-            stepval < self$eval(stepval)    # Evaluate step here
-            self$loops[[length(self$loops)+1]] <- c(self$pc, stepval)
+            if(is.null(stepval)) stepval <- list('NUM', 1)
+            stepval <- self$eval(stepval)    # Evaluate step here
+            self$loops[[length(self$loops)+1]] <- list(self$pc, stepval)
           } else {
             # It's a repeat of the previous loop
             # Update the value of the loop variable according to the
             # step
-            stepval <- list('NUM', tail(self$loops, 1)[[1]][[2]])
+            stepval  <- list('NUM', tail(self$loops, 1)[[1]][[2]])
             newvalue <- list('BINOP', '+', list('VAR', list(loopvar, NA, NA)), stepval)
           }
           
@@ -617,12 +658,13 @@ BasicInterpreter <- R6Class("BasicInterpreter",
           
           nextvar <- instr[[2]]
           self$pc <- tail(self$loops, 1)[[1]][[1]]
-          loopinst <- self$prog[[self$stat[[self$pc]]]]
+          loopinst <- self$prog[[as.character(self$stat[[self$pc]])]]
           forvar <- loopinst[[2]]
           if(nextvar != forvar) {
             print(sprintf("NEXT DOESN'T MATCH FOR AT LINE %s", line))
             return()
           }
+          
           next
         }
         # ...
@@ -662,4 +704,14 @@ test_that("hello", {
   prog <- parser$parse(data, lexer)
   b <- BasicInterpreter$new(prog)
   expect_output(b$run(), "HELLO WORLD")
+})
+
+test_that("rand", {
+  parser$restart()
+  fileName <- 'BASIC/rand.bas'
+  data <- readChar(fileName, file.info(fileName)$size)
+  prog <- parser$parse(data, lexer)
+  b <- BasicInterpreter$new(prog)
+#  b$run()
+#  expect_output(b$run(), "HELLO WORLD")
 })
