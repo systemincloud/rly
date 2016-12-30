@@ -4,6 +4,8 @@
 
   1. Refactor demos.
   
+  2. Declare Depends: R (>= 3.3.0) in DESCRIPTION file.
+  
 ### Changes in v1.2.1
 
 #### NOTES
