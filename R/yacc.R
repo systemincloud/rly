@@ -1891,7 +1891,7 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
               
                     # Shift precedence comes from the token
                     sprec_slevel <- Precedence[[a]]
-                    if(is.null(rprec_rlevel)) sprec_slevel <- c('right', 0)
+                    if(is.null(sprec_slevel)) sprec_slevel <- c('right', 0)
                     
                     sprec  <- sprec_slevel[[1]]
                     slevel <- sprec_slevel[[2]]
