@@ -474,6 +474,9 @@ LexerReflect <- R6Class("LexerReflect",
     get_literals = function() {
       literals <- self$instance$literals
       if(is.null(literals)) literals <- c()
+      if(length(literals) == 1 && typeof(literals) == "character")
+        if(nchar(literals) > 1)
+          literals <- strsplit(literals, '')
       self$literals <- literals
     },
     # Validate literals

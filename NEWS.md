@@ -1,3 +1,9 @@
+### Changes in v1.4.0
+
+#### NEW FEATURES
+
+  1. You can define literals as a string of characters e.g.: literals = ':;,=*{}()<>[]'.
+  
 ### Changes in v1.3.0
 
 #### NOTES
