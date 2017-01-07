@@ -1,3 +1,9 @@
+### Changes in v1.4.2
+
+#### BUG FIXES
+
+  1. Fix: Error in log$info("  ! shift/reduce conflict ....
+  
 ### Changes in v1.4.1
 
 #### BUG FIXES
