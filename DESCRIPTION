@@ -1,0 +1,28 @@
+Package: rly
+Type: Package
+Title: 'Lex' and 'Yacc'
+Version: 1.4.1
+Date: 2017-01-07
+Authors@R: c(person("Marek", "Jagielski", 
+                    role = c("aut", "cre", "cph"), 
+                    email = "marek.jagielski@gmail.com"),
+             person("David M.", "Beazley", 
+                    role = c("aut", "cph")),
+             person("Yasutaka", "Tanaka", 
+                    role = c("ctb")))
+Author: Marek Jagielski [aut, cre, cph], David M. Beazley [aut, cph], Yasutaka Tanaka [ctb]
+Maintainer: Marek Jagielski <marek.jagielski@gmail.com>
+Description: R implementation of the common parsing tools 'lex' and 'yacc'.
+License: MIT + file LICENSE
+URL: https://github.com/systemincloud/rly
+BugReports: https://github.com/systemincloud/rly/issues
+Suggests: testthat
+Depends:
+    R (>= 3.3.0),
+    R6,
+    futile.logger
+RoxygenNote: 5.0.1
+Collate:
+    'logger.R'
+    'lex.R'
+    'yacc.R'
