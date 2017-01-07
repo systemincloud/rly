@@ -66,6 +66,7 @@
 #' @importFrom R6 R6Class
 #' @importFrom futile.logger flog.error flog.warn flog.info flog.debug
 #' @importFrom futile.logger flog.appender 
+#' @importFrom futile.logger appender.console appender.file
 #' @format A \code{\link{R6Class}} object
 #' 
 #' @export
