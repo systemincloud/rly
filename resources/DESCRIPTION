@@ -6,8 +6,10 @@ Date: ${date}
 Authors@R: c(person("Marek", "Jagielski", 
                     role = c("aut", "cre", "cph"), 
                     email = "marek.jagielski@gmail.com"),
-             person("David M.", " Beazley", 
-                    role = c("aut", "cph")))
+             person("David M.", "Beazley", 
+                    role = c("aut", "cph")),
+             person("Yasutaka", "Tanaka", 
+                    role = c("ctb")))
 Author: Marek Jagielski [aut, cre, cph], David M. Beazley [aut, cph]
 Maintainer: Marek Jagielski <marek.jagielski@gmail.com>
 Description: ${project.description}

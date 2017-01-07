@@ -3,6 +3,8 @@
 #### BUG FIXES
 
   1. Fix: Error: object 'rprec_rlevel' not found.
+  
+  2. Fix: could not find function "appender.console".
 
 ### Changes in v1.4.0
 
