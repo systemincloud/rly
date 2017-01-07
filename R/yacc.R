@@ -1916,7 +1916,7 @@ LRGeneratedTable <- R6Class("LRGeneratedTable",
                     } else {
                       # Hmmm. Guess we'll keep the shift
                       if(rlevel == 0) {
-                        log$info('  ! shift/reduce conflict for %s resolved as shift', a)
+                        log$info(sprintf('  ! shift/reduce conflict for %s resolved as shift', a))
                         self$sr_conflicts[[length(self$sr_conflicts)+1]] <- c(st, a, 'shift')
                       }
                     }
