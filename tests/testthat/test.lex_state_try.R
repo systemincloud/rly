@@ -5,7 +5,7 @@ library(rly)
 
 context("Declaration of a state without error")
 
-Lexer <- R6Class("Lexer",
+Lexer <- R6::R6Class("Lexer",
   public = list(
     tokens = c('NUMBER', 'PLUS','MINUS'),
     states = list(c('comment', 'exclusive')),

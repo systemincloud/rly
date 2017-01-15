@@ -5,7 +5,7 @@ library(rly)
 
 context("Rules with wrong # args")
 
-Parser1 <- R6Class("Parser1",
+Parser1 <- R6::R6Class("Parser1",
   public = list(
     tokens = c('NAME','NUMBER', 'PLUS','MINUS','TIMES','DIVIDE','EQUALS', 'LPAREN','RPAREN'),
     # Parsing rules
@@ -48,7 +48,7 @@ Parser1 <- R6Class("Parser1",
   )
 )
 
-Parser2 <- R6Class("Parser2",
+Parser2 <- R6::R6Class("Parser2",
   public = list(
     tokens = c('NAME','NUMBER', 'PLUS','MINUS','TIMES','DIVIDE','EQUALS', 'LPAREN','RPAREN'),
     # Parsing rules

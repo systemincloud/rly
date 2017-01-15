@@ -5,7 +5,7 @@ library(rly)
 
 context("A grammar with reduce/reduce conflicts and a rule that never gets reduced")
 
-Parser <- R6Class("Parser",
+Parser <- R6::R6Class("Parser",
   public = list(
     tokens = c('A', 'B', 'C'),
     p_grammar = function(doc='rule1 : rule2 B

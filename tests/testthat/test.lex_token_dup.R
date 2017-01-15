@@ -5,7 +5,7 @@ library(rly)
 
 context("Duplicate token name in tokens")
 
-Lexer <- R6Class("Lexer",
+Lexer <- R6::R6Class("Lexer",
   public = list(
     tokens = c('NUMBER', 'PLUS','MINUS', 'NUMBER'),
     t_PLUS = '\\+',

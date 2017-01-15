@@ -5,7 +5,7 @@ library(rly)
 
 context("tokens is right type, but is missing a token for one rule")
 
-Lexer <- R6Class("Lexer",
+Lexer <- R6::R6Class("Lexer",
   public = list(
     tokens = c('NUMBER', 'PLUS'),
     t_PLUS = '\\+',

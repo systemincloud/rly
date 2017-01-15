@@ -7,7 +7,7 @@ TOKENS = c(KEYWORDS, c('EQUALS', 'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'POWER',
                        'COMMA', 'SEMI', 'INTEGER', 'FLOAT', 'STRING',
                        'ID', 'NEWLINE'))
 
-Lexer <- R6Class("Lexer",
+Lexer <- R6::R6Class("Lexer",
   public = list(
     tokens = TOKENS,
     t_ignore = " \t",
@@ -48,7 +48,7 @@ Lexer <- R6Class("Lexer",
   )
 )
 
-Parser <- R6Class("Parser",
+Parser <- R6::R6Class("Parser",
   public = list(
     tokens = TOKENS,
     # Parsing rules

@@ -5,7 +5,7 @@ library(rly)
 
 context("Tests for tokens of wrong type")
 
-Lexer <- R6Class("Lexer",
+Lexer <- R6::R6Class("Lexer",
   public = list(
     tokens = 'NUMBER PLUS MINUS',
     t_PLUS = '\\+',

@@ -39,7 +39,7 @@ This function is entry point to the library
 TOKENS = c('NAME', 'NUMBER')
 LITERALS = c('=','+','-','*','/', '(',')')
 
-Parser <- R6Class("Parser",
+Parser <- R6::R6Class("Parser",
   public = list(
     tokens = TOKENS,
     literals = LITERALS,

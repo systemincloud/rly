@@ -5,7 +5,7 @@ library(rly)
 
 context("A grammar, but we forgot to import the tokens list")
 
-Parser <- R6Class("Parser",
+Parser <- R6::R6Class("Parser",
   public = list(
     # Parsing rules
     precedence = list(c('left','PLUS','MINUS'),

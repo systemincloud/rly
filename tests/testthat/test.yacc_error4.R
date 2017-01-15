@@ -5,7 +5,7 @@ library(rly)
 
 context("Attempt to define a rule named 'error'")
 
-Parser <- R6Class("Parser",
+Parser <- R6::R6Class("Parser",
   public = list(
     tokens = c('NAME','NUMBER', 'PLUS','MINUS','TIMES','DIVIDE','EQUALS', 'LPAREN','RPAREN'),
     # Parsing rules

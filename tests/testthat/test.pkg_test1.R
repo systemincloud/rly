@@ -7,7 +7,7 @@ context("Tests proper handling of lextab and parsetab files in package structure
 
 TOKENS = c('NAME','NUMBER', 'PLUS','MINUS','TIMES','DIVIDE','EQUALS', 'LPAREN','RPAREN')
 
-Lexer <- R6Class("Lexer",
+Lexer <- R6::R6Class("Lexer",
   public = list(
     tokens = TOKENS,
     t_PLUS   = '\\+',
@@ -35,7 +35,7 @@ Lexer <- R6Class("Lexer",
   )
 )
 
-Parser <- R6Class("Parser",
+Parser <- R6::R6Class("Parser",
   public = list(
     tokens = TOKENS,
     # Parsing rules

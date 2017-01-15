@@ -5,7 +5,7 @@ library(rly)
 
 context("calclex")
 
-Lexer <- R6Class("Lexer",
+Lexer <- R6::R6Class("Lexer",
   public = list(
     msg = NA,
 

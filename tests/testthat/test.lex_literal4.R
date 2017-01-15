@@ -5,7 +5,7 @@ library(rly)
 
 context("Literals as a string")
 
-Lexer <- R6Class("Lexer",
+Lexer <- R6::R6Class("Lexer",
   public = list(
     tokens = c('NUMBER'),
     literals = "+-*",

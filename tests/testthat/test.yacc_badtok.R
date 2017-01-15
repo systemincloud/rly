@@ -5,7 +5,7 @@ library(rly)
 
 context("A grammar, but tokens is a bad datatype")
 
-Parser <- R6Class("Parser",
+Parser <- R6::R6Class("Parser",
   public = list(
     tokens = 4,
     # Parsing rules

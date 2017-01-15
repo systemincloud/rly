@@ -5,7 +5,7 @@ library(rly)
 
 context("Syntax problems in the rule strings")
 
-Parser1 <- R6Class("Parser1",
+Parser1 <- R6::R6Class("Parser1",
   public = list(
     tokens = c('NAME','NUMBER', 'PLUS','MINUS','TIMES','DIVIDE','EQUALS', 'LPAREN','RPAREN'),
     # Parsing rules
@@ -48,7 +48,7 @@ Parser1 <- R6Class("Parser1",
   )
 )
 
-Parser2 <- R6Class("Parser2",
+Parser2 <- R6::R6Class("Parser2",
   public = list(
     tokens = c('NAME','NUMBER', 'PLUS','MINUS','TIMES','DIVIDE','EQUALS', 'LPAREN','RPAREN'),
     # Parsing rules
@@ -91,7 +91,7 @@ Parser2 <- R6Class("Parser2",
   )
 )
 
-Parser3 <- R6Class("Parser3",
+Parser3 <- R6::R6Class("Parser3",
   public = list(
     tokens = c('NAME','NUMBER', 'PLUS','MINUS','TIMES','DIVIDE','EQUALS', 'LPAREN','RPAREN'),
     # Parsing rules
@@ -134,7 +134,7 @@ Parser3 <- R6Class("Parser3",
   )
 )
 
-Parser4 <- R6Class("Parser4",
+Parser4 <- R6::R6Class("Parser4",
   public = list(
     tokens = c('NAME','NUMBER', 'PLUS','MINUS','TIMES','DIVIDE','EQUALS', 'LPAREN','RPAREN'),
     # Parsing rules

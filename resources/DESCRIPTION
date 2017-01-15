@@ -18,7 +18,8 @@ URL: ${project.url}
 BugReports: ${project.issueManagement.url}
 Suggests: testthat
 Depends:
-    R (>= 3.3.0),
+    R (>= 3.3.0)
+Imports: 
     R6,
     futile.logger
 RoxygenNote: 5.0.1

@@ -5,7 +5,7 @@ library(rly)
 
 context("A grammar with shift-reduce conflicts")
 
-Parser <- R6Class("Parser",
+Parser <- R6::R6Class("Parser",
   public = list(
     tokens = c('NAME','NUMBER', 'PLUS','MINUS','TIMES','DIVIDE','EQUALS', 'LPAREN','RPAREN'),
     # dictionary of names

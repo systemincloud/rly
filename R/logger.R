@@ -74,13 +74,13 @@
 #' @examples
 #' debuglog <- RlyLogger$new(".", "file.out")
 #' debuglog$info('This is info message')
-RlyLogger <- R6Class("RlyLogger",
+RlyLogger <- R6::R6Class("RlyLogger",
     public = list(
         name = NA,
         initialize = function(dir=NA, name=NA) {
           self$name <- randomString(4)
-          if(is.na(name)) flog.appender(appender.console(), name=self$name)
-          else            flog.appender(appender.file(name), name=self$name)
+          if(is.na(name)) futile.logger::flog.appender(appender.console(), name=self$name)
+          else            futile.logger::flog.appender(appender.file(name), name=self$name)
         },
         error = function(msg) { flog.error(msg, name=self$name) },
         warn  = function(msg) { flog.warn(msg, name=self$name) },
@@ -102,7 +102,7 @@ RlyLogger <- R6Class("RlyLogger",
 #' @examples
 #' debuglog <- NullLogger$new()
 #' debuglog$info('This will not print')
-NullLogger <- R6Class("NullLogger",
+NullLogger <- R6::R6Class("NullLogger",
     public = list(
         initialize = function(f) {
         },

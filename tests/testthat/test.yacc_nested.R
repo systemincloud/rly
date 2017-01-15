@@ -5,7 +5,7 @@ library(rly)
 
 context("Nested")
 
-Lexer <- R6Class("Lexer",
+Lexer <- R6::R6Class("Lexer",
   public = list(
     tokens = c('A','B', 'C'),
     t_A = 'A',
@@ -16,7 +16,7 @@ Lexer <- R6Class("Lexer",
   )
 )
 
-Parser <- R6Class("Parser",
+Parser <- R6::R6Class("Parser",
   public = list(
     tokens = Lexer$public_fields$tokens,
     p_start = function(doc='start : A nest C', p) {

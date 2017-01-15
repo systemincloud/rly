@@ -5,7 +5,7 @@ library(rly)
 
 context("Tests for absence of tokens variable")
 
-Lexer <- R6Class("Lexer",
+Lexer <- R6::R6Class("Lexer",
   public = list(
     t_PLUS = '\\+',
     t_MINUS = '-',

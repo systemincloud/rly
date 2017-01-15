@@ -5,7 +5,7 @@ library(rly)
 
 context("Test lex's ability to handle a large number of tokens")
 
-Lexer <- R6Class("Lexer",
+Lexer <- R6::R6Class("Lexer",
   lock_objects = FALSE,
   public = list(
     t_ignore = " \t",

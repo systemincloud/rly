@@ -125,7 +125,7 @@ format_stack_entry <- function(r) {
 # @docType class
 # @importFrom R6 R6Class
 # @format An \code{\link{R6Class}} generator object
-YaccSymbol <- R6Class("YaccSymbol",
+YaccSymbol <- R6::R6Class("YaccSymbol",
   public = list(
     type      = NA,
     value     = NA,
@@ -154,7 +154,7 @@ YaccSymbol <- R6Class("YaccSymbol",
 #' @docType class
 #' @importFrom R6 R6Class
 #' @format An \code{\link{R6Class}} generator object
-YaccProduction <- R6Class("YaccProduction",
+YaccProduction <- R6::R6Class("YaccProduction",
   public = list(
     slice = NA,
     stack = NA,
@@ -208,7 +208,7 @@ YaccProduction <- R6Class("YaccProduction",
 #' @importFrom R6 R6Class
 #' @format An \code{\link{R6Class}} generator object
 #' @keywords data
-LRParser <- R6Class("LRParser",
+LRParser <- R6::R6Class("LRParser",
   public = list(
     productions = NA,
     action      = NA,
@@ -633,7 +633,7 @@ is_identifier <- '^[a-zA-Z0-9_-]+$'
 # @importFrom R6 R6Class
 # @format An \code{\link{R6Class}} generator object
 # @keywords data
-Production <- R6Class("Production",
+Production <- R6::R6Class("Production",
   public = list(
     reduced   = 0,
     name      = NA,
@@ -714,7 +714,7 @@ Production <- R6Class("Production",
 # @importFrom R6 R6Class
 # @format An \code{\link{R6Class}} generator object
 # @keywords data
-LRItem <- R6Class("LRItem",
+LRItem <- R6::R6Class("LRItem",
   public = list(
     name       = NA,
     prod       = NA,
@@ -774,7 +774,7 @@ rightmost_terminal = function(symbols, terminals) {
 # @docType class
 # @importFrom R6 R6Class
 # @format An \code{\link{R6Class}} generator object
-Grammar <- R6Class("Grammar",
+Grammar <- R6::R6Class("Grammar",
   public = list(
     Productions    = NA,
     Prodnames      = NA,
@@ -1281,7 +1281,7 @@ Grammar <- R6Class("Grammar",
 # @importFrom R6 R6Class
 # @format An \code{\link{R6Class}} generator object
 # @keywords data
-LRGeneratedTable <- R6Class("LRGeneratedTable",
+LRGeneratedTable <- R6::R6Class("LRGeneratedTable",
   public = list(
     grammar        = NA,
     lr_method      = NA,
@@ -2138,7 +2138,7 @@ parse_grammar = function(name, doc) {
 # @docType class
 # @importFrom R6 R6Class
 # @format An \code{\link{R6Class}} generator object
-ParserReflect <- R6Class("ParserReflect",
+ParserReflect <- R6::R6Class("ParserReflect",
   public = list(
     module     = NA,
     instance   = NA,
@@ -2381,7 +2381,7 @@ ParserReflect <- R6Class("ParserReflect",
 #' TOKENS = c('NAME', 'NUMBER')
 #' LITERALS = c('=','+','-','*','/', '(',')')
 #' 
-#' Parser <- R6Class("Parser",
+#' Parser <- R6::R6Class("Parser",
 #'   public = list(
 #'     tokens = TOKENS,
 #'     literals = LITERALS,

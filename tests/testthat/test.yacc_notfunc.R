@@ -5,7 +5,7 @@ library(rly)
 
 context("p_rule not defined as a function")
 
-Parser <- R6Class("Parser",
+Parser <- R6::R6Class("Parser",
   public = list(
     tokens = c('NAME','NUMBER', 'PLUS','MINUS','TIMES','DIVIDE','EQUALS', 'LPAREN','RPAREN'),
     # Parsing rules

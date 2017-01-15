@@ -5,7 +5,7 @@ library(rly)
 
 context("precedence")
 
-Lexer1 <- R6Class("Lexer1",
+Lexer1 <- R6::R6Class("Lexer1",
   public = list(
     tokens = c('THEME','LAYER'),
     literals = c(),
@@ -15,7 +15,7 @@ Lexer1 <- R6Class("Lexer1",
   )
 )
 
-Lexer2 <- R6Class("Lexer2",
+Lexer2 <- R6::R6Class("Lexer2",
   public = list(
     tokens = c('THEME','LAYER'),
     literals = c(),
@@ -25,7 +25,7 @@ Lexer2 <- R6Class("Lexer2",
   )
 )
 
-Lexer3 <- R6Class("Lexer3",
+Lexer3 <- R6::R6Class("Lexer3",
   public = list(
     tokens = c('THEME','LAYER'),
     literals = c(),
@@ -35,7 +35,7 @@ Lexer3 <- R6Class("Lexer3",
   )
 )
 
-Lexer4 <- R6Class("Lexer4",
+Lexer4 <- R6::R6Class("Lexer4",
   public = list(
     tokens = c('THEME','LAYER'),
     literals = c(),
@@ -45,7 +45,7 @@ Lexer4 <- R6Class("Lexer4",
   )
 )
 
-Lexer5 <- R6Class("Lexer5",
+Lexer5 <- R6::R6Class("Lexer5",
   public = list(
     tokens = c('THEME','LAYER'),
     literals = c(),
@@ -55,7 +55,7 @@ Lexer5 <- R6Class("Lexer5",
   )
 )
 
-Lexer6 <- R6Class("Lexer6",
+Lexer6 <- R6::R6Class("Lexer6",
   public = list(
     tokens = c('THEME','LAYER'),
     literals = c(),

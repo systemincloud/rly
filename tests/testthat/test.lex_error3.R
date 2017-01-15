@@ -5,7 +5,7 @@ library(rly)
 
 context("t_error defined as function, but with wrong # args")
 
-Lexer <- R6Class("Lexer",
+Lexer <- R6::R6Class("Lexer",
   public = list(
     tokens = c('NUMBER', 'PLUS','MINUS'),
     t_PLUS = '\\+',

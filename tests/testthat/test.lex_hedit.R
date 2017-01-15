@@ -15,7 +15,7 @@ context("Parsing of Fortran H Edit descriptions")
 #' This example shows how to modify the state of the lexer to parse
 #' such tokens
 
-Lexer <- R6Class("Lexer",
+Lexer <- R6::R6Class("Lexer",
   public = list(
     tokens = c('H_EDIT_DESCRIPTOR'),
     t_ignore = " \t\n",

@@ -5,7 +5,7 @@ library(rly)
 
 context("Regular expression rule matches empty string")
 
-Lexer <- R6Class("Lexer",
+Lexer <- R6::R6Class("Lexer",
   public = list(
     tokens = c('NUMBER', 'PLUS','MINUS'),
     t_PLUS = '\\+?',

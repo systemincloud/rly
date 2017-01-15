@@ -69,7 +69,7 @@ reg_is_identifier = '^[a-zA-Z0-9_]+$'
 #' @format An \code{\link{R6Class}} generator object
 #' 
 #' @export
-LexToken <- R6Class("LexToken",
+LexToken <- R6::R6Class("LexToken",
   public = list(
     type   = NA,
     value  = NA,
@@ -107,7 +107,7 @@ LexToken <- R6Class("LexToken",
 #' @docType class
 #' @importFrom R6 R6Class
 #' @format An \code{\link{R6Class}} generator object
-Lexer <- R6Class("Lexer",
+Lexer <- R6::R6Class("Lexer",
   public = list(
     instance        = NA,
     lexre           = NA, # Master regular expression. This is a list of
@@ -395,7 +395,7 @@ statetoken = function(s, names) {
 # @docType class
 # @importFrom R6 R6Class
 # @format An \code{\link{R6Class}} generator object
-LexerReflect <- R6Class("LexerReflect",
+LexerReflect <- R6::R6Class("LexerReflect",
   public = list(
     module    = NA,
     instance  = NA,
@@ -686,7 +686,7 @@ LexerReflect <- R6Class("LexerReflect",
 #' TOKENS = c('NAME', 'NUMBER')
 #' LITERALS = c('=','+','-','*','/', '(',')')
 #' 
-#' Lexer <- R6Class("Lexer",
+#' Lexer <- R6::R6Class("Lexer",
 #'   public = list(
 #'     tokens = TOKENS,
 #'     literals = LITERALS,

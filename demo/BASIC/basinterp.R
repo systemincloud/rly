@@ -3,7 +3,7 @@
 
 '%nin%' <- Negate('%in%')
 
-BasicInterpreter <- R6Class("BasicInterpreter",
+BasicInterpreter <- R6::R6Class("BasicInterpreter",
   public = list(
     prog      = NA,
     functions = NA,

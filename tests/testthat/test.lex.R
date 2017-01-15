@@ -5,7 +5,7 @@ library(rly)
 
 context("basic lex")
 
-CalcLexer <- R6Class("CalcLexer",
+CalcLexer <- R6::R6Class("CalcLexer",
   public = list(
     tokens = c('NAME','NUMBER'),
     literals = c('=','+','-','*','/', '(',')'),

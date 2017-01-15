@@ -5,7 +5,7 @@ library(rly)
 
 context("An empty literal specification given as a list")
 
-Lexer <- R6Class("Lexer",
+Lexer <- R6::R6Class("Lexer",
   public = list(
     tokens = c('NUMBER'),
     literals = c(),

@@ -28,7 +28,7 @@ Build all of the regular expression rules from definitions in the supplied modul
 TOKENS = c('NAME', 'NUMBER')
 LITERALS = c('=','+','-','*','/', '(',')')
 
-Lexer <- R6Class("Lexer",
+Lexer <- R6::R6Class("Lexer",
   public = list(
     tokens = TOKENS,
     literals = LITERALS,
