@@ -1,8 +1,12 @@
-### Changes in v1.5
+### Changes in v2.0.0
 
 #### NOTES
 
   1. DESCRIPTION. R6 and futile.logger in Imports not in Depends.
+  
+#### NEW FEATURES
+
+  1. 
 
 ### Changes in v1.4.2
 

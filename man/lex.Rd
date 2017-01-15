@@ -4,8 +4,8 @@
 \alias{lex}
 \title{Build a lexer}
 \usage{
-lex(module = NA, args = list(), debug = FALSE, debuglog = NA,
-  errorlog = NA)
+lex(module = NA, args = list(), debug = FALSE, optimize = FALSE,
+  lextab = "lextab", debuglog = NA, errorlog = NA)
 }
 \arguments{
 \item{module}{R6 class containing lex rules}
@@ -13,6 +13,10 @@ lex(module = NA, args = list(), debug = FALSE, debuglog = NA,
 \item{args}{list of arguments that should be passed to constructor}
 
 \item{debug}{on and off debug mode}
+
+\item{optimize}{on and off optimization}
+
+\item{lextab}{cache table in file when optimizing}
 
 \item{debuglog}{custom logger for debug messages}
 

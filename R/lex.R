@@ -675,6 +675,8 @@ LexerReflect <- R6::R6Class("LexerReflect",
 #' @param module R6 class containing lex rules
 #' @param args list of arguments that should be passed to constructor
 #' @param debug on and off debug mode
+#' @param optimize on and off optimization
+#' @param lextab cache table in file when optimizing
 #' @param debuglog custom logger for debug messages
 #' @param errorlog custom logger for error messages
 #' 
@@ -712,6 +714,8 @@ LexerReflect <- R6::R6Class("LexerReflect",
 lex = function(module=NA,
                args=list(),
                debug=FALSE,
+               optimize=FALSE,
+               lextab='lextab',
                debuglog=NA,
                errorlog=NA) {
   instance <- do.call("new", args, envir=module)
