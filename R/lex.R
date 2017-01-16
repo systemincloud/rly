@@ -867,7 +867,11 @@ lex = function(module=NA,
       
       # TODO
     }
-    # TODO
+    tryCatch({
+      lexobj$writetab(lextab, outputdir)
+    }, error = function(e) {
+      errorlog$warn(sprintf("Couldn't write lextab module %s. %s", lextab, toString(e)))
+    })
   }
 
   return(lexobj)
