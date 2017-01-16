@@ -163,6 +163,16 @@ Lexer <- R6::R6Class("Lexer",
       self$lexoptimize     <- FALSE
     },
     # ------------------------------------------------------------
+    # writetab() - Write lexer information to a table file
+    # ------------------------------------------------------------
+    writetab = function(lextab, outputdir='') {
+    },
+    # ------------------------------------------------------------
+    # readtab() - Read lexer information from a tab file
+    # ------------------------------------------------------------
+    readtab = function(tabfile, module, instance) {
+    },
+    # ------------------------------------------------------------
     # input() - Push a new string into the lexer
     # ------------------------------------------------------------
     input = function(s) {
@@ -718,9 +728,14 @@ lex = function(module=NA,
                lextab='lextab',
                debuglog=NA,
                errorlog=NA) {
+             
+  if(is.na(lextab))
+    lextab <- 'lextab'
+             
   instance <- do.call("new", args, envir=module)
   lexobj <- Lexer$new(instance)
-
+  lexobj$lexoptimize <- optimize
+  
   if(is.na(errorlog)) errorlog <- RlyLogger$new()
   
   if(debug) {
@@ -730,8 +745,17 @@ lex = function(module=NA,
   # Collect parser information
   linfo = LexerReflect$new(module, instance, log=errorlog)
   linfo$get_all()
-  if(linfo$validate_all()) stop("Can't build lexer")
+  if(!optimize)
+    if(linfo$validate_all()) stop("Can't build lexer")
 
+  if(optimize) {
+    read <- tryCatch({
+      lexobj$readtab(lextab, module, instance)
+      TRUE
+    }, error = function(e) { FALSE })
+    if(read) return(lexobj)
+  }
+  
   # Dump some basic debugging information
   if(debug) {
     if(length(linfo$tokens) > 0)    debuglog$info(sprintf('lex: tokens   = %s', paste(linfo$tokens, collapse=" ")))
@@ -831,6 +855,19 @@ lex = function(module=NA,
         if(!(s %in% names(linfo$ignore))) linfo$ignore[[s]] <- linfo$ignore[['INITIAL']]
       }
     }
+  }
+  
+  # If in optimize mode, we write the lextab
+  if(optimize) {
+    if(is.na(outputdir)) {
+      # If no output directory is set, the location of the output files
+      # is determined according to the following rules:
+      #     - If lextab specifies a package, files go into that package directory
+      #     - Otherwise, files go in the same directory as the specifying module
+      
+      # TODO
+    }
+    # TODO
   }
 
   return(lexobj)
