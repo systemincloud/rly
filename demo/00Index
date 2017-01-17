@@ -1,2 +1,3 @@
-basic   R code for an implementation of Dartmouth BASIC (1964)
-calc    An example of simple calculator
+basic      R code for an implementation of Dartmouth BASIC (1964)
+calc       An example of simple calculator
+optcalc    An example of simple calculator with optimization

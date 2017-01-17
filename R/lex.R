@@ -54,6 +54,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # -----------------------------------------------------------------------------
 
+tabversion <- '2.0.0'
+
 '%nin%' <- Negate('%in%')
 
 # This regular expression is used to match valid token names
@@ -166,6 +168,24 @@ Lexer <- R6::R6Class("Lexer",
     # writetab() - Write lexer information to a table file
     # ------------------------------------------------------------
     writetab = function(lextab, outputdir='') {
+      lextokens      <- self$lextokens
+      lexreflags     <- self$lexreflags
+      lexliterals    <- self$lexliterals
+      lexstateinfo   <- self$lexstateinfo
+      lexstatere     <- self$lexstatere
+      lexstateignore <- self$lexstateignore
+      lexstateerrorf <- self$lexstateerrorf
+      lexstateeoff   <- self$lexstateeoff 
+      save(tabversion     = tabversion,
+           lextokens      = lextokens,
+           lexreflags     = lexreflags,
+           lexliterals    = lexliterals,
+           lexstateinfo   = lexstateinfo,
+           lexstatere     = lexstatere,
+           lexstateignore = lexstateignore,
+           lexstateerrorf = lexstateerrorf,
+           lexstateeoff   = lexstateeoff,
+           file = lextab, ascii=FALSE)
     },
     # ------------------------------------------------------------
     # readtab() - Read lexer information from a tab file
@@ -687,6 +707,7 @@ LexerReflect <- R6::R6Class("LexerReflect",
 #' @param debug on and off debug mode
 #' @param optimize on and off optimization
 #' @param lextab cache table in file when optimizing
+#' @param outputdir directory of lextab file
 #' @param debuglog custom logger for debug messages
 #' @param errorlog custom logger for error messages
 #' 
@@ -725,12 +746,13 @@ lex = function(module=NA,
                args=list(),
                debug=FALSE,
                optimize=FALSE,
-               lextab='lextab',
+               lextab='lextab.RData',
+               outputdir=NA,
                debuglog=NA,
                errorlog=NA) {
              
   if(is.na(lextab))
-    lextab <- 'lextab'
+    lextab <- 'lextab.RData'
              
   instance <- do.call("new", args, envir=module)
   lexobj <- Lexer$new(instance)
@@ -753,7 +775,7 @@ lex = function(module=NA,
       lexobj$readtab(lextab, module, instance)
       TRUE
     }, error = function(e) { FALSE })
-    if(read) return(lexobj)
+#    if(read) return(lexobj)
   }
   
   # Dump some basic debugging information

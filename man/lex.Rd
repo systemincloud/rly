@@ -5,7 +5,7 @@
 \title{Build a lexer}
 \usage{
 lex(module = NA, args = list(), debug = FALSE, optimize = FALSE,
-  lextab = "lextab", debuglog = NA, errorlog = NA)
+  lextab = "lextab.RData", outputdir = NA, debuglog = NA, errorlog = NA)
 }
 \arguments{
 \item{module}{R6 class containing lex rules}
@@ -17,6 +17,8 @@ lex(module = NA, args = list(), debug = FALSE, optimize = FALSE,
 \item{optimize}{on and off optimization}
 
 \item{lextab}{cache table in file when optimizing}
+
+\item{outputdir}{directory of lextab file}
 
 \item{debuglog}{custom logger for debug messages}
 
