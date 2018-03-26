@@ -8,7 +8,7 @@
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-#    
+#
 #    The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
 #
@@ -61,13 +61,13 @@ reg_is_identifier = '^[a-zA-Z0-9_]+$'
 
 
 #' Lex Token
-#' 
+#'
 #' Token class.  This class is used to represent the tokens produced
-#' 
+#'
 #' @docType class
 #' @importFrom R6 R6Class
 #' @format An \code{\link{R6Class}} generator object
-#' 
+#'
 #' @export
 LexToken <- R6::R6Class("LexToken",
   public = list(
@@ -89,11 +89,11 @@ LexToken <- R6::R6Class("LexToken",
 
 
 #' Lexing Engine
-#' 
+#'
 #' @description {
 #' The following Lexer class implements the lexer runtime. There are only
 #' a few public methods and attributes:
-#' 
+#'
 #' \itemize{
 #'  \item input() - Store a new string in the lexer
 #'  \item token() - Get the next token
@@ -103,7 +103,7 @@ LexToken <- R6::R6Class("LexToken",
 #'  \item lexpos  - Current position in the input string
 #' }
 #' }
-#' 
+#'
 #' @docType class
 #' @importFrom R6 R6Class
 #' @format An \code{\link{R6Class}} generator object
@@ -166,7 +166,7 @@ Lexer <- R6::R6Class("Lexer",
     # input() - Push a new string into the lexer
     # ------------------------------------------------------------
     input = function(s) {
-      if(!is.character(s)) stop('Expected a string')
+      if(!is.character(s)) stop('[ValueError]', 'Expected a string')
       self$lexdata <- s
       self$lexpos  <- 1
       self$lexlen  <- nchar(s)
@@ -175,7 +175,7 @@ Lexer <- R6::R6Class("Lexer",
     # begin() - Changes the lexing state
     # ------------------------------------------------------------
     begin = function(state) {
-      if(!(state %in% names(self$lexstatere))) stop('Undefined state')
+      if(!(state %in% names(self$lexstatere))) stop('[ValueError]', 'Undefined state')
       self$lexre     <- self$lexstatere[[state]]
       self$lexretext <- self$lexstateretext[[state]]
       self$lexignore <- self$lexstateignore[[state]]
@@ -280,7 +280,7 @@ Lexer <- R6::R6Class("Lexer",
           }
 
           # Verify type of the token.  If not in the token map, raise an error
-          if(!(newtok$type %in% self$lextokens_all)) stop(sprintf("Rule '%s' returned an unknown token type '%s'", name, newtok$type))
+          if(!(newtok$type %in% self$lextokens_all)) stop('[LexError]', sprintf("Rule '%s' returned an unknown token type '%s'", name, newtok$type))
 
           return(newtok)
         }
@@ -311,7 +311,7 @@ Lexer <- R6::R6Class("Lexer",
             newtok <- self$lexerrorf(tok)
             if(lexpos == self$lexpos) {
               # Error method didn't change text position at all. This is an error.
-              stop(sprintf("Scanning error. Illegal character '%s'", substring(data, 1, 1)))
+              stop('[LexError]', sprintf("Scanning error. Illegal character '%s'", substring(data, 1, 1)))
             }
             lexpos <- self$lexpos
             if(is.null(newtok)) next
@@ -319,10 +319,10 @@ Lexer <- R6::R6Class("Lexer",
           }
 
           self.lexpos <- lexpos
-          stop(sprintf("Illegal character '%s' at index %d", substring(data, 1, 1), lexpos))
+          stop('[LexError]', sprintf("Illegal character '%s' at index %d", substring(data, 1, 1), lexpos))
         }
       }
-      
+
       if(!is.null(self$lexeoff)) {
         tok <- LexToken$new()
         tok$type <- 'eof'
@@ -336,8 +336,10 @@ Lexer <- R6::R6Class("Lexer",
       }
 
       self$lexpos <- lexpos + 1
-      if(is.na(self$lexdata)) stop('No input string given with input()')
+      if(is.na(self$lexdata)) stop('[RuntimeError]', 'No input string given with input()')
     }
+    # Iterator interface
+    # TODO
   )
 )
 
@@ -345,9 +347,9 @@ Lexer <- R6::R6Class("Lexer",
 # Get regex from function
 #
 # Returns the regular expression assigned to a function.
-# 
+#
 # @param func lexer function
-# 
+#
 # @return regex
 get_regex = function(func) {
   return(formals(func)[['re']])
@@ -360,15 +362,14 @@ get_regex = function(func) {
 # state names, this function returns a tuple (states,tokenname) where states
 # is a tuple of state names and tokenname is the name of the token.  For example,
 # calling this with s = "t_foo_bar_SPAM" might return (('foo','bar'),'SPAM')
-# 
+#
 # @param s rule name
 # @param names state names
-# 
+#
 # @return (states,tokenname) tuple
-# 
+#
 #' @importFrom utils head
 statetoken = function(s, names) {
-  nonstate <- 1
   parts <- unlist(strsplit(s, "_", fixed=TRUE))
 
   i <- 0
@@ -405,7 +406,7 @@ LexerReflect <- R6::R6Class("LexerReflect",
     stateinfo = NA,
     error     = FALSE,
     log       = NA,
-    
+
     toknames = NA,        # Mapping of symbols to token names
     funcsym  = NA,        # Symbols defined as functions
     strsym   = NA,        # Symbols defined as strings
@@ -520,7 +521,7 @@ LexerReflect <- R6::R6Class("LexerReflect",
               self$error <- TRUE
               next
             }
-            
+
             self$stateinfo[[name]] <- statetype
           }
         }
@@ -610,7 +611,7 @@ LexerReflect <- R6::R6Class("LexerReflect",
               self$log$error(sprintf("Regular expression for rule '%s' matches empty string", fname))
               self$error <- TRUE
             }
-          }, error = function(e) { 
+          }, error = function(e) {
             self$log$error(sprintf("Invalid regular expression for rule '%s'", name))
             self$error <- TRUE
           })
@@ -636,7 +637,7 @@ LexerReflect <- R6::R6Class("LexerReflect",
               self$log$error(sprintf("Regular expression for rule '%s' matches empty string", name))
               self$error <- TRUE
             }
-          }, error = function(e) { 
+          }, error = function(e) {
             self$log$error(sprintf("Invalid regular expression for rule '%s'", name))
             self$error <- TRUE
           })
@@ -669,23 +670,23 @@ LexerReflect <- R6::R6Class("LexerReflect",
 
 
 #' Build a lexer
-#' 
+#'
 #' Build all of the regular expression rules from definitions in the supplied module
-#' 
+#'
 #' @param module R6 class containing lex rules
 #' @param args list of arguments that should be passed to constructor
 #' @param debug on and off debug mode
 #' @param debuglog custom logger for debug messages
 #' @param errorlog custom logger for error messages
-#' 
+#'
 #' @return Lexer ready to use
-#' 
+#'
 #' @export
-#' 
+#'
 #' @examples
 #' TOKENS = c('NAME', 'NUMBER')
 #' LITERALS = c('=','+','-','*','/', '(',')')
-#' 
+#'
 #' Lexer <- R6::R6Class("Lexer",
 #'   public = list(
 #'     tokens = TOKENS,
@@ -707,7 +708,7 @@ LexerReflect <- R6::R6Class("LexerReflect",
 #'     }
 #'   )
 #' )
-#' 
+#'
 #' lexer  <- rly::lex(Lexer)
 lex = function(module=NA,
                args=list(),
@@ -718,15 +719,15 @@ lex = function(module=NA,
   lexobj <- Lexer$new(instance)
 
   if(is.na(errorlog)) errorlog <- RlyLogger$new()
-  
+
   if(debug) {
     if(is.na(debuglog)) debuglog <- RlyLogger$new()
   }
-  
+
   # Collect parser information
   linfo = LexerReflect$new(module, instance, log=errorlog)
   linfo$get_all()
-  if(linfo$validate_all()) stop("Can't build lexer")
+  if(linfo$validate_all()) stop('[SyntaxError]', "Can't build lexer")
 
   # Dump some basic debugging information
   if(debug) {
@@ -734,9 +735,9 @@ lex = function(module=NA,
     else                            debuglog$info('lex: tokens empty')
     if(length(linfo$literals) > 0)  debuglog$info(sprintf('lex: literals = %s', paste(linfo$literals, collapse=" ")))
     else                            debuglog$info('lex: literals empty')
-    if(length(linfo$stateinfo) > 0) debuglog$info(sprintf('lex: states   = %s', 
-                                                  paste('{', 
-                                                        sapply(names(linfo$stateinfo), function(x) paste("'", x, "'", " : ", "'", linfo$stateinfo[[x]], "', ", collapse='', sep='')), 
+    if(length(linfo$stateinfo) > 0) debuglog$info(sprintf('lex: states   = %s',
+                                                  paste('{',
+                                                        sapply(names(linfo$stateinfo), function(x) paste("'", x, "'", " : ", "'", linfo$stateinfo[[x]], "', ", collapse='', sep='')),
                                                         '}', collapse=" ")))
     else                            debuglog$info('lex: states empty')
   }
@@ -828,6 +829,9 @@ lex = function(module=NA,
       }
     }
   }
+
+  # If in optimize mode, we write the lextab
+  # TODO
 
   return(lexobj)
 }

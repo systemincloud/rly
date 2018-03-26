@@ -6,3 +6,5 @@
 ^target$
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^README.md$
+^NEWS.md$

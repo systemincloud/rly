@@ -1,5 +1,9 @@
 ### Changes in v1.5
 
+#### NEW FEATURES
+
+  1. Implement proper error handling.
+
 #### NOTES
 
   1. DESCRIPTION. R6 and futile.logger in Imports not in Depends.
@@ -9,13 +13,13 @@
 #### BUG FIXES
 
   1. Fix: Error in log$info("  ! shift/reduce conflict ...
-  
+
 ### Changes in v1.4.1
 
 #### BUG FIXES
 
   1. Fix: Error: object 'rprec_rlevel' not found.
-  
+
   2. Fix: could not find function "appender.console".
 
 ### Changes in v1.4.0
@@ -23,15 +27,15 @@
 #### NEW FEATURES
 
   1. You can define literals as a string of characters e.g.: literals = ':;,=*{}()<>[]'.
-  
+
 ### Changes in v1.3.0
 
 #### NOTES
 
   1. Refactor demos.
-  
+
   2. Declare Depends: R (>= 3.3.0) in DESCRIPTION file.
-  
+
 ### Changes in v1.2.1
 
 #### NOTES
@@ -55,7 +59,7 @@
 #### NEW FEATURES
 
   1. YaccProduction : add length function to the class (ex. p$length() ).
-  
+
   2. Implement tracking. YaccProduction new methods: p$linespan(n) and p$lexspan(n).
 
   3. Implement error recovery.
@@ -63,8 +67,8 @@
 #### BUG FIXES
 
   1. Lex is duplicating numeric tokens.
-  
-  
+
+
 ### Changes in v1.0.3
 
 #### NOTES
@@ -72,7 +76,7 @@
   1. Use CRAN template of MIT license.
 
   2. Add author of PLY python library as one of the authors of this extension.
-  
+
   3. Add BSD license of PLY to file inst/COPYRIGHTS.
 
 ### Changes in v1.0.2

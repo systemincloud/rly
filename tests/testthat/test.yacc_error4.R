@@ -48,6 +48,6 @@ Parser <- R6::R6Class("Parser",
 )
 
 test_that("error", {
-  expect_output(expect_error(rly::yacc(Parser), "Unable to build parser"),
-  "ERROR .* p_error_handler: Illegal rule name error. Already defined as a token")
+  expect_output(expect_error(rly::yacc(Parser), "\\[YaccError\\]Unable to build parser"),
+  "ERROR .* \\[GrammarError\\]p_error_handler: Illegal rule name error. Already defined as a token")
 })

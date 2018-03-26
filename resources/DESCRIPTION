@@ -3,12 +3,12 @@ Type: Package
 Title: ${project.name}
 Version: ${project.version}
 Date: ${date}
-Authors@R: c(person("Marek", "Jagielski", 
-                    role = c("aut", "cre", "cph"), 
+Authors@R: c(person("Marek", "Jagielski",
+                    role = c("aut", "cre", "cph"),
                     email = "marek.jagielski@gmail.com"),
-             person("David M.", "Beazley", 
+             person("David M.", "Beazley",
                     role = c("aut", "cph")),
-             person("Yasutaka", "Tanaka", 
+             person("Yasutaka", "Tanaka",
                     role = c("ctb")))
 Author: Marek Jagielski [aut, cre, cph], David M. Beazley [aut, cph], Yasutaka Tanaka [ctb]
 Maintainer: Marek Jagielski <marek.jagielski@gmail.com>
@@ -19,7 +19,7 @@ BugReports: ${project.issueManagement.url}
 Suggests: testthat
 Depends:
     R (>= 3.3.0)
-Imports: 
+Imports:
     R6,
     futile.logger
 RoxygenNote: 5.0.1

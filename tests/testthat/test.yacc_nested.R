@@ -36,34 +36,34 @@ test_that("nested", {
 
   expect_output(parser$parse('ABC', lexer), 'A')
   expect_output(parser$parse('ABC', lexer, tracking=TRUE), 'A')
-  expect_output(parser$parse('ABC', lexer, tracking=TRUE, debug=TRUE),
+  expect_output(parser$parse('ABC', lexer, tracking=TRUE, debug=rly::RlyLogger$new()),
 "INFO \\[.*\\] RLY: PARSE DEBUG START
-INFO \\[.*\\] 
+INFO \\[.*\\]\\s
 INFO \\[.*\\] State  : 1
 INFO \\[.*\\] Stack  :  \\. LexToken\\(A,A,1,1\\)
 INFO \\[.*\\] Action : Shift and goto state 2
-INFO \\[.*\\] 
+INFO \\[.*\\]\\s
 INFO \\[.*\\] State  : 2
 INFO \\[.*\\] Stack  : A \\. LexToken\\(B,B,1,2\\)
 INFO \\[.*\\] Action : Shift and goto state 4
-INFO \\[.*\\] 
+INFO \\[.*\\]\\s
 INFO \\[.*\\] State  : 4
 INFO \\[.*\\] Defaulted state 4: Reduce using 2
 INFO \\[.*\\] Stack  : A B \\. NULL
 INFO \\[.*\\] Action : Reduce rule \\[nest -> B\\] with \\[B\\] and goto state 5
 A
 INFO \\[.*\\] Result : <NULL> \\(\\)
-INFO \\[.*\\] 
+INFO \\[.*\\]\\s
 INFO \\[.*\\] State  : 5
 INFO \\[.*\\] Stack  : A nest \\. LexToken\\(C,C,1,3\\)
 INFO \\[.*\\] Action : Shift and goto state 6
-INFO \\[.*\\] 
+INFO \\[.*\\]\\s
 INFO \\[.*\\] State  : 6
 INFO \\[.*\\] Defaulted state 6: Reduce using 1
 INFO \\[.*\\] Stack  : A nest C \\. NULL
 INFO \\[.*\\] Action : Reduce rule \\[start -> A nest C\\] with \\[A, , C\\] and goto state 3
 INFO \\[.*\\] Result : <NULL> \\(\\)
-INFO \\[.*\\] 
+INFO \\[.*\\]\\s
 INFO \\[.*\\] State  : 3
 INFO \\[.*\\] Stack  : start \\. \\$end
 INFO \\[.*\\] Done   : Returning <NULL> \\(\\)

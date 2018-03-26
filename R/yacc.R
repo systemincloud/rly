@@ -8,7 +8,7 @@
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-#    
+#
 #    The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
 #
@@ -59,27 +59,27 @@
 error_count <- 3    # Number of symbols that must be shifted to leave recovery mode
 
 # Unique identificator of environment object
-# 
-# This function is retrieving an phisical address for an 
+#
+# This function is retrieving an phisical address for an
 # environment object using R internal inspect function
-# 
+#
 # @usage
 # id(x)
-# 
+#
 # @param x  environment
 # @return The address of the object
-# 
+#
 #' @useDynLib rly
 id = function(x) .Call("id", x)
 
 # Generate random string
-# 
-# This function generates a random string 
+#
+# This function generates a random string
 # of a given length only from letters
-# 
+#
 # @usage
 # randomString(length=12)
-# 
+#
 # @param length  expected number of characters
 # @return Random string
 randomString <- function(length=12) {
@@ -110,7 +110,7 @@ format_stack_entry <- function(r) {
 
 
 # Non-terminal grammar symbol
-# 
+#
 # This class is used to hold non-terminal grammar symbols during parsing.
 # It normally has the following attributes set:
 # \itemize{
@@ -141,7 +141,7 @@ YaccSymbol <- R6::R6Class("YaccSymbol",
 
 
 #' Object sent to grammar rule
-#' 
+#'
 #' This class is a wrapper around the objects actually passed to each
 #' grammar rule. Index lookup and assignment actually assign the
 #' .value attribute of the underlying YaccSymbol object.
@@ -150,7 +150,7 @@ YaccSymbol <- R6::R6Class("YaccSymbol",
 #' a tuple of (startline,endline) representing the range of lines
 #' for a symbol.  The lexspan() method returns a tuple (lexpos,endlexpos)
 #' representing the range of positional information for a symbol.
-#' 
+#'
 #' @docType class
 #' @importFrom R6 R6Class
 #' @format An \code{\link{R6Class}} generator object
@@ -184,6 +184,14 @@ YaccProduction <- R6::R6Class("YaccProduction",
     length = function() {
       return(length(self$slice))
     },
+    lineno = function(n) {
+      lineno <- self$slice[[n]]$lineno
+      if(is.null(lineno)) lexpos <- 0
+      return(lineno)
+    },
+    set_lineno = function(n, lineno) {
+      self$slice[[n]]$lineno <- lineno
+    },
     linespan = function(n) {
       startline <- self$slice[[n]]$lineno
       if(is.null(startline)) startline <- 0
@@ -191,19 +199,30 @@ YaccProduction <- R6::R6Class("YaccProduction",
       if(is.null(endline)) endline <- startline
       return(c(startline, endline))
     },
+    lexpos = function(n) {
+      lexpos <- self$slice[[n]]$lexpos
+      if(is.null(lexpos)) lexpos <- 0
+      return(lexpos)
+    },
+    set_lexpos = function(n, lexpos) {
+      self$slice[[n]]$lexpos <- lexpos
+    },
     lexspan = function(n) {
       startpos <- self$slice[[n]]$lexpos
       if(is.null(startpos)) startpos <- 0
       endpos   <- self$slice[[n]]$endlexpos
       if(is.null(endpos)) endpos <- startpos
       return(c(startpos, endpos))
+    },
+    error = function() {
+      stop('[SyntaxError]','')
     }
   )
 )
 
 
 #' The LR Parsing engine
-#' 
+#'
 #' @docType class
 #' @importFrom R6 R6Class
 #' @format An \code{\link{R6Class}} generator object
@@ -215,11 +234,11 @@ LRParser <- R6::R6Class("LRParser",
     goto        = NA,
     errorfunc   = NA,
     errorok     = NA,
-    
+
     defaulted_states = NA,
     statestack = NA,
     symstack = NA,
-    
+
     state = NA,
     initialize = function(lrtab, errorf) {
       self$productions <- lrtab$lr_productions
@@ -260,33 +279,29 @@ LRParser <- R6::R6Class("LRParser",
     disable_defaulted_states = function() {
       self$defaulted_states <- new.env(hash=TRUE)
     },
-    parse = function(input, lexer, debug=FALSE, tracking=FALSE) {
-      debuglog <- NULL
-      if(debug) debuglog <- RlyLogger$new()
-      else      debuglog <- NullLogger$new()
-      
+    parse = function(input, lexer, debug=NullLogger$new(), tracking=FALSE) {
       lookahead      <- NULL                     # Current lookahead symbol
       lookaheadstack <- list()                   # Stack of lookahead symbols
       pslice         <- YaccProduction$new(NULL) # Production object passed to grammar rules
       errorcount     <- 0                        # Used during error recovery
-      
-      debuglog$info('RLY: PARSE DEBUG START')
-      
+
+      debug$info('RLY: PARSE DEBUG START')
+
       # Set up the lexer and parser objects on pslice
       pslice$lexer  <- lexer
       pslice$parser <- self
-      
+
       # If input was supplied, pass to lexer
       if(!is.na(input)) lexer$input(input)
-      
+
       # Set up the state and symbol stacks
       self$statestack <- list() # Stack of parsing states
       self$symstack   <- list() # Stack of grammar symbols
-      
+
       pslice$stack <- self$symstack  # Put in the production
-      
+
       # The start state is assumed to be (1,$end)
-  
+
       self$statestack <- append(self$statestack, 1)
       sym <- YaccSymbol$new()
       sym$type <- '$end'
@@ -297,10 +312,10 @@ LRParser <- R6::R6Class("LRParser",
         # Get the next symbol on the input.  If a lookahead symbol
         # is already set, we just use that. Otherwise, we'll pull
         # the next token off of the lookaheadstack or from the lexer
-        
-        debuglog$info('')
-        debuglog$info(sprintf('State  : %s', state))
-        
+
+        debug$info('')
+        debug$info(sprintf('State  : %s', state))
+
         t <- NULL
         if(state %nin% names(self$defaulted_states)) {
           if(is.null(lookahead)) {
@@ -314,33 +329,33 @@ LRParser <- R6::R6Class("LRParser",
               lookahead$type <- '$end'
             }
           }
-          
+
           # Check the action table
           ltype <- lookahead$type[[1]]
           t <- self$action[[as.character(state)]][[ltype]]
         } else {
           t <- self$defaulted_states[[as.character(state)]]
-          debuglog$info(sprintf('Defaulted state %s: Reduce using %d', state, -t))
+          debug$info(sprintf('Defaulted state %s: Reduce using %d', state, -t))
         }
-        
-        if(debug) {
+
+        if(!is.null(debug$name)) {
           stack <- sprintf('%s . %s', paste(tail(sapply(self$symstack, function(x) x$type), -1), collapse=' '),
                                  if(is.null(lookahead)) "NULL" else lookahead$toString())
-          debuglog$info(sprintf('Stack  : %s', stack))
+          debug$info(sprintf('Stack  : %s', stack))
         }
-        
+
         if(!is.null(t)) {
           if(t > 0) {
             # shift a symbol on the stack
             self$statestack <- append(self$statestack, t)
             state <- t
-            
-            debuglog$info(sprintf('Action : Shift and goto state %s', t))
-            
+
+            debug$info(sprintf('Action : Shift and goto state %s', t))
+
             self$symstack <- append(self$symstack, lookahead)
             pslice$stack  <- append(pslice$stack, lookahead)
             lookahead <- NULL
-            
+
             # Decrease error count on successful shift
             if(errorcount != 0) errorcount <- errorcount - 1
             next
@@ -350,28 +365,28 @@ LRParser <- R6::R6Class("LRParser",
             p <- self$productions[[-t + 1]]
             pname <- p$name
             plen  <- p$len
-            
+
             # Get production function
             sym <- YaccSymbol$new()
             sym$type <- pname       # Production name
             sym$value <- NULL
-            
+
             if(plen > 0) {
-              debuglog$info(sprintf('Action : Reduce rule [%s] with [%s] and goto state %d', 
-                                     p$toString(), 
+              debug$info(sprintf('Action : Reduce rule [%s] with [%s] and goto state %d',
+                                     p$toString(),
                                      toString(lapply(lapply(tail(self$symstack, plen), function(x) x$value), format_stack_entry)),
                                      self$goto[[as.character(tail(self$statestack, plen+1)[[1]])]][[pname]]))
             } else {
-              debuglog$info(sprintf('Action : Reduce rule [%s] with [%s] and goto state %d', 
-                                     p$toString(), 
+              debug$info(sprintf('Action : Reduce rule [%s] with [%s] and goto state %d',
+                                     p$toString(),
                                      ' ',
                                      self$goto[[as.character(tail(self$statestack, 1)[[1]])]][[pname]]))
             }
-            
+
             if(plen > 0) {
               targ <- tail(self$symstack, plen+1)
               targ[[1]] <- sym
-              
+
               if(tracking) {
                 t1 <- targ[[2]]
                 sym$lineno <- t1$lineno
@@ -382,96 +397,96 @@ LRParser <- R6::R6Class("LRParser",
                 sym$endlexpos <- t1$endlexpos
                 if(is.null(sym$endlexpos)) sym$endlexpos <- t1$lexpos
               }
-              
+
               pslice$slice <- targ
-              
+
               tryCatch({
                 # Call the grammar rule with our special slice object
                 self$symstack <- head(self$symstack, -plen)
                 self$state <- state
                 p$callable(p=pslice)
                 self$statestack <- head(self$statestack, -plen)
-                
-                debuglog$info(sprintf('Result : %s', format_result(pslice)))
-                
+
+                debug$info(sprintf('Result : %s', format_result(pslice)))
+
                 self$symstack <- append(self$symstack, sym)
                 state <- self$goto[[as.character(tail(self$statestack, 1)[[1]])]][[pname]]
                 self$statestack <- append(self$statestack, state)
               }, error = function(e) {
-                print(e)
+                if(!grepl('\\[SyntaxError\\]', e[[1]])) stop(e[[1]])
                 # If an error was set. Enter error recovery state
-                lookaheadstack <- append(lookaheadstack, lookahead)    # Save the current lookahead token
-#                symstack.extend(targ[1:-1])                           # Put the production slice back on the stack
-#                statestack.pop()                                      # Pop back one state (before the reduce)
-#                state = statestack[-1]
-#                sym.type = 'error'
-#                sym.value = 'error'
-#                lookahead = sym
+                lookaheadstack <- append(lookaheadstack, lookahead)              # Save the current lookahead token
+                self$symstack <- append(self$symstack, tail(head(targ, -1), -1)) # Put the production slice back on the stack
+                self$statestack <- head(self$statestack, -1)                     # Pop back one state (before the reduce)
+                self$state <- tail(self$statestack, 1)[[1]]
+                sym$type = 'error'
+                sym$value = 'error'
+                lookahead <- sym
                 errorcount <- error_count
                 self$errorok <- FALSE
               })
-            
+
               next
-              
+
             } else {
-              
+
               if(tracking) {
                 sym$lineno <- lexer$lineno
                 sym$lexpos <- lexer$lexpos
               }
-              
+
               targ <- c(sym)
-              
+
               # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
               # The code enclosed in this section is duplicated
               # above as a performance optimization.  Make sure
               # changes get made in both locations.
-  
+
               pslice$slice <- targ
-              
+
               tryCatch({
                 # Call the grammar rule with our special slice object
                 self$state <- state
                 p$callable(p=pslice)
-                
-                debuglog$info(sprintf('Result : %s', format_result(pslice)))
-                
+
+                debug$info(sprintf('Result : %s', format_result(pslice)))
+
                 self$symstack <- append(self$symstack, sym)
                 state <- self$goto[[as.character(tail(self$statestack, 1)[[1]])]][[pname]]
                 self$statestack <- append(self$statestack, state)
               }, error = function(e) {
-                print(e)
+                if(!grepl('\\[SyntaxError\\]', e[[1]])) stop(e[[1]])
                 # If an error was set. Enter error recovery state
-                lookaheadstack <- append(lookaheadstack, lookahead)    # Save the current lookahead token
-#                symstack.extend(targ[1:-1])         # Put the production slice back on the stack
-#                statestack.pop()                    # Pop back one state (before the reduce)
-#                state = statestack[-1]
-#                sym.type = 'error'
-#                sym.value = 'error'
-#                lookahead = sym
+                lookaheadstack <- append(lookaheadstack, lookahead)              # Save the current lookahead token
+                self$symstack <- append(self$symstack, tail(head(targ, -1), -1)) # Put the production slice back on the stack
+                self$statestack <- head(self$statestack, -1)                     # Pop back one state (before the reduce)
+                self$state <- tail(self$statestack, 1)[[1]]
+                sym$type <- 'error'
+                sym$value <- 'error'
+                lookahead <- sym
                 errorcount <- error_count
                 self$errorok <- FALSE
               })
-  
+
               next
               # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             }
-            
+
           } else if(t == 0) {
             n <- tail(self$symstack, 1)[[1]]
             result <- n[['value']]
-            
-            debuglog$info(sprintf('Done   : Returning %s', format_result(result)))
-            debuglog$info('PLY: PARSE DEBUG END')
-            
+
+            debug$info(sprintf('Done   : Returning %s', format_result(result)))
+            debug$info('PLY: PARSE DEBUG END')
+
             return(result)
           }
         } else {
-          
+
           stack <- sprintf('%s . %s', paste(tail(sapply(self$symstack, function(x) x$type), -1), collapse=' '),
                                  if(is.null(lookahead)) "NULL" else lookahead$toString())
-          debuglog$error(sprintf('Error : %s', stack))
-          
+          debug$error(sprintf('Error : %s', stack))
+
           # We have some kind of parsing error here.  To handle
           # this, we are going to push the current token onto
           # the tokenstack and replace it with an 'error' token.
@@ -491,7 +506,7 @@ LRParser <- R6::R6Class("LRParser",
                 if(is.na(errtoken$lexer))  errtoken$lexer  <- lexer
                 if(is.na(errtoken$parser)) errtoken$parser <- self
               }
-              
+
               self$state <- state
               tok <- self$errorfunc(errtoken)
               if(self$errorok) {
@@ -504,21 +519,21 @@ LRParser <- R6::R6Class("LRParser",
               }
             } else {
               if(errtoken) {
-#                    if hasattr(errtoken, 'lineno'):
-#                          lineno = lookahead.lineno
-#                    else:
-#                          lineno = 0
-#              if lineno:
-#                    sys.stderr.write('yacc: Syntax error at line %d, token=%s\n' % (lineno, errtoken.type))
-#                            else:
-#                                  sys.stderr.write('yacc: Syntax error, token=%s' % errtoken.type)
-#                                          else:
-#                                                sys.stderr.write('yacc: Parse error in input. EOF\n')
-#              return
+                if (!is.na(errtoken$lineno)) lineno <- lookahead$lineno
+                else lineno <- 0
+
+                if (!is.na(lineno)) {
+                  print(sprintf('yacc: Syntax error at line %d, token=%s', lineno, errtoken$type))
+                } else {
+                  print(sprintf('yacc: Syntax error, token=%s', errtoken$type))
+                }
+              } else {
+                print('yacc: Parse error in input. EOF')
+                return()
               }
             }
           } else errorcount <- error_count
-          
+
           # case 1:  the statestack only has 1 entry on it.  If we're in this state, the
           # entire parse has been rolled back and we're completely hosed.   The token is
           # discarded and we just keep going.
@@ -540,7 +555,7 @@ LRParser <- R6::R6Class("LRParser",
             # Whoa. We're really hosed here. Bail out
             return()
           }
-          
+
           if(lookahead$type != 'error') {
             sym <- tail(self$symstack, 1)[[1]]
             if(sym$type == 'error') {
@@ -557,11 +572,11 @@ LRParser <- R6::R6Class("LRParser",
                lookahead <- NULL
                next
              }
-             
+
              # Create the error symbol for the first time and make it the new lookahead symbol
              t <- YaccSymbol$new()
              t$type <- 'error'
-             
+
              if(!is.null(lookahead$lineno)) {
                t$lineno    <- lookahead$lineno
                t$endlineno <- lookahead$lineno
@@ -569,28 +584,28 @@ LRParser <- R6::R6Class("LRParser",
              if(!is.null(lookahead$lexpos)) {
                t$lexpos    <- lookahead$lexpos
                t$endlexpos <- lookahead$lexpos
-             }  
+             }
              t$value <- lookahead
              lookaheadstack <- append(lookaheadstack, lookahead)
              lookahead <- t
           } else {
             sym <- tail(self$symstack, 1)[[1]]
-            self$symstack <- head(self$symstack, -1)
+            self$symstack <- head(self$symstack, -1) # TODO
             #--! TRACKING
             if(tracking) {
               lookahead$lineno <- sym$lineno
-              lookahead$lexpos <- sym$lexpos             
+              lookahead$lexpos <- sym$lexpos
             }
             #--! TRACKING
             self$statestack <- head(self$statestack, -1)
             state <- tail(self$statestack, 1)[[1]]
           }
-          
+
           next
         }
-        
+
         # Call an error function here
-        stop('yacc: internal parser error!!!\n')
+        stop('[RuntimeError]', 'yacc: internal parser error!!!\n')
       }
     }
   )
@@ -655,27 +670,28 @@ Production <- R6::R6Class("Production",
       self$func     <- func
       self$callable <- NA
       self$prec     <- precedence
-      
+
       # Internal settings used during table construction
-          
+
       self$len <- length(self$prod)   # Length of the production
-      
+
       # Create a list of unique production symbols used in the production
       self$usyms <- list()
       for(s in self$prod) {
-        if(s %nin% self$usyms) self$usyms[[length(self$usyms)+1]] <- s 
+        if(s %nin% self$usyms) self$usyms[[length(self$usyms)+1]] <- s
       }
-      
+
       # List of all LR items for the production
       self$lr_items <- list()
       self$lr_next  <- NA
-      
+
       # Create a string representation
       if(length(self$prod) > 0) self$str <- sprintf('%s -> %s',      self$name, paste(self$prod, collapse=' '))
       else                      self$str <- sprintf('%s -> <empty>', self$name)
     },
     # Return the nth lr_item from the production (or None if at the end)
     lr_item = function(n) {
+      # TODO
     },
     toString = function() {
       return(self$str)
@@ -723,7 +739,7 @@ LRItem <- R6::R6Class("LRItem",
     lookaheads = NA,
     len        = NA,
     usyms      = NA,
-    
+
     lr_after   = NA,
     lr_before  = NA,
     lr_next    = NA,
@@ -750,10 +766,10 @@ LRItem <- R6::R6Class("LRItem",
 # Rightmost terminal
 #
 # Return the rightmost terminal from a list of symbols.  Used in add_production()
-# 
+#
 # @param symbols list of symbols
 # @param terminals list of terminals
-# 
+#
 # @return rightmost terminal
 rightmost_terminal = function(symbols, terminals) {
   i <- length(symbols) - 1
@@ -789,20 +805,20 @@ Grammar <- R6::R6Class("Grammar",
     initialize = function(terminals) {
       self$Productions <- list(NULL)       # - A list of all of the productions.  The first
                                            #   entry is always reserved for the purpose of
-                                           #   building an augmented grammar      
+                                           #   building an augmented grammar
       self$Prodnames <- new.env(hash=TRUE) # - A dictionary mapping the names of nonterminals to a list of all
                                            #   productions of that nonterminal.
       self$Prodmap   <- new.env(hash=TRUE) # - A dictionary that is only used to detect duplicate
                                            #   productions.
       self$Terminals <- new.env(hash=TRUE) # - A dictionary mapping the names of terminal symbols to a
                                            #   list of the rules where they are used.
-      
+
       for(term in terminals) {
         self$Terminals[[term]] <- c()
       }
-      
+
       self$Terminals[['error']] <- c()
-      
+
       self$Nonterminals <- new.env(hash=TRUE) # - A dictionary mapping names of nonterminals to a list
                                               #   of rule numbers where they are used.
       self$First      <- new.env(hash=TRUE)   # - A dictionary of precomputed FIRST(x) symbols
@@ -822,10 +838,10 @@ Grammar <- R6::R6Class("Grammar",
     #
     # -----------------------------------------------------------------------------
     set_precedence = function(term, assoc, level) {
-      if(length(self$Productions) > 1)                 stop('Must call set_precedence() before add_production()')
-      if(term %in% names(self$recedence))              stop(sprintf('Precedence already specified for terminal %s', term))
-      if(!(assoc %in% c('left', 'right', 'nonassoc'))) stop("Associativity must be one of 'left','right', or 'nonassoc'")
-      self$Precedence[[term]] <- list(assoc, level) 
+      if(length(self$Productions) > 1)                 stop('[GrammarError]', 'Must call set_precedence() before add_production()')
+      if(term %in% names(self$recedence))              stop('[GrammarError]', sprintf('Precedence already specified for terminal %s', term))
+      if(!(assoc %in% c('left', 'right', 'nonassoc'))) stop('[GrammarError]', "Associativity must be one of 'left','right', or 'nonassoc'")
+      self$Precedence[[term]] <- list(assoc, level)
     },
     # -----------------------------------------------------------------------------
     # add_production()
@@ -844,33 +860,37 @@ Grammar <- R6::R6Class("Grammar",
     # are valid and that %prec is used correctly.
     # -----------------------------------------------------------------------------
     add_production = function(prodname, syms, func) {
-      if(prodname %in% names(self$Terminals))        stop(sprintf('%s: Illegal rule name %s. Already defined as a token', func, prodname))
-      if(prodname == 'error')                        stop(sprintf('%s: Illegal rule name %s. error is a reserved word', func, prodname))
-      if(!grepl(is_identifier, prodname, perl=TRUE)) stop(sprintf('%s: Illegal rule name %s', func, prodname))
-      
+      if(prodname %in% names(self$Terminals))        stop('[GrammarError]', sprintf('%s: Illegal rule name %s. Already defined as a token', func, prodname))
+      if(prodname == 'error')                        stop('[GrammarError]', sprintf('%s: Illegal rule name %s. error is a reserved word', func, prodname))
+      if(!grepl(is_identifier, prodname, perl=TRUE)) stop('[GrammarError]', sprintf('%s: Illegal rule name %s', func, prodname))
+
       # Look for literal tokens
       n <- 0
       for(s in syms) {
         n <- n + 1
         if(substr(s, 1, 1) %in% c("'", "\"")) {
-          c <- eval(parse(text=s))
-          if(nchar(c) > 1) stop(sprintf('%s: Literal token %s in rule %s may only be a single character', func, s, prodname))
-          if(!(c %in% names(self$Terminals))) self$Terminals[[c]] <- c()
-          syms[n] <- c
-          next
+          tryCatch({
+            c <- eval(parse(text=s))
+            if(nchar(c) > 1) stop('[GrammarError]', sprintf('%s: Literal token %s in rule %s may only be a single character', func, s, prodname))
+            if(!(c %in% names(self$Terminals))) self$Terminals[[c]] <- c()
+            syms[n] <- c
+            next
+          }, error = function(e) {
+            if(e[[1]] != 'SyntaxError') stop(e)
+          })
         }
-        if(!grepl(is_identifier, s, perl=TRUE) && s != '%prec') stop(sprintf('%s: Illegal name %s in rule %s', func,s, prodname))
+        if(!grepl(is_identifier, s, perl=TRUE) && s != '%prec') stop('[GrammarError]', sprintf('%s: Illegal name %s in rule %s', func,s, prodname))
       }
-            
+
       # Determine the precedence level
       if('%prec' %in% syms) {
-        if(syms[length(syms)]     == '%prec') stop(sprintf('%s: Syntax error. Nothing follows %%prec', func))
-        if(syms[length(syms) - 1] != '%prec') stop(sprintf('%s: Syntax error. %%prec can only appear at the end of a grammar rule', func))
-       
+        if(syms[length(syms)]     == '%prec') stop('[GrammarError]', sprintf('%s: Syntax error. Nothing follows %%prec', func))
+        if(syms[length(syms) - 1] != '%prec') stop('[GrammarError]', sprintf('%s: Syntax error. %%prec can only appear at the end of a grammar rule', func))
+
         precname <- syms[length(syms)]
         prodprec <- self$Precedence[[precname]]
-       
-        if(is.null(prodprec)) stop(sprintf('%s: Nothing known about the precedence of %s', func, precname))
+
+        if(is.null(prodprec)) stop('[GrammarError]', sprintf('%s: Nothing known about the precedence of %s', func, precname))
         else self$UsedPrecedence[[length(self$UsedPrecedence)+1]] <- precname
         # Drop %prec from the rule
         syms <- head(syms,-2)
@@ -879,17 +899,17 @@ Grammar <- R6::R6Class("Grammar",
         precname <- rightmost_terminal(syms, self$Terminals)
         if(!is.null(precname)) prodprec <- self$Precedence[[precname]]
         else prodprec <- NULL
-        
+
         if(is.null(prodprec)) prodprec <- list('right', 0)
       }
-    
+
       # See if the rule is already in the rulemap
       map <- sprintf('%s -> %s', prodname, toString(syms))
       if(map %in% names(self$Prodmap)) {
         m <- self$Prodmap[[map]]
-        stop(sprintf('%s: Duplicate rule %s. ', func, m))
+        stop('[GrammarError]', sprintf('%s: Duplicate rule %s. ', func, m))
       }
-        
+
       # From this point on, everything is valid.  Create a new Production instance
       pnumber <- length(self$Productions)
       if(!(prodname %in% names(self$Nonterminals))) self$Nonterminals[[prodname]] <- c()
@@ -902,12 +922,12 @@ Grammar <- R6::R6Class("Grammar",
           self$Nonterminals[[t]][[length(self$Nonterminals[[t]])+1]] <- pnumber
         }
       }
-      
+
       # Create a production and add it to the list of productions
       p <- Production$new(pnumber, prodname, syms, prodprec, func)
       self$Productions[[length(self$Productions)+1]] <- p
       self$Prodmap[[map]] <- p
-    
+
       # Add to the global productions list
       if(!(prodname %in% names(self$Prodnames))) self$Prodnames[[prodname]] <- c()
       self$Prodnames[[prodname]][[length(self$Prodnames[[prodname]])+1]] <- p
@@ -920,7 +940,7 @@ Grammar <- R6::R6Class("Grammar",
     # -----------------------------------------------------------------------------
     set_start = function(start=NA) {
       if(is.na(start)) start <- self$Productions[[2]]$name
-      if(!(start %in% names(self$Nonterminals))) stop(sprintf('start symbol %s undefined', start))
+      if(!(start %in% names(self$Nonterminals))) stop('[GrammarError]', sprintf('start symbol %s undefined', start))
       self$Productions[[1]] <- Production$new(0, "S'", c(start))
       self$Nonterminals[[start]][[length(self$Nonterminals[[start]])+1]] <- 0
       self$Start <- start
@@ -945,17 +965,17 @@ Grammar <- R6::R6Class("Grammar",
     # -----------------------------------------------------------------------------
     infinite_cycles = function() {
       terminates <- new.env(hash=TRUE)
-      
+
       # Terminals:
       for(t in names(self$Terminals)) terminates[[t]] <- TRUE
-      
+
       terminates[['$end']] <- TRUE
-      
+
       # Nonterminals:
-  
+
       # Initialize to false:
       for(n in names(self$Nonterminals)) terminates[[n]] <- FALSE
-      
+
       # Then propagate termination until no change:
       while(TRUE) {
         some_change <- FALSE
@@ -964,7 +984,7 @@ Grammar <- R6::R6Class("Grammar",
           # Nonterminal n terminates if any of its productions terminates.
           for(p in pl) {
             # Production p terminates if all of its rhs symbols terminate.
-        
+
             # didn't break from the loop,
             # so every symbol s terminates
             # so production p terminates.
@@ -977,7 +997,7 @@ Grammar <- R6::R6Class("Grammar",
                 break
               }
             }
-            
+
             if(p_terminates) {
               # symbol n terminates!
               if(!terminates[[n]]) {
@@ -991,7 +1011,7 @@ Grammar <- R6::R6Class("Grammar",
         }
         if(!some_change) break
       }
-      
+
       infinite <- list()
       for(s in names(terminates)) {
         term <- terminates[[s]]
@@ -1000,7 +1020,7 @@ Grammar <- R6::R6Class("Grammar",
           else infinite[[length(infinite)+1]] <- s
         }
       }
-      
+
       return(infinite)
     },
     # -----------------------------------------------------------------------------
@@ -1084,30 +1104,30 @@ Grammar <- R6::R6Class("Grammar",
       broke <- FALSE
       for(x in beta) {
         x_produces_empty <- FALSE
-        
+
         # Add all the non-<empty> symbols of First[x] to the result.
         for(f in self$First[[x]]) {
           if(f == '<empty>') x_produces_empty <- TRUE
           else if(f %nin% result) result <- append(result, f)
         }
-        
+
         if(x_produces_empty) {
           # We have to consider the next x in beta,
-          # i.e. stay in the loop.         
+          # i.e. stay in the loop.
         } else {
           # We don't have to consider any further symbols in beta.
           broke <- TRUE
           break
         }
       }
-      
+
       if(!broke) {
         # There was no 'break' from the loop,
         # so x_produces_empty was true for all x in beta,
         # so beta produces empty as well.
         result <- append(result, '<empty>')
       }
-      
+
       return(result)
     },
     # -------------------------------------------------------------------------
@@ -1122,12 +1142,12 @@ Grammar <- R6::R6Class("Grammar",
       for(t in names(self$Terminals)) self$First[[t]] <- c(t)
 
       self$First[['$end']] <- c('$end')
-      
+
       # Nonterminals:
-  
+
       # Initialize to the empty set:
       for(n in names(self$Nonterminals)) self$First[[n]] <- c()
-      
+
       # Then propagate symbols until no change:
       while(TRUE) {
         some_change <- FALSE
@@ -1143,7 +1163,7 @@ Grammar <- R6::R6Class("Grammar",
         }
         if(!some_change) break
       }
-  
+
       return(self$First)
     },
     # ---------------------------------------------------------------------
@@ -1156,17 +1176,17 @@ Grammar <- R6::R6Class("Grammar",
     compute_follow = function(start=NA) {
       # If already computed, return the result
       if(length(names(self$Follow)) > 0) return(self$Follow)
-      
+
       # If first sets not computed yet, do that first.
       if(length(names(self$First)) == 0) self$compute_first()
-      
+
       # Add '$end' to the follow list of the start symbol
       for(k in names(self$Nonterminals)) self$First[[k]] <- c()
-      
+
       if(is.na(start)) start <- self$Productions[[1]]$name
-      
+
       self$Follow[[start]] <- c('$end')
-      
+
       while(TRUE) {
         didadd <- FALSE
         for(p in tail(self$Productions, -1)) {
@@ -1236,7 +1256,7 @@ Grammar <- R6::R6Class("Grammar",
               lri$lr_before <- NULL
             })
           }
-          
+
           lastlri$lr_next <- lri
           if(is.null(lri)) break
           lr_items[[length(lr_items)+1]] <- lri
@@ -1256,7 +1276,7 @@ Grammar <- R6::R6Class("Grammar",
       for(p in self$Prodnames[[s]])
           for(r in p$prod)
             reachable <- private$mark_reachable_from(reachable, r)
-        
+
       return(reachable)
     }
   )
@@ -1297,32 +1317,32 @@ LRGeneratedTable <- R6::R6Class("LRGeneratedTable",
     sr_conflicts   = NA,
     rr_conflicts   = NA,
     initialize = function(grammar, method='LALR', log=NULL) {
-      if(method %nin% c('SLR', 'LALR')) stop(sprintf('Unsupported method %s', method))
-      
+      if(method %nin% c('SLR', 'LALR')) stop('LALRError', sprintf('Unsupported method %s', method))
+
       self$grammar   <- grammar
       self$lr_method <- method
-      
+
       # Set up the logger
       if(is.null(log)) log <- NullLogger$new()
       self$log <- log
-      
+
       # Internal attributes
       self$lr_action      <- new.env(hash=TRUE)  # Action table
       self$lr_goto        <- new.env(hash=TRUE)  # Goto table
       self$lr_productions <- grammar$Productions # Copy of grammar Production array
       self$lr_goto_cache  <- new.env(hash=TRUE)  # Cache of computed gotos
-      self$lr0_cidhash    <- new.env(hash=TRUE)  # Cache of closures      
+      self$lr0_cidhash    <- new.env(hash=TRUE)  # Cache of closures
 
       private$add_count   <- 0                   # Internal counter used to detect cycles
-      
+
       # Diagonistic information filled in by the table generator
       self$sr_conflict <- 0
       self$rr_conflict <- 0
       self$conflicts   <- list()        # List of conflicts
-          
+
       self$sr_conflicts <- list()
       self$rr_conflicts <- list()
-          
+
       # Build the tables
       self$grammar$build_lritems()
       self$grammar$compute_first()
@@ -1332,7 +1352,7 @@ LRGeneratedTable <- R6::R6Class("LRGeneratedTable",
     # Compute the LR(0) closure operation on I, where I is a set of LR(0) items.
     lr0_closure = function(I) {
       private$add_count <- private$add_count + 1
-      
+
       # Add everything in I to J
 #      J <- append(I, rep(NULL, 10))
       J <- I
@@ -1353,7 +1373,7 @@ LRGeneratedTable <- R6::R6Class("LRGeneratedTable",
           i <- i + 1
         }
       }
-      
+
 #      J <- J[!is.null(J)]
       return(J)
     },
@@ -1367,10 +1387,10 @@ LRGeneratedTable <- R6::R6Class("LRGeneratedTable",
       # First we look for a previously cached entry
       g <- self$lr_goto_cache[[paste(id(I), x)]]
       if(!is.null(g)) return(g)
-      
+
       # Now we generate the goto set in a way that guarantees uniqueness
       # of the result
-  
+
       s <- self$lr_goto_cache[[x]]
       if(is.null(s)) {
         s <- new.env(hash=TRUE)
@@ -1397,7 +1417,7 @@ LRGeneratedTable <- R6::R6Class("LRGeneratedTable",
           s[['$end']] <- g
         } else s[['$end']] <- gs
       }
-      
+
       self$lr_goto_cache[[paste(id(I), x)]] <- g
       return(g)
     },
@@ -1410,13 +1430,13 @@ LRGeneratedTable <- R6::R6Class("LRGeneratedTable",
         self$lr0_cidhash[[id(I)]] <- i
         i <- i + 1
       }
-      
+
       # Loop over the items in C and each grammar symbols
       i <- 1
       while(i <= length(C)) {
         I <- C[[i]]
         i <- i + 1
-        
+
         # Collect all of the symbols that could possibly be in the goto(I,X) sets
         asyms <- new.env(hash=TRUE)
         for(ii in I) {
@@ -1424,7 +1444,7 @@ LRGeneratedTable <- R6::R6Class("LRGeneratedTable",
             asyms[[s]] <- NULL
           }
         }
-        
+
         for(x in names(asyms)) {
           g <- self$lr0_goto(I, x)
           if(is.null(g) || id(g) %in% names(self$lr0_cidhash)) next
@@ -1432,10 +1452,10 @@ LRGeneratedTable <- R6::R6Class("LRGeneratedTable",
           C[[length(C)+1]] <- g
         }
       }
-            
+
       return(C)
     },
-    
+
     # -----------------------------------------------------------------------------
     #                       ==== LALR(1) Parsing ====
     #
@@ -1456,7 +1476,7 @@ LRGeneratedTable <- R6::R6Class("LRGeneratedTable",
     #      McGraw-Hill Book Company, (1985).
     #
     # -----------------------------------------------------------------------------
-    
+
     # -----------------------------------------------------------------------------
     # compute_nullable_nonterminals()
     #
@@ -1486,7 +1506,7 @@ LRGeneratedTable <- R6::R6Class("LRGeneratedTable",
         if(length(nullable) == num_nullable) break
         num_nullable <- length(nullable)
       }
-      return(nullable)      
+      return(nullable)
     },
     # -----------------------------------------------------------------------------
     # find_nonterminal_trans(C)
@@ -1527,11 +1547,10 @@ LRGeneratedTable <- R6::R6Class("LRGeneratedTable",
     # Returns a list of terminals.
     # -----------------------------------------------------------------------------
     dr_relation = function(C, trans, nullable) {
-      dr_set <- new.env(hash=TRUE)
       state <- as.numeric(trans[1])
       N <- trans[2]
       terms <- c()
-      
+
       g <- self$lr0_goto(C[[state]], N)
       for(p in g) {
         if(p$lr_index < p$len) {
@@ -1540,11 +1559,11 @@ LRGeneratedTable <- R6::R6Class("LRGeneratedTable",
             if(a %nin% terms) terms <- append(terms, a)
         }
       }
-      
+
       # This extra bit is to handle the start state
       if(state == 1 && N == self$grammar$Productions[[1]]$prod[[1]])
         terms <- append(terms, '$end')
-      
+
       return(terms)
     },
     # -----------------------------------------------------------------------------
@@ -1557,7 +1576,7 @@ LRGeneratedTable <- R6::R6Class("LRGeneratedTable",
       rel <- list()
       state <- as.numeric(trans[1])
       N <- trans[2]
-      
+
       g <- self$lr0_goto(C[[state]], N)
       j <- self$lr0_cidhash[[id(g)]]
       for(p in g) {
@@ -1598,11 +1617,11 @@ LRGeneratedTable <- R6::R6Class("LRGeneratedTable",
     compute_lookback_includes = function(C, trans, nullable) {
       lookdict <- new.env(hash=TRUE)       # Dictionary of lookback relations
       includedict <- new.env(hash=TRUE)    # Dictionary of include relations
-      
+
       # Make a dictionary of non-terminal transitions
       dtrans <- new.env(hash=TRUE)
       for(t in trans) dtrans[[paste(t, collapse = ' ')]] <- 1
-      
+
       # Loop over all transitions and compute lookbacks and includes
       for(state_N in trans) {
         state <- as.numeric(state_N[1])
@@ -1611,23 +1630,23 @@ LRGeneratedTable <- R6::R6Class("LRGeneratedTable",
         includes <- list()
         for(p in C[[state]]) {
           if(p$name != N) next
-          
+
           # Okay, we have a name match.  We now follow the production all the way
           # through the state machine until we get the . on the right hand side
-      
+
           lr_index <- p$lr_index
           j <- state
-          
+
           while(lr_index < p$len) {
             lr_index <- lr_index + 1
             t <- p$prod[[lr_index]]
-            
+
             # Check to see if this symbol and state are a non-terminal transition
             if(paste(c(j, t), collapse=' ') %in% names(dtrans)) {
               # Yes.  Okay, there is some chance that this is an includes relation
               # the only way to know for certain is whether the rest of the
               # production derives empty
-              
+
               li <- lr_index + 1
               broke <- FALSE
               while(li < p$len + 1) {
@@ -1646,11 +1665,11 @@ LRGeneratedTable <- R6::R6Class("LRGeneratedTable",
                 includes[[length(includes)+1]] <- c(j, t)
               }
             }
-            
+
             g <- self$lr0_goto(C[[j]], t)        # Go to next set
             j <- self$lr0_cidhash[[id(g)]]       # Go to next state
           }
-          
+
           # When we get here, j is the final state, now we have to locate the production
           for(r in C[[j]]) {
             if(r$name != p$name) next
@@ -1714,7 +1733,7 @@ LRGeneratedTable <- R6::R6Class("LRGeneratedTable",
       N[[paste(x, collapse = ' ')]] <- d
       if(!is.null(C)) F[[x_id]] <- self$dr_relation(C, x, nullable) # F(X) <- F'(x)
       else            F[[x_id]] <- readsets[[x_id]]
-  
+
       rel <- NA
       if(!is.null(C)) rel <- self$reads_relation(C, x, nullable)                        # Get y's related to x
       else {
@@ -1729,7 +1748,7 @@ LRGeneratedTable <- R6::R6Class("LRGeneratedTable",
           if(a %nin% F[[x_id]]) F[[x_id]][[length(F[[x_id]])+1]] <- a
         }
       }
-    
+
       if(N[[paste(x, collapse = ' ')]] == d) {
         N[[paste(tail(stack, 1)[[1]], collapse = ' ')]] <- .Machine$integer.max
         F[[paste(tail(stack, 1)[[1]], collapse = ' ')]] <- F[[paste(x, collapse = ' ')]]
@@ -1742,7 +1761,7 @@ LRGeneratedTable <- R6::R6Class("LRGeneratedTable",
           stack <- head(stack, -1)
         }
       }
-      
+
       return(stack)
     },
     # -----------------------------------------------------------------------------
@@ -1817,10 +1836,10 @@ LRGeneratedTable <- R6::R6Class("LRGeneratedTable",
 
       # Find all non-terminal transitions
       trans <- self$find_nonterminal_transitions(C)
-      
+
       # Compute read sets
       readsets <- self$compute_read_sets(C, trans, nullable)
-      
+
       # Compute lookback/includes relations
       lookd_included <- self$compute_lookback_includes(C, trans, nullable)
       lookd <- lookd_included[[1]]
@@ -1828,7 +1847,7 @@ LRGeneratedTable <- R6::R6Class("LRGeneratedTable",
 
       # Compute LALR FOLLOW sets
       followsets <- self$compute_follow_sets(trans, readsets, included)
-  
+
  		  # Add all of the lookaheads
       self$add_lookaheads(lookd, followsets)
     },
@@ -1841,18 +1860,18 @@ LRGeneratedTable <- R6::R6Class("LRGeneratedTable",
       Productions <- self$grammar$Productions
       Precedence  <- self$grammar$Precedence
       log <- self$log             # Logger for output
-      
+
       actionp <- new.env(hash=TRUE)  # Action production array (temporary)
-      
+
       log$info(sprintf('Parsing method: %s', self$lr_method))
-            
+
       # Step 1: Construct C = { I0, I1, ... IN}, collection of LR(0) items
       # This determines the number of states
-  
+
       C <- self$lr0_items()
 
       if(self$lr_method == 'LALR') self$add_lalr_lookaheads(C)
-      
+
       # Build the parser table, state by state
       st <- 1
       for(I in C) {
@@ -1888,20 +1907,20 @@ LRGeneratedTable <- R6::R6Class("LRGeneratedTable",
                     # Need to decide on shift or reduce here
                     # By default we favor shifting. Need to add
                     # some precedence rules here.
-              
+
                     # Shift precedence comes from the token
                     sprec_slevel <- Precedence[[a]]
                     if(is.null(sprec_slevel)) sprec_slevel <- c('right', 0)
-                    
+
                     sprec  <- sprec_slevel[[1]]
                     slevel <- sprec_slevel[[2]]
-                    
+
                     # Reduce precedence comes from rule being reduced (p)
                     rprec_rlevel <- Productions[[p$number]]$prec
-                    
+
                     rprec  <- rprec_rlevel[[1]]
                     rlevel <- rprec_rlevel[[2]]
-                    
+
                     if((slevel < rlevel) || ((slevel == rlevel) && (rprec == 'left'))) {
                       # We really need to reduce here.
                       st_action[[a]] <- -p$number
@@ -1940,7 +1959,7 @@ LRGeneratedTable <- R6::R6Class("LRGeneratedTable",
                     log$info(sprintf('  ! reduce/reduce conflict for %s resolved using rule %d (%s)',
                                      a, st_actionp[[a]]$number, st_actionp[[a]]$toString()))
                   } else {
-                    stop(sprintf('Unknown conflict in state %d', st))
+                    stop('[LALRError]', sprintf('Unknown conflict in state %d', st))
                   }
                 } else {
                   st_action[[a]] <- -p$number
@@ -1962,26 +1981,26 @@ LRGeneratedTable <- R6::R6Class("LRGeneratedTable",
                 if(!is.null(r)) {
                   # Whoa have a shift/reduce or shift/shift conflict
                   if(r > 0) {
-                    if(r != j) stop(sprintf('Shift/shift conflict in state %d', st))
+                    if(r != j) stop('[LALRError]', sprintf('Shift/shift conflict in state %d', st))
                   } else if(r < 0) {
                     # Do a precedence check.
                     #   -  if precedence of reduce rule is higher, we reduce.
                     #   -  if precedence of reduce is same and left assoc, we reduce.
                     #   -  otherwise we shift
-          
+
                     # Shift precedence comes from the token
                     sprec_slevel <- Precedence[[a]]
                     if(is.null(sprec_slevel)) sprec_slevel <- c('right', 0)
-                     
+
                     sprec  <- sprec_slevel[[1]]
                     slevel <- sprec_slevel[[2]]
-                    
+
                     # Reduce precedence comes from the rule that could have been reduced
                     rprec_rlevel <- Productions[[st_actionp[[a]]$number+1]]$prec
-                    
+
                     rprec  <- rprec_rlevel[[1]]
                     rlevel <- rprec_rlevel[[2]]
-                    
+
                     if((slevel > rlevel) || ((slevel == rlevel) && (rprec == 'right'))) {
                       # We decide to shift here... highest precedence to shift
                       Productions[[st_actionp[[a]]$number]]$reduced <- Productions[[st_actionp[[a]]$number]]$reduced - 1
@@ -2000,7 +2019,7 @@ LRGeneratedTable <- R6::R6Class("LRGeneratedTable",
                         self$sr_conflicts[[length(self$sr_conflicts)+1]] <- c(st, a, 'reduce')
                       }
                     }
-                  } else stop(sprintf('Unknown conflict in state %d', st))
+                  } else stop('[LALRError]', sprintf('Unknown conflict in state %d', st))
                 } else {
                   st_action[[a]] <- j
                   st_actionp[[a]] <- p
@@ -2009,7 +2028,7 @@ LRGeneratedTable <- R6::R6Class("LRGeneratedTable",
             }
           }
         }
-        
+
         # Print the actions associated with each terminal
         actprint <- {}
         for(a_p_m in actlist) {
@@ -2041,7 +2060,7 @@ LRGeneratedTable <- R6::R6Class("LRGeneratedTable",
           }
         }
         if(not_used == 1) log$info('')
-        
+
         # Construct the goto table for this state
 
         nkeys <- new.env(hash=TRUE)
@@ -2049,7 +2068,7 @@ LRGeneratedTable <- R6::R6Class("LRGeneratedTable",
           for(s in ii$usyms)
             if(s %in% names(self$grammar$Nonterminals))
               nkeys[[s]] <- NULL
-              
+
         for(n in names(nkeys)) {
           g <- self$lr0_goto(I, n)
           j <- self$lr0_cidhash[[id(g)]]
@@ -2087,14 +2106,14 @@ LRGeneratedTable <- R6::R6Class("LRGeneratedTable",
 # Parse user's grammar
 #
 # This takes a raw grammar rule string and parses it into production data
-# 
+#
 # @usage
 # parse_grammar(name, doc)
-# 
+#
 # @param name Name of the grammar method
 # @param doc Rule description
 # @return grammar
-# 
+#
 #' @importFrom utils tail
 parse_grammar = function(name, doc) {
   grammar <- list()
@@ -2104,13 +2123,13 @@ parse_grammar = function(name, doc) {
   for(ps in pstrings) {
 	  p <- strsplit(ps, " ")[[1]]
 	  if(length(p) == 0) next
-	
+
     prodname <- NA
     syms <- NA
     tryCatch({
   	  if(p[1] == '|') {
         # This is a continuation of a previous rule
-  		  if(is.na(lastp)) stop(sprintf("%s: Misplaced '|'", name))
+  		  if(is.na(lastp)) stop('[SyntaxError]', sprintf("%s: Misplaced '|'", name))
   		  prodname <- lastp
   		  syms <- tail(p, -1)
   	  } else {
@@ -2118,12 +2137,15 @@ parse_grammar = function(name, doc) {
         lastp <- prodname
         syms <- tail(p, -2)
         assign <- p[2]
-        if(assign != ':' && assign != '::=') stop(sprintf("%s: Syntax error. Expected ':'", name))
+        if(is.na(assign)) stop()
+        if(assign != ':' && assign != '::=') stop('[SyntaxError]', sprintf("%s: Syntax error. Expected ':'", name))
       }
       grammar[[length(grammar)+1]] <- list(name, prodname, syms)
-    }, error = function(e) { if(startsWith(e[[1]], name)) stop(e[[1]]) 
-                             else stop(sprintf("%s: Syntax error in rule %s", name, ps))})
-  
+    }, error = function(e) {
+      if(grepl('SyntaxError', e[[1]])) stop(e[[1]])
+      else stop('[SyntaxError]', sprintf("%s: Syntax error in rule %s", name, ps))
+    })
+
   }
   return(grammar)
 }
@@ -2154,7 +2176,7 @@ ParserReflect <- R6::R6Class("ParserReflect",
     initialize = function(module, instance, log=NULL) {
       self$module <- module
       self$instance <- instance
-      
+
       if(is.null(log)) self$log <- RlyLogger$new()
       else             self$log <- log
     },
@@ -2223,7 +2245,7 @@ ParserReflect <- R6::R6Class("ParserReflect",
         return()
       }
 
-      self$tokens <- tokens
+      self$tokens <- sort(tokens)
     },
     # Validate the tokens
     validate_tokens = function() {
@@ -2253,7 +2275,7 @@ ParserReflect <- R6::R6Class("ParserReflect",
           self$error <- TRUE
           return()
         }
-        
+
         level <- 0
         for(p in self$prec) {
           if(!is.vector(p) || typeof(p) != 'character') {
@@ -2330,11 +2352,12 @@ ParserReflect <- R6::R6Class("ParserReflect",
           for(g in parsed_g)
             grammar[[length(grammar)+1]] <- g
         }, error = function(e) {
+          if(!grepl('SyntaxError', e[[1]])) stop(e[[1]])
           self$log$error(e[[1]])
           self$error <- TRUE
         })
       }
-      
+
       # Secondary validation step that looks for p_ definitions that are not functions
       # or functions that look like they might be grammar rules.
       for(name in names(self$instance)) {
@@ -2359,9 +2382,9 @@ ParserReflect <- R6::R6Class("ParserReflect",
 
 
 #' Build a parser
-#' 
+#'
 #' This function is entry point to the library
-#' 
+#'
 #' @param module R6 class containing rules
 #' @param args list of arguments that should be passed to constructor
 #' @param method type of algorithm
@@ -2372,15 +2395,15 @@ ParserReflect <- R6::R6Class("ParserReflect",
 #' @param outputdir the dierectory of custom debug logs
 #' @param debuglog custom logger for debug messages
 #' @param errorlog custom logger for error messages
-#' 
+#'
 #' @return Parser ready to use
-#' 
+#'
 #' @export
-#' 
+#'
 #' @examples
 #' TOKENS = c('NAME', 'NUMBER')
 #' LITERALS = c('=','+','-','*','/', '(',')')
-#' 
+#'
 #' Parser <- R6::R6Class("Parser",
 #'   public = list(
 #'     tokens = TOKENS,
@@ -2425,7 +2448,7 @@ ParserReflect <- R6::R6Class("ParserReflect",
 #'     }
 #'   )
 #' )
-#' 
+#'
 #' parser <- rly::yacc(Parser)
 yacc = function(module=NA,
                 args=list(),
@@ -2439,73 +2462,85 @@ yacc = function(module=NA,
                 errorlog=NA) {
 
   if(is.na(errorlog)) errorlog <- RlyLogger$new()
-              
+
   # Set start symbol if it's specified directly using an argument
   if(!is.na(start)) {
     module$public_methods[['start']] <- start
   }
-                
+
   instance <- do.call("new", args, envir=module)
 
   # Collect parser information from the dictionary
   pinfo <- ParserReflect$new(module, instance, errorlog)
   pinfo$get_all()
-  
-  if(is.na(debuglog)) {
+
+  if (is.na(debuglog)) {
     if(debug) debuglog <- RlyLogger$new(outputdir, debugfile)
     else      debuglog <- NullLogger$new()
   }
 
   debuglog$info('Created by RLY (https://github.com/systemincloud/rly)')
-  
+
   errors <- FALSE
-  
-  if(pinfo$validate_all()) stop('Unable to build parser')
-  
-  if(is.null(pinfo$error_func)) errorlog$warn('no p_error() function is defined')
+
+  if (pinfo$validate_all())
+    stop('[YaccError]', 'Unable to build parser')
+
+  if (is.null(pinfo$error_func)) errorlog$warn('no p_error() function is defined')
 
   # Create a grammar object
   grammar <- Grammar$new(pinfo$tokens)
 
   # Set precedence level for terminals
-  for(term_assoc_level in pinfo$preclist) {
+  for (term_assoc_level in pinfo$preclist) {
     tryCatch({
-      grammar$set_precedence(term_assoc_level[[1]], 
-                             term_assoc_level[[2]], 
+      grammar$set_precedence(term_assoc_level[[1]],
+                             term_assoc_level[[2]],
                              term_assoc_level[[3]])
     }, error = function(e) {
+      if (!grepl('\\[GrammarError\\]', e)) stop(e[[1]])
       errorlog$warn(e[[1]])
     })
   }
-  
+
   # Add productions to the grammar
-  for(gram in pinfo$grammar) {
+  for (gram in pinfo$grammar) {
     funcname <- gram[[1]]
     prodname <- gram[[2]]
     syms     <- gram[[3]]
-    tryCatch({
+    errors <- errors || tryCatch({
       grammar$add_production(prodname, syms, funcname)
+      FALSE
     }, error = function(e) {
+      if (!grepl('\\[GrammarError\\]', e)) stop(e[[1]])
       errorlog$error(e[[1]])
-      stop('Unable to build parser')
+      return(TRUE)
     })
   }
-  
+
   # Set the grammar start symbols
-  if(is.na(start)) {
-    if(is.null(pinfo$start)) grammar$set_start()
-    else                     grammar$set_start(pinfo$start)
-  } else grammar$set_start(start)
-  
-  if(errors) stop('Unable to build parser')
-  
+  errors <- errors || tryCatch({
+    if (is.na(start)) {
+      if(is.null(pinfo$start)) grammar$set_start()
+      else                     grammar$set_start(pinfo$start)
+    } else grammar$set_start(start)
+    FALSE
+  }, error = function(e) {
+    if (!grepl('\\[GrammarError\\]', e)) stop(e[[1]])
+    errorlog$error(e[[1]])
+    return(TRUE)
+  })
+
+  if(errors)
+    stop('[YaccError]', 'Unable to build parser')
+
   # Verify the grammar structure
   undefined_symbols <- grammar$undefined_symbols()
   for(sym_prod in undefined_symbols) {
     errorlog$error(sprintf('Symbol %s used, but not defined as a token or a rule', sym_prod[[1]]))
     errors <- TRUE
   }
-  
+
   unused_terminals <- grammar$unused_terminals()
   if(length(unused_terminals) > 0) {
     debuglog$info('')
@@ -2532,7 +2567,7 @@ yacc = function(module=NA,
   # Find unused non-terminals
   unused_rules <- grammar$unused_rules()
   for(prod in unused_rules) errorlog$warn(sprintf("Rule %s defined, but not used", prod$name))
-  
+
   if(length(unused_terminals) == 1) errorlog$warn('There is 1 unused token')
   if(length(unused_terminals) > 1)  errorlog$warn(sprintf('There are %d unused tokens', length(unused_terminals)))
   if(length(unused_rules) == 1)     errorlog$warn('There is 1 unused rule')
@@ -2546,7 +2581,7 @@ yacc = function(module=NA,
 	  terms <- sort(terms)
 	  for(term in terms)
       debuglog$info(sprintf('%-20s : %s', term, paste(grammar$Terminals[[term]], sep=' ', collapse=' ')))
-	  
+
     debuglog$info('')
     debuglog$info('Nonterminals, with rules where they appear')
     debuglog$info('')
@@ -2556,18 +2591,18 @@ yacc = function(module=NA,
       debuglog$info(sprintf('%-20s : %s', nonterm, paste(grammar$Nonterminals[[nonterm]], sep=' ', collapse=' ')))
     debuglog$info('')
   }
-  
+
   if(check_recursion) {
     unreachable <- grammar$find_unreachable()
     for(u in unreachable) errorlog$warn(sprintf('Symbol %s is unreachable', u))
-    
+
     infinite <- grammar$infinite_cycles()
     for(inf in infinite) {
       errorlog$error(sprintf('Infinite recursion detected for symbol %s', inf))
       errors <- TRUE
     }
   }
-  
+
   unused_prec <- grammar$unused_precedence()
   for(term_assoc in unused_prec) {
     term  <- term_assoc[[1]]
@@ -2575,9 +2610,10 @@ yacc = function(module=NA,
     errorlog$error(sprintf('Precedence rule %s defined for unknown symbol %s', assoc, term))
     errors <- TRUE
   }
-  
-  if(errors) stop('Unable to build parser')
-  
+
+  if(errors)
+    stop('[YaccError]', 'Unable to build parser')
+
   # Run the LRGeneratedTable on the grammar
   if(debug) cat(sprintf('Generating %s tables \n', method))
 
@@ -2588,7 +2624,7 @@ yacc = function(module=NA,
     # Report shift/reduce and reduce/reduce conflicts
     if     (num_sr == 1) errorlog$warn('1 shift/reduce conflict')
     else if(num_sr > 1)  errorlog$warn(sprintf('%d shift/reduce conflicts', num_sr))
-    
+
     num_rr <- length(lr$rr_conflicts)
     if     (num_rr == 1) errorlog$warn('1 reduce/reduce conflict')
     else if(num_rr > 1)  errorlog$warn(sprintf('%d reduce/reduce conflicts', num_rr))
@@ -2599,35 +2635,35 @@ yacc = function(module=NA,
     debuglog$warn('')
     debuglog$warn('Conflicts:')
     debuglog$warn('')
-    
+
     for(state_tok_resolution in lr$sr_conflicts) {
       state      <- state_tok_resolution[[1]]
       tok        <- state_tok_resolution[[2]]
       resolution <- state_tok_resolution[[3]]
       debuglog$warn(sprintf('shift/reduce conflict for %s in state %s resolved as %s',  tok, state, resolution))
     }
-      
+
     already_reported <- list()
     for(state_rule_rejected in lr$rr_conflicts) {
       state    <- state_rule_rejected[[1]]
       rule     <- state_rule_rejected[[2]]
       rejected <- state_rule_rejected[[3]]
-      
+
       if(paste(state, id(rule), id(rejected)) %in% already_reported) next
-      
+
       debuglog$warn(sprintf('reduce/reduce conflict in state %d resolved using rule (%s)', state, rule$toString()))
       debuglog$warn(sprintf('rejected rule (%s) in state %d', rejected$toString(), state))
       errorlog$warn(sprintf('reduce/reduce conflict in state %d resolved using rule (%s)', state, rule$toString()))
       errorlog$warn(sprintf('rejected rule (%s) in state %d', rejected$toString(), state))
       already_reported[[length(already_reported)+1]] <- c(state, id(rule), id(rejected))
     }
-    
+
     warned_never <- list()
     for(state_rule_rejected in lr$rr_conflicts) {
       state    <- state_rule_rejected[[1]]
       rule     <- state_rule_rejected[[2]]
       rejected <- state_rule_rejected[[3]]
-      
+
       if(rejected$reduced == 0 && id(rejected) %nin% warned_never) {
         debuglog$warn(sprintf('Rule (%s) is never reduced', rejected$toString()))
         errorlog$warn(sprintf('Rule (%s) is never reduced', rejected$toString()))
@@ -2635,6 +2671,12 @@ yacc = function(module=NA,
       }
     }
   }
+
+  # Write the table file if requested
+  # TODO
+
+  # Write a pickled version of the tables
+  # TODO
 
   # Build the parser
   lr$bind_callables(instance)

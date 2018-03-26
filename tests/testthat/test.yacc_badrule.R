@@ -178,13 +178,12 @@ Parser4 <- R6::R6Class("Parser4",
 )
 
 test_that("rule", {
-  expect_output(expect_error(rly::yacc(Parser1), "Unable to build parser"),
-  "ERROR .* p_statement_assign: Syntax error. Expected ':'")
-  expect_output(expect_error(rly::yacc(Parser2), "Unable to build parser"),
-  "ERROR .* p_statement_expr: Syntax error in rule statement")
-  expect_output(expect_error(rly::yacc(Parser3), "Unable to build parser"),
-  "ERROR .* p_expression_binop: Syntax error. Expected ':'")
-  expect_output(expect_error(rly::yacc(Parser4), "Unable to build parser"),
-  "ERROR .* p_expression_uminus: Syntax error. Expected ':'")
+  expect_output(expect_error(rly::yacc(Parser1), "\\[YaccError\\]Unable to build parser"),
+  "ERROR .* \\[SyntaxError\\]p_statement_assign: Syntax error. Expected ':'")
+  expect_output(expect_error(rly::yacc(Parser2), "\\[YaccError\\]Unable to build parser"),
+  "ERROR .* \\[SyntaxError\\]p_statement_expr: Syntax error in rule statement")
+  expect_output(expect_error(rly::yacc(Parser3), "\\[YaccError\\]Unable to build parser"),
+  "ERROR .* \\[SyntaxError\\]p_expression_binop: Syntax error. Expected ':'")
+  expect_output(expect_error(rly::yacc(Parser4), "\\[YaccError\\]Unable to build parser"),
+  "ERROR .* \\[SyntaxError\\]p_expression_uminus: Syntax error. Expected ':'")
 })
-

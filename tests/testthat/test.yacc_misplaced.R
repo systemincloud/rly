@@ -49,6 +49,6 @@ Parser <- R6::R6Class("Parser",
 )
 
 test_that("misplaced", {
-  expect_output(expect_error(rly::yacc(Parser), "Unable to build parser"),
-  "ERROR .* p_expression_binop: Misplaced '\\|'")
+  expect_output(expect_error(rly::yacc(Parser), "\\[YaccError\\]Unable to build parser"),
+  "ERROR .* \\[SyntaxError\\]p_expression_binop: Misplaced '|'")
 })

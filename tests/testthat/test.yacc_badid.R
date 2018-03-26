@@ -95,8 +95,8 @@ Parser2 <- R6::R6Class("Parser2",
 
 
 test_that("rule name", {
-  expect_output(expect_error(rly::yacc(Parser1), "Unable to build parser"),
-"ERROR .* p_statement_expr2: Illegal name bad&rule in rule statement")
-  expect_output(expect_error(rly::yacc(Parser2), "Unable to build parser"),
-"ERROR .* p_badrule: Illegal rule name bad\\&rule")
+  expect_output(expect_error(rly::yacc(Parser1), "\\[YaccError\\]Unable to build parser"),
+"ERROR .* \\[GrammarError\\]p_statement_expr2: Illegal name bad&rule in rule statement")
+  expect_output(expect_error(rly::yacc(Parser2), "\\[YaccError\\]Unable to build parser"),
+"ERROR .* \\[GrammarError\\]p_badrule: Illegal rule name bad\\&rule")
 })

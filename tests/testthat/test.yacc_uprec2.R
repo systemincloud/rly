@@ -49,6 +49,6 @@ Parser <- R6::R6Class("Parser",
 )
 
 test_that("prec", {
-  expect_output(expect_error(rly::yacc(Parser), "Unable to build parser"),
-  "ERROR .* p_expression_uminus: Syntax error. Nothing follows %prec")
+  expect_output(expect_error(rly::yacc(Parser), "\\[YaccError\\]Unable to build parser"),
+  "ERROR .* \\[GrammarError\\]p_expression_uminus: Syntax error. Nothing follows %prec")
 })

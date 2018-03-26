@@ -50,6 +50,6 @@ Parser <- R6::R6Class("Parser",
 )
 
 test_that("literal", {
-   expect_output(expect_error(rly::yacc(Parser), "Unable to build parser"),
-  "ERROR .* p_expression_binop: Literal token '\\*\\*' in rule expression may only be a single character")
+   expect_output(expect_error(rly::yacc(Parser), "\\[YaccError\\]Unable to build parser"),
+  "ERROR .* \\[GrammarError\\]p_expression_binop: Literal token '\\*\\*' in rule expression may only be a single character")
 })
