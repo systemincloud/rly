@@ -347,12 +347,18 @@ Lexer <- R6::R6Class("Lexer",
 # Get regex from function
 #
 # Returns the regular expression assigned to a function.
+# If the value is given as a variable, we try to find this variable in the
+# context where the lexer-class is defined.
 #
 # @param func lexer function
 #
 # @return regex
 get_regex = function(func) {
-  return(formals(func)[['re']])
+  val <- formals(func)[['re']]
+  if (!is(val, 'character')) {
+    val <- eval(val, parent.env(environment(func)))
+  }
+  return(val)
 }
 
 
