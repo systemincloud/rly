@@ -1,16 +1,21 @@
 Package: rly
 Type: Package
 Title: 'Lex' and 'Yacc'
-Version: 1.5
-Date: 2018-03-26
+Version: 1.6.0
+Date: 2018-04-24
 Authors@R: c(person("Marek", "Jagielski",
                     role = c("aut", "cre", "cph"),
                     email = "marek.jagielski@gmail.com"),
              person("David M.", "Beazley",
                     role = c("aut", "cph")),
              person("Yasutaka", "Tanaka",
+                    role = c("ctb")),
+             person("Henrico", "Witvliet",
                     role = c("ctb")))
-Author: Marek Jagielski [aut, cre, cph], David M. Beazley [aut, cph], Yasutaka Tanaka [ctb]
+Author: Marek Jagielski [aut, cre, cph],
+    David M. Beazley [aut, cph],
+    Yasutaka Tanaka [ctb],
+    Henrico Witvliet [ctb]
 Maintainer: Marek Jagielski <marek.jagielski@gmail.com>
 Description: R implementation of the common parsing tools 'lex' and 'yacc'.
 License: MIT + file LICENSE

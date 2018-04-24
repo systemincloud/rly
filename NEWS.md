@@ -1,4 +1,10 @@
-### Changes in v1.5
+### Changes in v1.6.0
+
+#### NEW FEATURES
+
+  1. Dynamic regex in function. Issue #5.
+
+### Changes in v1.5.0
 
 #### NEW FEATURES
 

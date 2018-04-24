@@ -9,8 +9,13 @@ Authors@R: c(person("Marek", "Jagielski",
              person("David M.", "Beazley",
                     role = c("aut", "cph")),
              person("Yasutaka", "Tanaka",
+                    role = c("ctb")),
+             person("Henrico", "Witvliet",
                     role = c("ctb")))
-Author: Marek Jagielski [aut, cre, cph], David M. Beazley [aut, cph], Yasutaka Tanaka [ctb]
+Author: Marek Jagielski [aut, cre, cph],
+    David M. Beazley [aut, cph],
+    Yasutaka Tanaka [ctb],
+    Henrico Witvliet [ctb]
 Maintainer: Marek Jagielski <marek.jagielski@gmail.com>
 Description: ${project.description}
 License: MIT + file LICENSE
