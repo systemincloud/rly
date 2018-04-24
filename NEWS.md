@@ -1,3 +1,9 @@
+### Changes in v1.6.1
+
+#### BUG FIXES
+
+  1. Fix: no visible global function definition for 'is'
+
 ### Changes in v1.6.0
 
 #### NEW FEATURES

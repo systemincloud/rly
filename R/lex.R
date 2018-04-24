@@ -355,7 +355,7 @@ Lexer <- R6::R6Class("Lexer",
 # @return regex
 get_regex = function(func) {
   val <- formals(func)[['re']]
-  if (!is(val, 'character')) {
+  if (!(is.character(val) & length(val) == 1)) {
     val <- eval(val, parent.env(environment(func)))
   }
   return(val)
