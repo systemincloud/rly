@@ -503,8 +503,8 @@ LRParser <- R6::R6Class("LRParser",
             if(errtoken$type == '$end') errtoken <- NULL
             if(!is.null(self$errorfunc)) {
               if(!is.null(errtoken)) {
-                if(is.na(errtoken$lexer))  errtoken$lexer  <- lexer
-                if(is.na(errtoken$parser)) errtoken$parser <- self
+                if(identical(errtoken$lexer, NA))  errtoken$lexer  <- lexer
+                if(identical(errtoken$parser, NA)) errtoken$parser <- self
               }
 
               self$state <- state
