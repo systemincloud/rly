@@ -1,3 +1,9 @@
+### Changes in v1.6.2
+
+#### BUG FIXES
+
+  1.Warning for is.na Check During Error #8
+
 ### Changes in v1.6.1
 
 #### BUG FIXES

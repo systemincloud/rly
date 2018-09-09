@@ -1,6 +1,8 @@
 ^\.project$
 ^\.settings$
 ^\.gitignore$
+^\.idea$
+^rly.iml
 ^pom.xml$
 ^resources
 ^target$
