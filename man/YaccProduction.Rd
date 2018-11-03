@@ -19,4 +19,3 @@ for a symbol.  The lexspan() method returns a tuple (lexpos,endlexpos)
 representing the range of positional information for a symbol.
 }
 \keyword{datasets}
-

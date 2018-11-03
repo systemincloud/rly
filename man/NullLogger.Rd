@@ -16,4 +16,3 @@ debuglog <- NullLogger$new()
 debuglog$info('This will not print')
 }
 \keyword{datasets}
-

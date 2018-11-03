@@ -2,7 +2,7 @@ Package: rly
 Type: Package
 Title: 'Lex' and 'Yacc'
 Version: 1.6.2
-Date: 2018-09-09
+Date: 2018-11-03
 Authors@R: c(person("Marek", "Jagielski",
                     role = c("aut", "cre", "cph"),
                     email = "marek.jagielski@gmail.com"),

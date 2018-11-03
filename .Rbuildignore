@@ -1,6 +1,7 @@
 ^\.project$
 ^\.settings$
 ^\.gitignore$
+^\.travis.yml$
 ^\.idea$
 ^rly.iml
 ^pom.xml$

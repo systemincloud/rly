@@ -12,4 +12,3 @@ LRParser
 The LR Parsing engine
 }
 \keyword{data}
-

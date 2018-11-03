@@ -1,8 +1,14 @@
+### Changes in v1.6.3 [not yet released]
+
+#### NOTES
+
+  1. Documentation Request: How do I test the lexer #7
+
 ### Changes in v1.6.2
 
 #### BUG FIXES
 
-  1.Warning for is.na Check During Error #8
+  1. Warning for is.na Check During Error #8
 
 ### Changes in v1.6.1
 

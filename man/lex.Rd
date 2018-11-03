@@ -51,5 +51,11 @@ Lexer <- R6::R6Class("Lexer",
 )
 
 lexer  <- rly::lex(Lexer)
+lexer$input("5 + 3")
+print(lexer$token()$value)
+# [1] 5
+print(lexer$token()$value)
+# [1] "+"
+print(lexer$token()$value)
+# [1] 3
 }
-

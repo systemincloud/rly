@@ -716,6 +716,13 @@ LexerReflect <- R6::R6Class("LexerReflect",
 #' )
 #'
 #' lexer  <- rly::lex(Lexer)
+#' lexer$input("5 + 3")
+#' print(lexer$token()$value)
+#' # [1] 5
+#' print(lexer$token()$value)
+#' # [1] "+"
+#' print(lexer$token()$value)
+#' # [1] 3
 lex = function(module=NA,
                args=list(),
                debug=FALSE,

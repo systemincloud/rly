@@ -86,4 +86,3 @@ Parser <- R6::R6Class("Parser",
 
 parser <- rly::yacc(Parser)
 }
-
