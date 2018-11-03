@@ -12,4 +12,3 @@ LexToken
 Token class.  This class is used to represent the tokens produced
 }
 \keyword{datasets}
-

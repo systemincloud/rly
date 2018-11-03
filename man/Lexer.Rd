@@ -24,4 +24,3 @@ a few public methods and attributes:
 }
 }
 \keyword{datasets}
-
