@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/systemincloud/rly.svg?branch=master)](https://travis-ci.org/systemincloud/rly)
+
 Introduction
 ============
 
@@ -110,3 +112,4 @@ while(TRUE) {
   parser$parse(s, lexer)
 }
 ```
+
