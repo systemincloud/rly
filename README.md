@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/systemincloud/rly.svg?branch=master)](https://travis-ci.org/systemincloud/rly)
+[![](https://cranlogs.r-pkg.org/badges/rly)](https://cran.r-project.org/package=rly)
 
 Introduction
 ============
