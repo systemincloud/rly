@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/systemincloud/rly.svg?branch=master)](https://travis-ci.org/systemincloud/rly)
+[![CRAN\_Status\_Badge](https://www.r-pkg.org/badges/version/rly)](https://cran.r-project.org/package=rly)
 [![](https://cranlogs.r-pkg.org/badges/rly)](https://cran.r-project.org/package=rly)
 [![codecov](https://codecov.io/gh/systemincloud/rly/branch/master/graph/badge.svg)](https://codecov.io/gh/systemincloud/rly)
 
