@@ -2,7 +2,7 @@
 [![CRAN\_Status\_Badge](https://www.r-pkg.org/badges/version/rly)](https://cran.r-project.org/package=rly)
 [![](https://cranlogs.r-pkg.org/badges/rly)](https://cran.r-project.org/package=rly)
 [![codecov](https://codecov.io/gh/systemincloud/rly/branch/master/graph/badge.svg)](https://codecov.io/gh/systemincloud/rly)
-
+[![PayPal donation](https://img.shields.io/badge/donation-PayPal-red.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=UR288FRQUSYQE&item_name=rly+-+R+Lex+and+Yacc&currency_code=USD&source=url)
 
 Introduction
 ============
