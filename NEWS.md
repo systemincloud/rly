@@ -1,5 +1,9 @@
 ### Changes in v1.6.3 [not yet released]
 
+#### BUG FIXES
+
+  1. Fix: Fatal error: length > 1 in coercion to logical
+
 #### NOTES
 
   1. Documentation Request: How do I test the lexer #7
