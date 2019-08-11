@@ -21,7 +21,10 @@ Description: R implementation of the common parsing tools 'lex' and 'yacc'.
 License: MIT + file LICENSE
 URL: https://github.com/systemincloud/rly
 BugReports: https://github.com/systemincloud/rly/issues
-Suggests: testthat
+Suggests: 
+    testthat,
+    knitr,
+    rmarkdown
 Encoding: UTF-8
 Depends:
     R (>= 3.3.0)
@@ -33,3 +36,5 @@ Collate:
     'logger.R'
     'lex.R'
     'yacc.R'
+    'rly-package.R'
+VignetteBuilder: knitr
