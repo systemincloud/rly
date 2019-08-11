@@ -28,9 +28,9 @@ take the tokens `lex` provides and process them contextually.
 
 Together, you can use them to:
 
-  - define what tokens a given language will accept
-  - define what R code should be executed as a language file (e.g. a
-    program) is parsed.
+  - define what tokens a given language/input stream will accept
+  - define what R code should be executed as a language file/input
+    stream (e.g. a program) is parsed.
 
 This project is a R clone of [Ply](https://github.com/dabeaz/ply).
 
