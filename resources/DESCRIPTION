@@ -21,14 +21,20 @@ Description: ${project.description}
 License: MIT + file LICENSE
 URL: ${project.url}
 BugReports: ${project.issueManagement.url}
-Suggests: testthat
+Suggests:
+    testthat,
+    knitr,
+    rmarkdown
+Encoding: UTF-8
 Depends:
     R (>= 3.3.0)
 Imports:
     R6,
     futile.logger
-RoxygenNote: 5.0.1
+RoxygenNote: 6.1.1
 Collate:
     'logger.R'
     'lex.R'
     'yacc.R'
+    'rly-package.R'
+VignetteBuilder: knitr

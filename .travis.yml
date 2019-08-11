@@ -1,6 +1,8 @@
 language: r
 
 r_packages:
+  - knitr
+  - rmarkdown
   - covr
 
 cache: packages
