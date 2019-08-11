@@ -56,7 +56,7 @@ The `inst/examples` directory contains several different examples.
 
 We can build a “lexer” to pull out URLs from text input. Sure, we could
 just use `stringi::stri_match_all_regex()` for this particular example,
-but the intent it to work with a known, straightforward domain to see
+but the intent is to work with a known, straightforward domain to see
 how “lexing” works:
 
 ``` r
