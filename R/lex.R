@@ -489,7 +489,7 @@ LexerReflect <- R6::R6Class("LexerReflect",
     # Validate literals
     validate_literals = function() {
       for(l in self$literals) {
-        if(!is.character(l) || nchar(l) > 1) {
+        if(!is.character(l) | nchar(l) > 1) {
           self$log$error('Invalid literal. Must be a single character')
           self$error <- TRUE
         }
