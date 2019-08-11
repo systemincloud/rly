@@ -1,68 +1,32 @@
+---
+title: "Intro to {rly}"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Intro to {rly}}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
 
-<!-- README.md is generated from README.Rmd. Please edit that file -->
-
-[![Build
-Status](https://travis-ci.org/systemincloud/rly.svg?branch=master)](https://travis-ci.org/systemincloud/rly)
-[![CRAN\_Status\_Badge](https://www.r-pkg.org/badges/version/rly)](https://cran.r-project.org/package=rly)
-[![](https://cranlogs.r-pkg.org/badges/rly)](https://cran.r-project.org/package=rly)
-[![codecov](https://codecov.io/gh/systemincloud/rly/branch/master/graph/badge.svg)](https://codecov.io/gh/systemincloud/rly)
-[![PayPal
-donation](https://img.shields.io/badge/donation-PayPal-red.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=UR288FRQUSYQE&item_name=rly+-+R+Lex+and+Yacc&currency_code=USD&source=url)
-
-# rly
-
-Tools to Create Formal Language Parsers
-
-## Introduction
-
-{rly} is a 100% R implementation of the common parsing tools [`lex` and
-`yacc`](http://dinosaur.compilertools.net/).
-
-`lex` is a “lexical analyzer generator”. It’s core functionality is to
-split up an input stream into more usable elements. You can think of it
-as a tools to help identify the interesting components in a text file,
-such as `->` or `%>%` in an R script.
-
-`yacc` is “yet another compiler-compiler” and the main task for it is to
-take the tokens `lex` provides and process them contextually.
-
-Together, you can use them to:
-
-  - define what tokens a given language/input stream will accept
-  - define what R code should be executed as a language file/input
-    stream (e.g. a program) is parsed.
-
-This project is a R clone of [Ply](https://github.com/dabeaz/ply).
-
-## Installation
-
-``` r
-devtools::install_github("systemincloud/rly")
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
 ```
 
-## Usage
-
-{rly} consists of two files : `lex.R` and `yacc.R`. There’s quite a bit
-“going on” in those two files and they may be helpful examples of how
-to structure {R6} classes.
-
-``` r
+```{r setup}
 library(rly)
 ```
 
-## Examples
+{rly} consists of two files : `lex.R` and `yacc.R`. There's quite a bit "going on" in those two files and they may be helpful examples of how to structure {R6} classes.
 
-The `inst/examples` directory contains several different examples. Here
-are some more.
+The `inst/examples` directory contains several different examples. Here are some more.
 
 ### Finding Tokens
 
-We can build a “lexer” to pull out URLs from text input. Sure, we could
-just use `stringi::stri_match_all_regex()` for this particular example,
-but the intent is to work with a known, straightforward domain to see
-how “lexing” works:
+We can build a "lexer" to pull out URLs from text input. Sure, we could just use `stringi::stri_match_all_regex()` for this particular example, but the intent is to work with a known, straightforward domain to see how "lexing" works:
 
-``` r
+```{r url-lex-01}
 # Define what tokens we accept. In this case, just URLs
 
 TOKENS <- c("URL")
@@ -169,42 +133,19 @@ repeat {
   )
   
 }
-#> Found URL: http://google.com
-#> Found URL: https://rstudio.org/
-#> Found URL: https://rud.is/b
-#> Found URL: https://r-project.org/
-#> Found URL: https://one.more.url/with/some/extra/bits.html
 
 invalid <- do.call(rbind.data.frame, invalid)
 
 nrow(invalid) # number of errors
-#> [1] 32
 
 head(invalid, 10) # it'll be clear we never told it abt whitespace
-#>    bad_thing stream_pos line
-#> 1                    19    2
-#> 2                    20    2
-#> 3                    21    2
-#> 4                    22    2
-#> 5                    23    2
-#> 6          N         45    3
-#> 7          o         46    3
-#> 8          t         47    3
-#> 9                    48    3
-#> 10         a         49    3
 
 found_urls # the good stuff
-#> [1] "http://google.com"                             
-#> [2] "https://rstudio.org/"                          
-#> [3] "https://rud.is/b"                              
-#> [4] "https://r-project.org/"                        
-#> [5] "https://one.more.url/with/some/extra/bits.html"
 ```
 
-We can extend this to do things with different types of URIs (not
-necessarily “http”-ish URLs)
+We can extend this to do things with different types of URIs (not necessarily "http"-ish URLs)
 
-``` r
+```{r url-lex-02}
 # we'll define different token types for HTTP URLs, HTTPS URLs and
 # MAILTO URLs
 
@@ -281,36 +222,27 @@ repeat {
   )
   
 }
-#> Found HTTP URL: http://google.com
-#> Found HTTPS URL: https://rstudio.org/
-#> Found HTTPS URL: https://rud.is/b
-#> Found MAILTO URL: mailto:fred@example.com?subject=Hello
-#> Found HTTPS URL: https://r-project.org/
-#> Found MAILTO URL: mailto:steve@example.com
-#> Found HTTPS URL: https://one.more.url/with/some/extra/bits.html
 
 http_urls
-#> [1] "http://google.com"
 
 https_urls
-#> [1] "https://rstudio.org/"                          
-#> [2] "https://rud.is/b"                              
-#> [3] "https://r-project.org/"                        
-#> [4] "https://one.more.url/with/some/extra/bits.html"
 
 mailto_urls
-#> [1] "mailto:fred@example.com?subject=Hello"
-#> [2] "mailto:steve@example.com"
 ```
 
 ### Calculator Example
 
-Here is an example showing a {rly} implementation of a calculator with
-variables.
+Here is an example showing a {rly} implementation of a calculator with variables.
 
-Let’s bootstrap our tokenizer/lexer:
+```{r echo=FALSE}
+Sys.setenv("__R_CHECK_LENGTH_1_CONDITION_"=FALSE)
+Sys.setenv("__R_CHECK_LENGTH_1_LOGIC2_"=FALSE)
 
-``` r
+```
+
+Let's bootstrap our tokenizer/lexer:
+
+```{r eval=TRUE}
 TOKENS = c('NAME', 'NUMBER')
 LITERALS = c('=', '+', '-', '*', '/', '(', ')') # these are "LEXEMES" (ref: https://stackoverflow.com/questions/14954721/what-is-the-difference-between-a-token-and-a-lexeme)
 
@@ -348,11 +280,9 @@ Lexer <- R6::R6Class(
 )
 ```
 
-Now, we write our expression parser. Note that we use `TOKENS` and
-`LITERALS` from the lexer we just wrote so the parser has some context
-for what gets passed to it as the tokeneizer emits bits to it:
+Now, we write our expression parser. Note that we use `TOKENS` and `LITERALS` from the lexer we just wrote so the parser has some context for what gets passed to it as the tokeneizer emits bits to it:
 
-``` r
+```{r eval=TRUE}
 Parser <- R6::R6Class(
   
   classname = "Parser",
@@ -434,35 +364,21 @@ parser <- yacc(Parser)
 
 # these will each end with `NULL` as that's how the `parser` signals it's done
 parser$parse("3", lexer)
-#> 3
-#> NULL
 
 parser$parse("3 + 5", lexer)
-#> 8
-#> NULL
 
 parser$parse("3 + 5 * 10 - 100", lexer)
-#> -47
-#> NULL
 
 parser$parse("A + B * C - D", lexer) # valid lexical syntax but no data to work on; in a real calculator this wld error out
-#> NULL
 
 parser$parse("A + B * C - D = E", lexer) # invalid lexical syntax 
-#> Syntax error at '='
-#> NULL
 
 parser$parse("A = 1 + 2", lexer) # valid syntax, still no output b/c we just did assignment
-#> NULL
 parser$parse("A", lexer) 
-#> 3
-#> NULL
 
 invisible(parser$parse("B = 5", lexer)) # using invisible() only to suppress useless NULLs
 invisible(parser$parse("C = 10", lexer))
 invisible(parser$parse("D = 100", lexer))
 
 parser$parse("A + B * C - D", lexer) 
-#> -47
-#> NULL
 ```

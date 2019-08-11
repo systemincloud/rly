@@ -9,3 +9,4 @@ src/*.dll
 **/parser.out
 .idea
 rly.iml
+inst/doc
