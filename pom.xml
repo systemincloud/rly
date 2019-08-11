@@ -6,18 +6,16 @@
   <artifactId>rly</artifactId>
   <version>1.6.2</version>
   <packaging>pom</packaging>
-  <name>'Lex' and 'Yacc'</name>
+  <name>Tools to Create Formal Language Parsers</name>
   
   <description>R implementation of the common parsing tools 'lex' and 'yacc'.</description>
   <url>https://github.com/systemincloud/rly</url>
-
-  <organization>
-    <name>System in Cloud</name>
-    <url>http://systemincloud.com/</url>
-  </organization>
   
   <developers>
-    <developer><name>Marek Jagielski</name><email>marek.jagielski@gmail.com</email></developer>
+    <developer>
+      <name>Marek Jagielski</name>
+      <email>marek.jagielski@gmail.com</email>
+    </developer>
   </developers>
   
   <issueManagement>
@@ -44,61 +42,105 @@
             </configuration>  
           </execution>  
         </executions>  
-      </plugin>  
-      <plugin><groupId>org.codehaus.mojo</groupId><artifactId>exec-maven-plugin</artifactId><version>1.4.0</version>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.4.0</version>
         <configuration>
           <executable>R</executable>
           <workingDirectory>${basedir}/..</workingDirectory>
         </configuration>
         <executions>
-          <execution><id>build</id><phase>prepare-package</phase>
-            <goals><goal>exec</goal></goals>
+          <execution>
+            <id>build</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
             <configuration>
-              <arguments><argument>CMD</argument><argument>build</argument><argument>${project.artifactId}</argument></arguments>
+              <arguments>
+                <argument>CMD</argument>
+                <argument>build</argument>
+                <argument>${project.artifactId}</argument>
+              </arguments>
             </configuration>
           </execution>
-          <execution><id>check</id><phase>verify</phase>
-            <goals><goal>exec</goal></goals>
+          <execution>
+            <id>check</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
             <configuration>
-              <arguments><argument>CMD</argument><argument>check</argument><argument>--as-cran</argument><argument>${project.basedir}/target/${project.artifactId}_${project.version}.tar.gz</argument><argument>--output=${basedir}/target</argument></arguments>
+              <arguments>
+                <argument>CMD</argument>
+                <argument>check</argument>
+                <argument>--as-cran</argument>
+                <argument>${project.basedir}/target/${project.artifactId}_${project.version}.tar.gz</argument>
+                <argument>--output=${basedir}/target</argument>
+              </arguments>
             </configuration>
           </execution>
-          <execution><id>install</id><phase>install</phase>
-            <goals><goal>exec</goal></goals>
+          <execution>
+            <id>install</id>
+            <phase>install</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
             <configuration>
-              <arguments><argument>CMD</argument><argument>INSTALL</argument><argument>${project.artifactId}</argument>
-                                                                             <argument>--with-keep.source</argument>
-                                                                             <argument>--no-multiarch</argument></arguments>
+              <arguments>
+                <argument>CMD</argument>
+                <argument>INSTALL</argument>
+                <argument>${project.artifactId}</argument>
+                <argument>--with-keep.source</argument>
+                <argument>--no-multiarch</argument>
+              </arguments>
             </configuration>
           </execution>
         </executions>
       </plugin>
       <plugin>
-        <artifactId>maven-antrun-plugin</artifactId><version>1.8</version>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.8</version>
         <executions>
-          <execution><id>package</id><phase>package</phase>
+          <execution>
+            <id>package</id>
+            <phase>package</phase>
             <configuration>
               <target>
                 <move file="${project.basedir}/../${project.artifactId}_${project.version}.tar.gz" todir="${project.basedir}/target"/>
               </target>
             </configuration>
-            <goals><goal>run</goal></goals>
+            <goals>
+              <goal>run</goal>
+            </goals>
           </execution>
-		</executions>
+        </executions>
       </plugin>
-	  <plugin><groupId>org.codehaus.mojo</groupId><artifactId>build-helper-maven-plugin</artifactId><version>1.10</version>
-	      <extensions>true</extensions>
-	      <executions>
-	        <execution><id>attach-artifacts</id><phase>package</phase>
-	          <goals><goal>attach-artifact</goal></goals>
-	          <configuration>
-	            <artifacts>
-	              <artifact><file>target/${project.artifactId}_${project.version}.tar.gz</file><type>tar.gz</type></artifact>
-	            </artifacts>
-	          </configuration>
-	        </execution>
-	      </executions>
-	    </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.10</version>
+        <extensions>true</extensions>
+        <executions>
+          <execution>
+            <id>attach-artifacts</id>
+            <phase>package</phase>
+            <goals>
+              <goal>attach-artifact</goal>
+            </goals>
+            <configuration>
+              <artifacts>
+                <artifact>
+                  <file>target/${project.artifactId}_${project.version}.tar.gz</file>
+                  <type>tar.gz</type>
+                </artifact>
+              </artifacts>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 </project>
