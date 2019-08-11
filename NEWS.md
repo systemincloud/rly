@@ -1,4 +1,4 @@
-### Changes in v1.6.3 [not yet released]
+### Changes in v1.7.0 [not yet released]
 
 #### BUG FIXES
 
@@ -7,6 +7,8 @@
 #### NOTES
 
   1. Documentation Request: How do I test the lexer #7
+
+  2. Updated README.md, add pkg doc; add vignette  pr #13
 
 ### Changes in v1.6.2
 
