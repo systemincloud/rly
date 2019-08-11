@@ -52,7 +52,7 @@ library(rly)
 
 ## Examples
 
-The `inst/examples` directory contains several different examples. Here
+The `demo` directory contains several different examples. Here
 are some more.
 
 ### Finding Tokens
