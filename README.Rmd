@@ -1,13 +1,24 @@
+---
+output: github_document
+editor_options: 
+  chunk_output_type: console
+---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-[![Build
-Status](https://travis-ci.org/systemincloud/rly.svg?branch=master)](https://travis-ci.org/systemincloud/rly)
+```{r, echo = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-"
+)
+```
+
+[![Build Status](https://travis-ci.org/systemincloud/rly.svg?branch=master)](https://travis-ci.org/systemincloud/rly)
 [![CRAN\_Status\_Badge](https://www.r-pkg.org/badges/version/rly)](https://cran.r-project.org/package=rly)
 [![](https://cranlogs.r-pkg.org/badges/rly)](https://cran.r-project.org/package=rly)
 [![codecov](https://codecov.io/gh/systemincloud/rly/branch/master/graph/badge.svg)](https://codecov.io/gh/systemincloud/rly)
-[![PayPal
-donation](https://img.shields.io/badge/donation-PayPal-red.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=UR288FRQUSYQE&item_name=rly+-+R+Lex+and+Yacc&currency_code=USD&source=url)
+[![PayPal donation](https://img.shields.io/badge/donation-PayPal-red.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=UR288FRQUSYQE&item_name=rly+-+R+Lex+and+Yacc&currency_code=USD&source=url)
 
 # rly
 
@@ -15,28 +26,22 @@ Tools to Create Formal Language Parsers
 
 ## Introduction
 
-{rly} is a 100% R implementation of the common parsing tools [`lex` and
-`yacc`](http://dinosaur.compilertools.net/).
+{rly} is a 100% R implementation of the common parsing tools [`lex` and `yacc`](http://dinosaur.compilertools.net/).
 
-`lex` is a “lexical analyzer generator”. It’s core functionality is to
-split up an input stream into more usable elements. You can think of it
-as a tools to help identify the interesting components in a text file,
-such as `->` or `%>%` in an R script.
+`lex` is a "lexical analyzer generator". It's core functionality is to split up an input stream into more usable elements. You can think of it as a tools to help identify the interesting components in a text file, such as `->` or `%>%` in an R script.
 
-`yacc` is “yet another compiler-compiler” and the main task for it is to
-take the tokens `lex` provides and process them contextually.
+`yacc` is "yet another compiler-compiler" and the main task for it is to take the tokens `lex` provides and process them contextually.
 
 Together, you can use them to:
 
-  - define what tokens a given language/input stream will accept
-  - define what R code should be executed as a language file/input
-    stream (e.g. a program) is parsed.
+- define what tokens a given language/input stream will accept
+- define what R code should be executed as a language file/input stream (e.g. a program) is parsed.
 
 This project is a R clone of [Ply](https://github.com/dabeaz/ply).
 
 ## Installation
 
-``` r
+```{r eval=FALSE}
 devtools::install_github("systemincloud/rly")
 ```
 
@@ -44,7 +49,7 @@ devtools::install_github("systemincloud/rly")
 
 {rly} consists of two files : `lex.R` and `yacc.R`.
 
-``` r
+```{r eval=FALSE}
 library(rly)
 ```
 
@@ -54,12 +59,9 @@ The `inst/examples` directory contains several different examples.
 
 ### Finding Tokens
 
-We can build a “lexer” to pull out URLs from text input. Sure, we could
-just use `stringi::stri_match_all_regex()` for this particular example,
-but the intent is to work with a known, straightforward domain to see
-how “lexing” works:
+We can build a "lexer" to pull out URLs from text input. Sure, we could just use `stringi::stri_match_all_regex()` for this particular example, but the intent is to work with a known, straightforward domain to see how "lexing" works:
 
-``` r
+```{r url-lex-01}
 # Define what tokens we accept. In this case, just URLs
 
 TOKENS <- c("URL")
@@ -155,29 +157,17 @@ repeat {
   )
   
 }
-#> Found URL: http://google.com
-#> Found URL: https://rstudio.org/
-#> Found URL: https://rud.is/b
-#> Found URL: https://r-project.org/
-#> Found URL: https://one.more.url/with/some/extra/bits.html
 
 invalid_ct
-#> [1] 32
 
 found_urls
-#> [1] "http://google.com"                             
-#> [2] "https://rstudio.org/"                          
-#> [3] "https://rud.is/b"                              
-#> [4] "https://r-project.org/"                        
-#> [5] "https://one.more.url/with/some/extra/bits.html"
 ```
 
 ### Calculator Example
 
-Here is an example showing a {rly} implementation of a calculator with
-variables.
+Here is an example showing a {rly} implementation of a calculator with variables.
 
-``` r
+```{r eval=FALSE}
 library(rly)
 
 TOKENS = c('NAME', 'NUMBER')
@@ -260,3 +250,4 @@ while(TRUE) {
   parser$parse(s, lexer)
 }
 ```
+

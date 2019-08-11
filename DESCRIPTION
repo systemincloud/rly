@@ -1,6 +1,6 @@
 Package: rly
 Type: Package
-Title: 'Lex' and 'Yacc'
+Title: Tools to Create Formal Language Parsers
 Version: 1.6.2
 Date: 2018-11-03
 Authors@R: c(person("Marek", "Jagielski",
@@ -22,12 +22,13 @@ License: MIT + file LICENSE
 URL: https://github.com/systemincloud/rly
 BugReports: https://github.com/systemincloud/rly/issues
 Suggests: testthat
+Encoding: UTF-8
 Depends:
     R (>= 3.3.0)
 Imports:
     R6,
     futile.logger
-RoxygenNote: 5.0.1
+RoxygenNote: 6.1.1
 Collate:
     'logger.R'
     'lex.R'
