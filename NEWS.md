@@ -1,4 +1,6 @@
-### Changes in v1.7.0 [not yet released]
+### Changes in [not yet released]
+
+### Changes in v1.7.0
 
 #### BUG FIXES
 

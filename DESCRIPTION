@@ -1,8 +1,8 @@
 Package: rly
 Type: Package
 Title: Tools to Create Formal Language Parsers
-Version: 1.6.2
-Date: 2018-11-03
+Version: 1.7.0
+Date: 2022-04-11
 Authors@R: c(person("Marek", "Jagielski",
                     role = c("aut", "cre", "cph"),
                     email = "marek.jagielski@gmail.com"),
@@ -21,7 +21,7 @@ Description: R implementation of the common parsing tools 'lex' and 'yacc'.
 License: MIT + file LICENSE
 URL: https://github.com/systemincloud/rly
 BugReports: https://github.com/systemincloud/rly/issues
-Suggests: 
+Suggests:
     testthat,
     knitr,
     rmarkdown
