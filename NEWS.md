@@ -1,5 +1,11 @@
 ### Changes in [not yet released]
 
+### Changes in v1.7.1
+
+#### BUG FIXES
+
+  1. Fix: Fatal error: length > 1 in coercion to logical
+
 ### Changes in v1.7.0
 
 #### BUG FIXES
