@@ -1,5 +1,11 @@
 ### Changes in [not yet released]
 
+### Changes in v1.7.2
+
+#### NOTES
+
+  1. Remove notes from check
+
 ### Changes in v1.7.1
 
 #### BUG FIXES
