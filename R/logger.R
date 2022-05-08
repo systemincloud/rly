@@ -74,6 +74,8 @@
 #' @examples
 #' debuglog <- rly::RlyLogger$new(".", "file.out")
 #' debuglog$info('This is info message')
+#'
+#' file.remove("file.out")
 RlyLogger <- R6::R6Class("RlyLogger",
     public = list(
         name = NA,

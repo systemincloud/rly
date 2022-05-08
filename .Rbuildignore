@@ -7,7 +7,6 @@
 ^pom.xml$
 ^resources
 ^target$
-^file.out$
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^README.md$
