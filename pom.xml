@@ -4,9 +4,9 @@
 
   <groupId>rly</groupId>
   <artifactId>rly</artifactId>
-  <version>1.7.2</version>
+  <version>1.7.3</version>
   <packaging>pom</packaging>
-  <name>Tools to Create Formal Language Parsers</name>
+  <name>Tools to Create Formal Language Parser</name>
   
   <description>R implementation of the common parsing tools 'lex' and 'yacc'.</description>
   <url>https://github.com/systemincloud/rly</url>

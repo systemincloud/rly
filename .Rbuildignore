@@ -7,7 +7,7 @@
 ^pom.xml$
 ^resources
 ^target$
-^target/rly\.Rcheck/file.out
+^file.out$
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^README.md$
