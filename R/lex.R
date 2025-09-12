@@ -66,7 +66,7 @@ reg_is_identifier = '^[a-zA-Z0-9_]+$'
 #'
 #' @docType class
 #' @importFrom R6 R6Class
-#' @format An \code{\link{R6Class}} generator object
+#' @format An \code{\link[R6]{R6Class}} generator object
 #'
 #' @export
 LexToken <- R6::R6Class("LexToken",
@@ -106,7 +106,7 @@ LexToken <- R6::R6Class("LexToken",
 #'
 #' @docType class
 #' @importFrom R6 R6Class
-#' @format An \code{\link{R6Class}} generator object
+#' @format An \code{\link[R6]{R6Class}} generator object
 Lexer <- R6::R6Class("Lexer",
   public = list(
     instance        = NA,
@@ -401,7 +401,7 @@ statetoken = function(s, names) {
 #
 # @docType class
 # @importFrom R6 R6Class
-# @format An \code{\link{R6Class}} generator object
+# @format An \code{\link[R6]{R6Class}} generator object
 LexerReflect <- R6::R6Class("LexerReflect",
   public = list(
     module    = NA,

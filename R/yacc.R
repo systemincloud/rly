@@ -124,7 +124,7 @@ format_stack_entry <- function(r) {
 #
 # @docType class
 # @importFrom R6 R6Class
-# @format An \code{\link{R6Class}} generator object
+# @format An \code{\link[R6]{R6Class}} generator object
 YaccSymbol <- R6::R6Class("YaccSymbol",
   public = list(
     type      = NA,
@@ -153,7 +153,7 @@ YaccSymbol <- R6::R6Class("YaccSymbol",
 #'
 #' @docType class
 #' @importFrom R6 R6Class
-#' @format An \code{\link{R6Class}} generator object
+#' @format An \code{\link[R6]{R6Class}} generator object
 YaccProduction <- R6::R6Class("YaccProduction",
   public = list(
     slice = NA,
@@ -225,7 +225,7 @@ YaccProduction <- R6::R6Class("YaccProduction",
 #'
 #' @docType class
 #' @importFrom R6 R6Class
-#' @format An \code{\link{R6Class}} generator object
+#' @format An \code{\link[R6]{R6Class}} generator object
 #' @keywords data
 LRParser <- R6::R6Class("LRParser",
   public = list(
@@ -646,7 +646,7 @@ is_identifier <- '^[a-zA-Z0-9_-]+$'
 #
 # @docType class
 # @importFrom R6 R6Class
-# @format An \code{\link{R6Class}} generator object
+# @format An \code{\link[R6]{R6Class}} generator object
 # @keywords data
 Production <- R6::R6Class("Production",
   public = list(
@@ -728,7 +728,7 @@ Production <- R6::R6Class("Production",
 #
 # @docType class
 # @importFrom R6 R6Class
-# @format An \code{\link{R6Class}} generator object
+# @format An \code{\link[R6]{R6Class}} generator object
 # @keywords data
 LRItem <- R6::R6Class("LRItem",
   public = list(
@@ -789,7 +789,7 @@ rightmost_terminal = function(symbols, terminals) {
 #
 # @docType class
 # @importFrom R6 R6Class
-# @format An \code{\link{R6Class}} generator object
+# @format An \code{\link[R6]{R6Class}} generator object
 Grammar <- R6::R6Class("Grammar",
   public = list(
     Productions    = NA,
@@ -1299,7 +1299,7 @@ Grammar <- R6::R6Class("Grammar",
 #
 # @docType class
 # @importFrom R6 R6Class
-# @format An \code{\link{R6Class}} generator object
+# @format An \code{\link[R6]{R6Class}} generator object
 # @keywords data
 LRGeneratedTable <- R6::R6Class("LRGeneratedTable",
   public = list(
@@ -2159,7 +2159,7 @@ parse_grammar = function(name, doc) {
 #
 # @docType class
 # @importFrom R6 R6Class
-# @format An \code{\link{R6Class}} generator object
+# @format An \code{\link[R6]{R6Class}} generator object
 ParserReflect <- R6::R6Class("ParserReflect",
   public = list(
     module     = NA,

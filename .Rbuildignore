@@ -12,3 +12,6 @@
 ^README.md$
 ^README.Rmd$
 ^NEWS.md$
+^\.mvn$
+^mvnw$
+^mvnw\.cmd$
