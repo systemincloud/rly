@@ -1,5 +1,12 @@
 ### Changes in [not yet released]
 
+### Changes in v1.7.6
+
+#### NOTES
+
+  1. Revert maintainer email to previous one.
+
+
 ### Changes in v1.7.5
 
 #### NOTES

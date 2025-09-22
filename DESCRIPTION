@@ -1,11 +1,11 @@
 Package: rly
 Type: Package
 Title: Tools to Create Formal Language Parser
-Version: 1.7.5
-Date: 2025-09-12
+Version: 1.7.6
+Date: 2025-09-22
 Authors@R: c(person("Marek", "Jagielski",
                     role = c("aut", "cre", "cph"),
-                    email = "marek.jagielski@pm.me"),
+                    email = "marek.jagielski@gmail.com"),
              person("David M.", "Beazley",
                     role = c("aut", "cph")),
              person("Yasutaka", "Tanaka",
@@ -16,7 +16,7 @@ Author: Marek Jagielski [aut, cre, cph],
     David M. Beazley [aut, cph],
     Yasutaka Tanaka [ctb],
     Henrico Witvliet [ctb]
-Maintainer: Marek Jagielski <marek.jagielski@pm.me>
+Maintainer: Marek Jagielski <marek.jagielski@gmail.com>
 Description: R implementation of the common parsing tools 'lex' and 'yacc'.
 License: MIT + file LICENSE
 URL: https://github.com/systemincloud/rly
