@@ -4,7 +4,7 @@
 \name{NullLogger}
 \alias{NullLogger}
 \title{Null logger is used when no output should be generated.}
-\format{A \code{\link{R6Class}} object}
+\format{A \code{\link[R6]{R6Class}} object}
 \usage{
 NullLogger
 }

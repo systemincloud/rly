@@ -4,7 +4,7 @@
 \name{LRParser}
 \alias{LRParser}
 \title{The LR Parsing engine}
-\format{An \code{\link{R6Class}} generator object}
+\format{An \code{\link[R6]{R6Class}} generator object}
 \usage{
 LRParser
 }

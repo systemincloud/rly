@@ -4,7 +4,7 @@
 \name{YaccProduction}
 \alias{YaccProduction}
 \title{Object sent to grammar rule}
-\format{An \code{\link{R6Class}} generator object}
+\format{An \code{\link[R6]{R6Class}} generator object}
 \usage{
 YaccProduction
 }

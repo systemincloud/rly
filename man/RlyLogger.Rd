@@ -4,7 +4,7 @@
 \name{RlyLogger}
 \alias{RlyLogger}
 \title{Print log message to file or console.}
-\format{A \code{\link{R6Class}} object}
+\format{A \code{\link[R6]{R6Class}} object}
 \usage{
 RlyLogger
 }

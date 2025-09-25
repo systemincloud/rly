@@ -1,15 +1,21 @@
 ### Changes in [not yet released]
 
+### Changes in v1.7.7
+
+#### BUG FIXES
+
+  1. Fix CRAN notes: Add package anchors for R6Class cross-references in documentation
+
+
 ### Changes in v1.7.6
 
 #### NOTES
 
   1. Revert maintainer email to previous one.
 
-
 ### Changes in v1.7.5
 
-#### NOTES
+#### BUG FIXES
 
   1. Fix CRAN notes: Add package anchors for R6Class cross-references in documentation
 

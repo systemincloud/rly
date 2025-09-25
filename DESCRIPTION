@@ -2,7 +2,7 @@ Package: rly
 Type: Package
 Title: Tools to Create Formal Language Parser
 Version: 1.7.6
-Date: 2025-09-22
+Date: 2025-09-25
 Authors@R: c(person("Marek", "Jagielski",
                     role = c("aut", "cre", "cph"),
                     email = "marek.jagielski@gmail.com"),

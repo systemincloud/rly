@@ -4,7 +4,7 @@
 \name{LexToken}
 \alias{LexToken}
 \title{Lex Token}
-\format{An \code{\link{R6Class}} generator object}
+\format{An \code{\link[R6]{R6Class}} generator object}
 \usage{
 LexToken
 }
