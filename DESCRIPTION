@@ -1,8 +1,8 @@
 Package: rly
 Type: Package
 Title: Tools to Create Formal Language Parser
-Version: 1.7.7
-Date: 2025-09-25
+Version: 1.7.8
+Date: 2026-01-14
 Authors@R: c(person("Marek", "Jagielski",
                     role = c("aut", "cre", "cph"),
                     email = "marek.jagielski@gmail.com"),
@@ -29,8 +29,7 @@ Encoding: UTF-8
 Depends:
     R (>= 3.3.0)
 Imports:
-    R6,
-    futile.logger
+    R6
 RoxygenNote: 6.1.1
 Collate:
     'logger.R'

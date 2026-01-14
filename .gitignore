@@ -8,5 +8,7 @@ src/*.so
 src/*.dll
 **/parser.out
 .idea
+.vscode
+.claude
 rly.iml
 inst/doc

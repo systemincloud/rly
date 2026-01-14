@@ -15,3 +15,5 @@
 ^\.mvn$
 ^mvnw$
 ^mvnw\.cmd$
+^\.claude$
+^\.vscode$

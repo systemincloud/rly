@@ -1,4 +1,8 @@
-### Changes in [not yet released]
+### Changes in v1.7.8
+
+#### NOTES
+
+  1. Remove futile.logger dependency (scheduled for CRAN archival). Replace with native cat() logging.
 
 ### Changes in v1.7.7
 

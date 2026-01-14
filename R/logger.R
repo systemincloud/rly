@@ -61,12 +61,9 @@
 #' such as the parser.out file. If a user wants more detailed
 #' information, they can create their own logging object and pass
 #' it into RLY.
-#' '
+#'
 #' @docType class
 #' @importFrom R6 R6Class
-#' @importFrom futile.logger flog.error flog.warn flog.info flog.debug
-#' @importFrom futile.logger flog.appender
-#' @importFrom futile.logger appender.console appender.file
 #' @format A \code{\link[R6]{R6Class}} object
 #'
 #' @export
@@ -78,16 +75,21 @@
 #' file.remove("file.out")
 RlyLogger <- R6::R6Class("RlyLogger",
     public = list(
-        name = NA,
+        name = "rly",
+        file = NA,
         initialize = function(dir=NA, name=NA) {
-          self$name <- randomString(4)
-          if(is.na(name)) futile.logger::flog.appender(appender.console(), name=self$name)
-          else            futile.logger::flog.appender(appender.file(name), name=self$name)
+          if(!is.na(name)) self$file <- name
         },
-        error = function(msg) { flog.error(msg, name=self$name) },
-        warn  = function(msg) { flog.warn(msg, name=self$name) },
-        info  = function(msg) { flog.info(msg, name=self$name) },
-        debug = function(msg) { flog.debug(msg, name=self$name) }
+        log = function(level, msg) {
+          timestamp <- format(Sys.time(), "%Y-%m-%d %H:%M:%S")
+          line <- sprintf("%s [%s] %s\n", level, timestamp, msg)
+          if(is.na(self$file)) cat(line)
+          else cat(line, file=self$file, append=TRUE)
+        },
+        error = function(msg) { self$log("ERROR", msg) },
+        warn  = function(msg) { self$log("WARN", msg) },
+        info  = function(msg) { self$log("INFO", msg) },
+        debug = function(msg) { self$log("DEBUG", msg) }
     )
 )
 

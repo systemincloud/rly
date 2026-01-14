@@ -29,8 +29,7 @@ Encoding: UTF-8
 Depends:
     R (>= 3.3.0)
 Imports:
-    R6,
-    futile.logger
+    R6
 RoxygenNote: 6.1.1
 Collate:
     'logger.R'
